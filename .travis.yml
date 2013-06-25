@@ -13,5 +13,5 @@ before_script:
   - export XBUILD_FRAMEWORK_FOLDERS_PATH=`pwd`/.ci/xbuild-frameworks  
   - .ci/install_portable_refs.sh 
 script:
-  - xbuild /v:detailed
+  - xbuild
   - mono --runtime=v4.0.30319 WhoTestsTheTesters/RoughRunner/bin/Debug/RoughRunner.exe
