@@ -1,13 +1,16 @@
 language: objective-c
 
+env:
+  - EnableNuGetPackageRestore=true  
+  - XBUILD_FRAMEWORK_FOLDERS_PATH=$(TRAVIS_BUILD_DIR)/.ci/xbuild-frameworks
+  - secure: "m+Kz51SNkKIpEFdmRZ4Zxgpow7R2gWVz3M9u0iinZTam0KV0ju9TvcnLF4ny\nSTLYKD04C4LoPqYfdEJ/qwv5H0ch254MbRMh2rt5X36PS11VfGL2yfKrdW8T\n/e8iTmGLWq+nn72P1927ZLOs9wkJvAAvUpC71OxYPB553wIYJXw="
 before_install:
  # Make sure mono is installed,
  - wget http://download.mono-project.com/archive/3.0.12/macos-10-x86/MonoFramework-MDK-3.0.12.macos10.xamarin.x86.dmg
  - hdid MonoFramework-MDK-3.0.12.macos10.xamarin.x86.dmg
  - sudo installer -pkg "/Volumes/Mono Framework MDK 3.0.12/MonoFramework-MDK-3.0.12.macos10.xamarin.x86.pkg" -target /
-env:
-  - EnableNuGetPackageRestore=true
-
+before_script:
+ - ./ci/install_portable_refs.sh 
 script:
-  - xbuild 
+  - xbuild /v:detailed
   - mono --runtime=v4.0.30319 WhoTestsTheTesters/RoughRunner/bin/Debug/RoughRunner.exe
