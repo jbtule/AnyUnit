@@ -7,8 +7,17 @@ The goal of PclUnit is to target the broadest PCL profile and implement both des
 
 See [Pcl Unit Design and Philosophy][Design].
 
+|     |     |
+| --- | --- |
+| [![Build Status][MonoImg]][MonoLink] | Mono CI Provided by [travis-ci][] |
 
+[MonoImg]:https://travis-ci.org/jbtule/PclUnit.png?branch=master
+[MonoLink]:https://travis-ci.org/jbtule/PclUnit)
 
+####Status
+Alpha Version
+  - Core Libraries and Basic Test Runner Only
 
+[travis-ci]:https://travis-ci.org/
 [Design]:http://github.com/jbtule/PclUnit/wiki/Design
 [pcl]:http://msdn.microsoft.com/en-us/library/gg597391.aspx
