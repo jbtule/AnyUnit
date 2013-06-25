@@ -312,17 +312,7 @@ namespace PclUnit.Constraints.Pieces
 
    
 
-        #region XmlSerializable
-
-        /// <summary>
-        /// Returns a constraint that tests whether an object graph is serializable in xml format.
-        /// </summary>
-        public XmlSerializableConstraint XmlSerializable
-        {
-            get { return (XmlSerializableConstraint)this.Append(new XmlSerializableConstraint()); }
-        }
-
-        #endregion
+ 
 
         #region EqualTo
 
@@ -682,23 +672,23 @@ namespace PclUnit.Constraints.Pieces
 
         #region Matches
 
-        /// <summary>
-        /// Returns a constraint that succeeds if the actual
-        /// value matches the Regex pattern supplied as an argument.
-        /// </summary>
-        public RegexConstraint Matches(string pattern)
-        {
-            return (RegexConstraint)this.Append(new RegexConstraint(pattern));
-        }
+        // /// <summary>
+        // /// Returns a constraint that succeeds if the actual
+        // /// value matches the Regex pattern supplied as an argument.
+        // /// </summary>
+        // public RegexConstraint Matches(string pattern)
+        // {
+        //     return (RegexConstraint)this.Append(new RegexConstraint(pattern));
+        // }
 
         /// <summary>
         /// Returns a constraint that succeeds if the actual
         /// value matches the Regex pattern supplied as an argument.
         /// </summary>
-        public RegexConstraint StringMatching(string pattern)
-        {
-            return (RegexConstraint)this.Append(new RegexConstraint(pattern));
-        }
+        // public RegexConstraint StringMatching(string pattern)
+        //     {
+        //         return (RegexConstraint)this.Append(new RegexConstraint(pattern));
+        //     }
 
         #endregion
 

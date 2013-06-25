@@ -142,17 +142,7 @@ namespace PclUnit.Constraints
 
 
 
-        #region XmlSerializable
-
-        /// <summary>
-        /// Returns a constraint that tests whether an object graph is serializable in xml format.
-        /// </summary>
-        public static XmlSerializableConstraint XmlSerializable
-        {
-            get { return new XmlSerializableConstraint(); }
-        }
-
-        #endregion
+ 
 
         #region EqualTo
 
@@ -445,15 +435,15 @@ namespace PclUnit.Constraints
         #endregion
 
         #region StringMatching
-
-        /// <summary>
-        /// Returns a constraint that succeeds if the actual
-        /// value matches the Regex pattern supplied as an argument.
-        /// </summary>
-        public static RegexConstraint StringMatching(string pattern)
-        {
-            return new RegexConstraint(pattern);
-        }
+        // 
+        // /// <summary>
+        // /// Returns a constraint that succeeds if the actual
+        // /// value matches the Regex pattern supplied as an argument.
+        // /// </summary>
+        // public static RegexConstraint StringMatching(string pattern)
+        // {
+        //     return new RegexConstraint(pattern);
+        // }
 
         #endregion
 

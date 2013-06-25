@@ -81,7 +81,6 @@
     <Compile Include="Pieces\ResolvableConstraintExpression.cs" />
     <Compile Include="Pieces\ReusableConstraint.cs" />
     <Compile Include="Pieces\SameAsConstraint.cs" />
-    <Compile Include="Pieces\SerializableConstraints.cs" />
     <Compile Include="Pieces\StringConstraints.cs" />
     <Compile Include="Pieces\ThrowsConstraint.cs" />
     <Compile Include="Pieces\Tolerance.cs" />

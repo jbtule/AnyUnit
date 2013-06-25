@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 namespace PclUnit.Constraints.Pieces
 {
     /// <summary>
@@ -26,7 +26,7 @@ namespace PclUnit.Constraints.Pieces
         public class OperatorStack
         {
 
-            private Stack<ConstraintOperator> stack = new Stack<ConstraintOperator>();
+            private List<ConstraintOperator> stack = new List<ConstraintOperator>();
 
             /// <summary>
             /// Initializes a new instance of the <see cref="T:OperatorStack"/> class.
@@ -51,7 +51,7 @@ namespace PclUnit.Constraints.Pieces
             /// <value>The top.</value>
             public ConstraintOperator Top
             {
-                get { return (ConstraintOperator)stack.Peek(); }
+                get { return (ConstraintOperator)stack.Last(); }
             }
 
             /// <summary>
@@ -60,7 +60,7 @@ namespace PclUnit.Constraints.Pieces
             /// <param name="op">The op.</param>
             public void Push(ConstraintOperator op)
             {
-                stack.Push(op);
+                stack.Add(op);
             }
 
             /// <summary>
@@ -69,7 +69,10 @@ namespace PclUnit.Constraints.Pieces
             /// <returns></returns>
             public ConstraintOperator Pop()
             {
-                return (ConstraintOperator)stack.Pop();
+                var index= stack.Count - 1;
+                var result = (ConstraintOperator)stack[index];
+                stack.RemoveAt(index);
+                return result;
             }
         }
         #endregion
@@ -81,7 +84,7 @@ namespace PclUnit.Constraints.Pieces
         public class ConstraintStack
         {
 
-            private Stack<Constraint> stack = new Stack<Constraint>();
+            private List<Constraint> stack = new List<Constraint>();
 
             private ConstraintBuilder builder;
 
@@ -109,7 +112,7 @@ namespace PclUnit.Constraints.Pieces
             /// <value>The topmost constraint</value>
             public Constraint Top
             {
-                get { return (Constraint)stack.Peek(); }
+                get { return (Constraint)stack.Last(); }
             }
 
             /// <summary>
@@ -120,7 +123,7 @@ namespace PclUnit.Constraints.Pieces
             /// <param name="constraint">The constraint.</param>
             public void Push(Constraint constraint)
             {
-                stack.Push(constraint);
+                stack.Add(constraint);
                 constraint.SetBuilder( this.builder );
             }
 
@@ -132,9 +135,12 @@ namespace PclUnit.Constraints.Pieces
             /// <returns></returns>
             public Constraint Pop()
             {
-                Constraint constraint = (Constraint)stack.Pop();
-                constraint.SetBuilder( null );
-                return constraint;
+                        var index= stack.Count - 1;
+                        var result = (Constraint)stack[index];
+                        stack.RemoveAt(index);
+                        result.SetBuilder( null );
+                        
+                        return result;
             }
         }
         #endregion
