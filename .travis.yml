@@ -11,7 +11,7 @@ before_install:
  - hdid MonoFramework-MDK-3.0.12.macos10.xamarin.x86.dmg
  - sudo installer -pkg "/Volumes/Mono Framework MDK 3.0.12/MonoFramework-MDK-3.0.12.macos10.xamarin.x86.pkg" -target /
 before_script:
- - ./ci/install_portable_refs.sh 
+ - .ci/install_portable_refs.sh 
 script:
   - xbuild /v:detailed
   - mono --runtime=v4.0.30319 WhoTestsTheTesters/RoughRunner/bin/Debug/RoughRunner.exe
