@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PclUnit.Constraints</RootNamespace>
+    <AssemblyName>PclUnit.Constraints</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile1</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;CLR_4_0</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>sn.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .NET Framework is automatically included -->
+    <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
+      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Name>PclUnit</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssertEx.cs" />
+    <Compile Include="Pieces\BasicConstraints.cs" />
+    <Compile Include="Pieces\BinaryOperations.cs" />
+    <Compile Include="Pieces\CollectionConstraints.cs" />
+    <Compile Include="Pieces\CollectionTally.cs" />
+    <Compile Include="Pieces\ComparisonAdapter.cs" />
+    <Compile Include="Pieces\ComparisonConstraints.cs" />
+    <Compile Include="Pieces\Constraint.cs" />
+    <Compile Include="Pieces\ConstraintBuilder.cs" />
+    <Compile Include="Pieces\ConstraintExpression.cs" />
+    <Compile Include="Pieces\ConstraintExpressionBase.cs" />
+    <Compile Include="Pieces\ConstraintFactory.cs" />
+    <Compile Include="Pieces\ConstraintOperators.cs" />
+    <Compile Include="Pieces\ContainsConstraint.cs" />
+    <Compile Include="Pieces\EmptyConstraint.cs" />
+    <Compile Include="Pieces\EqualConstraint.cs" />
+    <Compile Include="Pieces\EqualityAdapter.cs" />
+    <Compile Include="Pieces\FloatingPointNumerics.cs" />
+    <Compile Include="Pieces\GreaterThanConstraint.cs" />
+    <Compile Include="Pieces\GreaterThanOrEqualConstraint.cs" />
+    <Compile Include="Pieces\IResolveConstraint.cs" />
+    <Compile Include="Pieces\LessThanConstraint.cs" />
+    <Compile Include="Pieces\LessThanOrEqualConstraint.cs" />
+    <Compile Include="Pieces\MessageWriter.cs" />
+    <Compile Include="Pieces\MsgUtils.cs" />
+    <Compile Include="Pieces\Numerics.cs" />
+    <Compile Include="Pieces\NUnitComparer.cs" />
+    <Compile Include="Pieces\NUnitEqualityComparer.cs" />
+    <Compile Include="Pieces\PredicateConstraint.cs" />
+    <Compile Include="Pieces\PrefixConstraints.cs" />
+    <Compile Include="Pieces\PropertyConstraint.cs" />
+    <Compile Include="Pieces\RangeConstraint.cs" />
+    <Compile Include="Pieces\ResolvableConstraintExpression.cs" />
+    <Compile Include="Pieces\ReusableConstraint.cs" />
+    <Compile Include="Pieces\SameAsConstraint.cs" />
+    <Compile Include="Pieces\SerializableConstraints.cs" />
+    <Compile Include="Pieces\StringConstraints.cs" />
+    <Compile Include="Pieces\ThrowsConstraint.cs" />
+    <Compile Include="Pieces\Tolerance.cs" />
+    <Compile Include="Pieces\TypeConstraints.cs" />
+    <Compile Include="GlobalSettings.cs" />
+    <Compile Include="Has.cs" />
+    <Compile Include="INUnitEqualityComparer.cs" />
+    <Compile Include="Is.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TextMessageWriter.cs" />
+    <Compile Include="Throws.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sn.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,19 @@
+# Run PCL tests
+---
+config:
+  assemblies:
+    - path/to/test.dll
+  platforms:
+  - id: net
+    version: 40
+    arch: 32
+
+  - id: net
+    version: 45
+    arch: 64
+
+  - id: sl
+    version: 50
+    arch: 32
+    assemblies:
+      - path/to/silverlight/tests.dll  
