@@ -30,10 +30,25 @@ namespace PclUnit.Runner
     public class Result:IJsonSerialize
     {
 
-        public Result(TestMeta test, ResultKind kind, IAssertionHelper helper)
+        public static Result Error(TestMeta test, string message, DateTime startTime, DateTime endTime)
+        {
+            var dummy =new AssertionHelper()
+                {
+                    Assert = new Assert(),
+                    Log = new Log(),
+                };
+
+            dummy.Log.Write(message);
+
+            return new Result(test, ResultKind.Error, startTime, endTime, dummy);
+        }
+
+        public Result(TestMeta test, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
         {
             Test = test;
             Kind = kind;
+            StartTime = startTime;
+            EndTime = endTime;
             Output = helper.Log.ToString();
             AssertCount = helper.Assert.AssertCount;
         }
@@ -44,6 +59,8 @@ namespace PclUnit.Runner
 
         public string Output { get; protected set; }
 
+        public DateTime StartTime { get; protected set; }
+        public DateTime EndTime { get; protected set; }
         public int AssertCount { get; protected set; }
 
         public string ToListJson()
@@ -53,8 +70,8 @@ namespace PclUnit.Runner
 
         public string ToItemJson()
         {
-            return String.Format("{{Test:{0}, Kind:\"{1}\", AssertCount:{2} Output:\"{3}\"}}",
-                                 Test.ToItemJson(), Kind, AssertCount, Output.Replace("\"", "\\\""));
+            return String.Format("{{Test:{0}, Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\",   AssertCount:{2} Output:\"{3}\"}}",
+                                 Test.ToItemJson(), Kind, AssertCount, Output.Replace("\"", "\\\""), StartTime.ToString("R"), EndTime.ToString("R"));
         }
     }
 }

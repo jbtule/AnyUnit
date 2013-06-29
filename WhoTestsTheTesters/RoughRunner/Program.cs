@@ -54,8 +54,10 @@ namespace RoughRunner
                 var result = test.Run();
                 Console.WriteLine("*************************");
                 Console.WriteLine(result.Test.Name);
-                Console.WriteLine(result.Kind);
+                Console.Write(result.Kind);
+                Console.WriteLine(" ({0})", result.EndTime - result.StartTime);
                 Console.WriteLine(result.Output);
+
 
                 var match = ResultMatchesName(result);
                 if (!match.HasValue)

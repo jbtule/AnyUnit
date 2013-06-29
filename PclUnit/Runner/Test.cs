@@ -16,6 +16,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using PclUnit.Util;
 
 namespace PclUnit.Runner
@@ -23,25 +24,30 @@ namespace PclUnit.Runner
     public class Test : TestMeta
     {
         private readonly Type _type;
-        private readonly object[] _constructorArgs;
+        private readonly ParameterSet _constructorArgs;
         private readonly MethodInfo _method;
-        private readonly object[] _methodArgs;
+        private readonly ParameterSet _methodArgs;
 
-        public Test(TestAttribute attribute, Type type, object[] constructorArgs, MethodInfo method, object[] methodArgs)
+        public Test(TestAttribute attribute, Type type, ParameterSet constructorArgs, MethodInfo method, ParameterSet methodArgs)
         {
             Category = attribute.Category.SafeSplit(",").ToList();
             Description = attribute.Description;
-          
-            UniqueName = "M:" + method.DeclaringType.Namespace + "." + method.DeclaringType.Name;
+            if (Timeout != System.Threading.Timeout.Infinite)
+            {
+                Timeout = attribute.Timeout;
+            }
+   
+            
+            UniqueName = string.Format("M:{0}.{1}", method.DeclaringType.Namespace, method.DeclaringType.Name);
 
             Name = String.Empty;
-            if (constructorArgs.Any())
+            if (constructorArgs.Parameters.Any())
             {
-                var uniqueargs =constructorArgs.Select(it => it.GetType().ToString() +"#" + it.GetHashCode().ToString());
+                var uniqueargs =constructorArgs.Parameters.Select(it => string.Format("{0}#{1}", it.GetType(), it.GetHashCode()));
 
                 UniqueName += string.Format("({0})", String.Join(",", uniqueargs.ToArray()));
 
-                var nameArgs = constructorArgs.Select(it => it.ToString());
+                var nameArgs = constructorArgs.Parameters.Select(it => it.ToString());
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
@@ -51,39 +57,69 @@ namespace PclUnit.Runner
             UniqueName += "." + method.Name;
             Name += method.Name;
 
-            if (methodArgs.Any())
+            if (methodArgs.Parameters.Any())
             {
-                var uniqueargs = methodArgs.Select(it => it.GetType().ToString() + "#" + it.GetHashCode().ToString());
+                var uniqueargs = methodArgs.Parameters.Select(it => string.Format("{0}#{1}", it.GetType().ToString(), it.GetHashCode().ToString()));
 
                 UniqueName += string.Format("({0})", String.Join(",", uniqueargs.ToArray()));
 
-                var nameArgs = methodArgs.Select(it => it.ToString());
+                var nameArgs = methodArgs.Parameters.Select(it => it.ToString());
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
              
-         
-
             _type = type;
-            _constructorArgs = constructorArgs;
+            _constructorArgs = constructorArgs.Retain();
             _method = method;
-            _methodArgs = methodArgs;
+            _methodArgs = methodArgs.Retain();
+        }
+
+        internal class State
+        {
+            public State()
+            {
+               Event = new ManualResetEvent(false);   
+            }
+
+            public Result Result { get; set; }
+            public ManualResetEvent Event { get; protected set; }
         }
 
         public Result Run()
         {
 
-            var fixture = Activator.CreateInstance(_type, _constructorArgs);
+            var state = new State();
+            var startTime = DateTime.Now;
+            ThreadPool.QueueUserWorkItem(RunHelper, state);
+
+            if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))
+            {
+                _constructorArgs.Release();
+                _methodArgs.Release();
+                return state.Result;
+            }
+            _constructorArgs.Release();
+            _methodArgs.Release();
+            return Result.Error(this, "Tests Execution Timed Out", startTime, DateTime.Now);
+        }
+
+        private void RunHelper(Object stateInfo)
+        {
+
+            var state = (State) stateInfo;
+            var startTime = DateTime.Now;
+            var fixture = Activator.CreateInstance(_type, _constructorArgs.Parameters);
 
             var helper = fixture as IAssertionHelper ?? new DummyHelper();
             helper.Assert = new Assert();
             helper.Log = new Log();
-
+            Result returnVal =null;
             using (fixture as IDisposable)
             {
                 try
                 {
-                    var result = _method.Invoke(fixture, _methodArgs);
+
+                    var result = _method.Invoke(fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
                     if (result as bool? ?? false)
@@ -99,12 +135,14 @@ namespace PclUnit.Runner
 
                     if (!(helper is DummyHelper) && helper.Assert.AssertCount == 0)
                     {
-                        return new Result(this, ResultKind.NoError, helper);
+                        returnVal = new Result(this, ResultKind.NoError, startTime, DateTime.Now, helper);
                     }
-
-                    return new Result(this, ResultKind.Success, helper);
+                    else
+                    {
+                        returnVal = new Result(this, ResultKind.Success, startTime, DateTime.Now, helper);
+                    }
                 }
-                //Reflection wraps exceptions with target exceptions
+                    //Reflection wraps exceptions with target exceptions
                 catch (Exception ex)
                 {
 
@@ -118,22 +156,32 @@ namespace PclUnit.Runner
                         helper.Log.WriteLine(ex.Message);
                         helper.Log.WriteLine(ex.StackTrace);
 
-                        return new Result(this, ResultKind.Fail, helper);
+                        returnVal = new Result(this, ResultKind.Fail, startTime, DateTime.Now, helper);
 
                     }
-                    if (ex is IgnoreException)
+                    else if (ex is IgnoreException)
                     {
                         helper.Log.Write(ex.Message);
-                        return new Result(this, ResultKind.Ignore, helper);
+                        returnVal = new Result(this, ResultKind.Ignore, startTime, DateTime.Now, helper);
                     }
-                    
+                    else
+                    {
 
-                    helper.Log.Write("{0}: ", ex.GetType().Name);
-                    helper.Log.WriteLine(ex.Message);
-                    helper.Log.WriteLine(ex.StackTrace);
 
-                    return new Result(this, ResultKind.Error, helper);
+                        helper.Log.Write("{0}: ", ex.GetType().Name);
+                        helper.Log.WriteLine(ex.Message);
+                        helper.Log.WriteLine(ex.StackTrace);
+
+                        returnVal = new Result(this, ResultKind.Error, startTime,DateTime.Now, helper);
+                    }
                 }
+                finally
+                {
+                    state.Result = returnVal;
+                    state.Event.Set();
+                }
+                
+              
             }
         }
     }

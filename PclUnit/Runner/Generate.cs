@@ -13,7 +13,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -80,14 +79,14 @@ namespace PclUnit.Runner
                                 if (attr2.Category.SafeSplit(",").Any(exclude.ContainsKey))
                                     continue;
 
-                                foreach (var constructorSet in attr.ParameterSet(type))
+                                foreach (var constructorSet in attr.ParameterSets(type))
                                 {
-                                    foreach (var testSet in attr2.ParameterSet(method))
+                                    foreach (var testSet in attr2.ParameterSets(method))
                                     {
                                         fixture.Tests.Add(new Test(attr2, type, constructorSet, method, testSet));
                                     }
                                 }
-
+                               
                             }
                         }
 
@@ -101,7 +100,5 @@ namespace PclUnit.Runner
                 .OfType<Test>()
                 .ToList();
         }
-
-    
     }
 }

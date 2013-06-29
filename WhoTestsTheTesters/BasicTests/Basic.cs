@@ -59,7 +59,33 @@ namespace BasicTests
         {
             return true;
         }
+          
+        
+        [Test(Timeout = 1000)]
+        public void TestTimeout_Error()
+        {
+            while (true)
+            {
+                Assert.Okay();
+            }
+        }
 
+        [Test(Timeout = 2000)]
+        public void TestTimeout2_Error()
+        {
+            while (true)
+            {
+                Assert.Okay();
+            }
+        }
+        [Test(Timeout = 3000)]
+        public void TestTimeout3_Error()
+        {
+            while (true)
+            {
+                Assert.Okay();
+            }
+        }
 
         [Test]
         public bool TestReturn_Fail()
@@ -85,36 +111,36 @@ namespace BasicTests
             Assert.Ignore("Ignoring...");
         }
 
-        public static IEnumerable<object[]> GetParamSet(MethodInfo method)
+        public static IEnumerable<ParameterSet> GetParamSet(MethodInfo method)
         {
-            return Enumerable.Range(1, 5).Select(it => new object[] { it });
+            return Enumerable.Range(1, 5).Select(it => new ParameterSet(it));
         }
 
-        [Test(StaticMethodOfParameterSet = "GetParamSet")]
+        [Test(ParameterSetsStaticMethod = "GetParamSet")]
         public void TestParams_Success(int i)
         {
             Assert.True(i < 10, "You shouldn't seee this message");
         }
 
-        [Test(StaticMethodOfParameterSet = "GetParamSet")]
+        [Test(ParameterSetsStaticMethod = "GetParamSet")]
         public void TestParams_Fail(int i)
         {
             Assert.True(i > 10, String.Format("expected {0} to be greater than 10",i));
         }
 
-     
-        public static IEnumerable<object[]> GetPartialParamSet(MethodInfo method)
+
+        public static IEnumerable<ParameterSet> GetPartialParamSet(MethodInfo method)
         {
-            return new List<object[]>
+            return new List<ParameterSet>
                        {
-                           new object[] {1,Expected._Fail},
-                           new object[] {2,Expected._Fail},
-                           new object[] {3,Expected._Fail},
-                           new object[] {4,Expected._Success},
-                           new object[] {5,Expected._Success},
+                           new ParameterSet(1,Expected._Fail),
+                           new ParameterSet(2,Expected._Fail),
+                           new ParameterSet(3,Expected._Fail),
+                           new ParameterSet(4,Expected._Success),
+                           new ParameterSet(5,Expected._Success),
                        };
         }
-        [Test(StaticMethodOfParameterSet = "GetPartialParamSet")]
+        [Test(ParameterSetsStaticMethod = "GetPartialParamSet")]
         public void TestParams_Partial(int i, Expected expected)
         {
             Assert.True(i > 3, String.Format("expected {0} to be greater than 3", i));

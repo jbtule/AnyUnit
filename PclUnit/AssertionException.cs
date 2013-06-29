@@ -53,7 +53,7 @@ namespace PclUnit
                     string line = reader.ReadLine();
                     while (line != null)
                     {
-                        if (!ExcludeFromStackTrace.Any(e=>line.Contains(e)))
+                        if (ExcludeFromStackTrace.Any(e => line.Contains(e)))
                         {
                             sb.AppendLine(line);
                         }  

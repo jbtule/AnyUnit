@@ -21,12 +21,12 @@ namespace BasicTests
        }
 
 
-        public static IEnumerable<object[]> GetConstructorParamSet(Type method)
+        public static IEnumerable<ParameterSet> GetConstructorParamSet(Type method)
         {
-            return new List<object[]>()
+            return new List<ParameterSet>()
                        {
-                           new object[]{"normal"},
-                           new object[]{"_Opposite"},
+                           new ParameterSet("normal"),
+                           new ParameterSet("_Opposite"),
                        };
         }
 
@@ -100,7 +100,7 @@ namespace BasicTests
 
     
 
-       [Test(TargetOfParameterSet = typeof(Basic), StaticMethodOfParameterSet = "GetParamSet")]
+       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetParamSet")]
        public void TestParams_Success(int i)
        {
            if (_reversableTrue)
@@ -109,7 +109,7 @@ namespace BasicTests
                Assert.True(i > 10, String.Format("expected {0} to be less than 10", i));
        }
 
-       [Test(TargetOfParameterSet = typeof(Basic), StaticMethodOfParameterSet = "GetParamSet")]
+       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetParamSet")]
        public void TestParams_Fail(int i)
        {
            if (_reversableTrue)
@@ -118,7 +118,7 @@ namespace BasicTests
                Assert.True(i < 10, String.Format("expected {0} to be less than 10", i));
        }
 
-       [Test(TargetOfParameterSet = typeof(Basic), StaticMethodOfParameterSet = "GetPartialParamSet")]
+       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetPartialParamSet")]
        public void TestParams_Partial(int i, Expected expected)
        {
            if(_reversableTrue)

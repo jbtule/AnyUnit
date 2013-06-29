@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="AssertionException.cs" />
     <Compile Include="AssertionHelper.cs" />
+    <Compile Include="ParameterSet.cs" />
     <Compile Include="Runner\Meta\AssemblyMeta.cs" />
     <Compile Include="Runner\Assert.cs" />
     <Compile Include="Runner\Meta\FixtureMeta.cs" />

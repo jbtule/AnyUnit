@@ -30,22 +30,21 @@ namespace PclUnit.Runner
  
         public string UniqueName { get; protected set; }
         public string Name { get; protected set; }
-
-
+  
         public string ToListJson()
         {
-              return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}}}",
-                                 Name, UniqueName, Description, Category.ToListJson());
+              return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}}}",
+                                 Name, UniqueName, Description, Category.ToListJson(), Timeout);
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Fixture:{4}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\"}}",
-                                 Name, UniqueName, Description, Category.ToListJson(), Fixture.ToItemJson());
+            return String.Format("{{Fixture:{4}, Timeout:{5}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\"}}",
+                                 Name, UniqueName, Description, Category.ToListJson(), Fixture.ToItemJson(),Timeout);
 
         }
 
-
+        public int? Timeout { get; set; }
         public string Description { get; set; }
         public IList<string> Category { get; set; }
     }

@@ -21,30 +21,28 @@ using System.Text;
 
 namespace PclUnit
 {
-
+    public delegate IEnumerable<ParameterSet> ParameterSetFixtureProducer(Type type);
 
     [AttributeUsage(AttributeTargets.Class)]
     public class TestFixtureAttribute : Attribute
     {
         public TestFixtureAttribute()
         {
-    
         }
-   
 
 
         public Type TargetOfParameterSet { get; set; }
 
         public string StaticMethodOfParameterSet { get; set; }
 
-        public Func<Type, IEnumerable<object[]>> ParameterSet
+        public virtual ParameterSetFixtureProducer ParameterSets
         {
             get
             {
                 if (String.IsNullOrEmpty(StaticMethodOfParameterSet))
-                    return m => new List<object[]>()
+                    return m => new List<ParameterSet>()
                                     {
-                                        new object[] {}
+                                        new ParameterSet()
                                     };
 
                 return
@@ -52,25 +50,22 @@ namespace PclUnit
                         {
                             Type typeTarget = (TargetOfParameterSet ?? m);
 
+                            var invoker = typeTarget.GetMethod(StaticMethodOfParameterSet,
+                                                               BindingFlags.Static | BindingFlags.Public |
+                                                               BindingFlags.NonPublic);
+                            if (invoker == null)
+                                throw new MissingMemberException(
+                                    String.Format("Cound not find member {0} on {1}.", StaticMethodOfParameterSet,
+                                                  typeTarget));
 
-                        var invoker = typeTarget.GetMethod(StaticMethodOfParameterSet, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                        if (invoker == null)
-                            throw new MissingMemberException(
-                                String.Format("Cound not find member {0} on {1}.", StaticMethodOfParameterSet,
-                                              typeTarget));
-
-                        return (IEnumerable<object[]>)
-                            typeTarget.GetMethod(StaticMethodOfParameterSet, new[] { typeof(Type) })
-                                                .Invoke(typeTarget, new object[] { m });
-                    };
+                            return (IEnumerable<ParameterSet>)
+                                   typeTarget.GetMethod(StaticMethodOfParameterSet, new[] {typeof (Type)})
+                                             .Invoke(typeTarget, new object[] {m});
+                        };
             }
         }
 
         public string Description { get; set; }
         public string Category { get; set; }
     }
-
-   
-
- 
 }

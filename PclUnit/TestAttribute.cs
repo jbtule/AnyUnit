@@ -20,52 +20,52 @@ using System.Reflection;
 
 namespace PclUnit
 {
-   
-
+    public delegate IEnumerable<ParameterSet> ParameterSetTestProducer(MethodInfo method);
 
     [AttributeUsage(AttributeTargets.Method)]
     public class TestAttribute : Attribute
     {
-
         public TestAttribute()
         {
-      
+            Timeout = -1;
         }
 
-        public Type TargetOfParameterSet { get; set; }
+        public Type ParameterSetsTarget { get; set; }
 
-        public string StaticMethodOfParameterSet { get; set; }
+        public string ParameterSetsStaticMethod { get; set; }
 
-        public Func<MethodInfo, IEnumerable<object[]>> ParameterSet
+        public virtual ParameterSetTestProducer ParameterSets
         {
             get
             {
-                if (String.IsNullOrEmpty(StaticMethodOfParameterSet))
-                    return m => new List<object[]>()
+                if (String.IsNullOrEmpty(ParameterSetsStaticMethod))
+                    return m => new List<ParameterSet>()
                                     {
-                                        new object[] {}
+                                        new ParameterSet()
                                     };
 
                 return
                     m =>
                         {
-                            var typeTarget = TargetOfParameterSet ?? m.DeclaringType;
+                            var typeTarget = ParameterSetsTarget ?? m.DeclaringType;
 
-                            var invoker = typeTarget.GetMethod(StaticMethodOfParameterSet, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                            var invoker = typeTarget.GetMethod(ParameterSetsStaticMethod,
+                                                               BindingFlags.Static | BindingFlags.Public |
+                                                               BindingFlags.NonPublic);
                             if (invoker == null)
                                 throw new MissingMemberException(
-                                    String.Format("Cound not find static member {0} on {1}.", StaticMethodOfParameterSet,
+                                    String.Format("Cound not find static member {0} on {1}.", ParameterSetsStaticMethod,
                                                   typeTarget));
 
-                            return (IEnumerable<object[]>)
-                                typeTarget.GetMethod(StaticMethodOfParameterSet, new[] { typeof(MethodInfo) })
-                                                    .Invoke(typeTarget, new object[] { m });
+                            return (IEnumerable<ParameterSet>)
+                                   typeTarget.GetMethod(ParameterSetsStaticMethod, new[] {typeof (MethodInfo)})
+                                             .Invoke(typeTarget, new object[] {m});
                         };
-            
             }
         }
 
         public string Description { get; set; }
         public string Category { get; set; }
+        public int Timeout { get; set; }
     }
 }
