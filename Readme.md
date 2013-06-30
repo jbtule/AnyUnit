@@ -9,8 +9,14 @@ See [Pcl Unit Design and Philosophy][Design].
 
 |     |     |
 | --- | --- |
+| [![Build Status][WinImg]][WinLink] | Windows CI Provided By [CodeBetter][] and [JetBrains][] |
 | [![Build Status][MonoImg]][MonoLink] | Mono CI Provided by [travis-ci][] |
 
+
+[WinImg]:http://teamcity.codebetter.com/app/rest/builds/buildType:(id:bt1048)/statusIcon
+[WinLink]:http://teamcity.codebetter.com/viewLog.html?buildTypeId=bt1048&buildId=lastFinished&guest=1
+[JetBrains]:http://www.jetbrains.com/
+[CodeBetter]:http://codebetter.com/
 [MonoImg]:https://travis-ci.org/jbtule/PclUnit.png?branch=master
 [MonoLink]:https://travis-ci.org/jbtule/PclUnit
 
