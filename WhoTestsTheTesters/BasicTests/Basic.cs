@@ -19,17 +19,7 @@ namespace BasicTests
 
     [TestFixture]
     public class Basic:AssertionHelper
-    {
-             [Test]
-        public void TestTeamcity_Success(){
-            Log.Write("This is just a hardcoded false");
-            Assert.True(false);
-        } 
-             [Test]
-        public void TestTeamcityNothing(){
-            Log.Write("This is just a hardcoded false");
-            Assert.True(false);
-        }        
+    {       
         
         [Test]
         public void TestTrue_Success()
