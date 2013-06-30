@@ -52,51 +52,53 @@ namespace RoughRunner
             //    writer.Write(pm.ToListJson());
             //}
             
-            TeamCity.WriteLine("##teamcity[testSuiteStarted name='RoughRunner']");
-            foreach (var test in Generate.Tests(pm, new[] {am, am2}))
+            foreach (var fixtureTests in Generate.Tests(pm, new[] {am, am2}).GroupBy(t=>new{FixtureName =t.Fixture.Name, AssemblyName = t.Fixture.Assembly.Name}))
             {
+                var suiteName = fixtureTests.Key.AssemblyName + "." + fixtureTests.Key.FixtureName;
+                TeamCity.WriteLine("##teamcity[testSuiteStarted name='{0}']",suiteName);
                 
-                var result = test.Run();
+                foreach(var test in fixtureTests){
+                    var result = test.Run();
                 
-                
+                    Console.WriteLine("*************************");
             
-                TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true']", result.Test.Name);
+                    TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true']", result.Test.Name);
                 
-                Console.WriteLine("*************************");
-                Console.WriteLine(result.Test.Name);
-                Console.Write(result.Kind);
-                Console.WriteLine(" ({0})", result.EndTime - result.StartTime);
-                Console.WriteLine(result.Output);
+                    Console.WriteLine(result.Test.Name);
+                    Console.Write(result.Kind);
+                    Console.WriteLine(" ({0})", result.EndTime - result.StartTime);
+                    Console.WriteLine(result.Output);
 
 
-                var match = ResultMatchesName(result);
-                if (!match.HasValue)
-                {
-                    _unknown.Add(result);
+                    var match = ResultMatchesName(result);
+                    if (!match.HasValue)
+                    {
+                        _unknown.Add(result);
                     
-                    TeamCity.WriteLine("##teamcity[testIgnored name='{0}' message='Result type not specified']",
-                      result.Test.Name);
-                    Console.WriteLine("???? Unknown Output ????");
-                }else if (match.Value)
-                {
-                    _correct.Add(result);
-                    Console.WriteLine("++++ Correct Output ++++");
-                }
-                else
-                {
-                    _invalid.Add(result);
+                        TeamCity.WriteLine("##teamcity[testIgnored name='{0}' message='Result type not specified']",
+                          result.Test.Name);
+                        Console.WriteLine("???? Unknown Output ????");
+                    }else if (match.Value)
+                    {
+                        _correct.Add(result);
+                        Console.WriteLine("++++ Correct Output ++++");
+                    }
+                    else
+                    {
+                        _invalid.Add(result);
                  
-                    TeamCity.WriteLine("##teamcity[testFailed name='{0}' message='Result type doesn't match'",result.Test.Name);
+                        TeamCity.WriteLine("##teamcity[testFailed name='{0}' message='Result type doesn't match'",result.Test.Name);
                 
-                    Console.WriteLine("xxxx Invalid Output xxxx");
-                }
+                        Console.WriteLine("xxxx Invalid Output xxxx");
+                    }
                 
 
-                TeamCity.WriteLine("##teamcity[testFinished name='{0}' duration='{1}']",result.Test.Name,(result.EndTime - result.StartTime).TotalMilliseconds);
+                    TeamCity.WriteLine("##teamcity[testFinished name='{0}' duration='{1}']",result.Test.Name,(result.EndTime - result.StartTime).TotalMilliseconds);
+                }
+                TeamCity.WriteLine("##teamcity[testSuiteFinished name='{0}']",suiteName);
             } 
             
           
-            TeamCity.WriteLine("##teamcity[testSuiteFinished name='RoughRunner']");
             
             Console.WriteLine();
             Console.WriteLine("*************************");
