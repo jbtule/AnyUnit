@@ -7,7 +7,7 @@ The goal of PclUnit is to target the broadest PCL profile and implement both des
 
 See [Pcl Unit Design and Philosophy][Design].
 
-|     |     |
+| Status | Provider |
 | --- | --- |
 | [![Build Status][WinImg]][WinLink] | Windows CI Provided By [CodeBetter][] and [JetBrains][] |
 | [![Build Status][MonoImg]][MonoLink] | Mono CI Provided by [travis-ci][] |
