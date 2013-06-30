@@ -60,7 +60,7 @@ namespace RoughRunner
                 foreach(var test in fixtureTests){
                     var result = test.Run();
                 
-                    Console.WriteLine("*************************");
+                    TeamCity.DontWriteLine("*************************");
             
                     TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true']", result.Test.Name);
                 
@@ -131,7 +131,11 @@ namespace RoughRunner
                 if(_teamCityRunner)
                     Console.WriteLine(format, objs);
             }
-
+            internal static void DontWriteLine(string format, params object[] objs)
+            {
+                if (!_teamCityRunner)
+                    Console.WriteLine(format, objs);
+            }
             
         }
 

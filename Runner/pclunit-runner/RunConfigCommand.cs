@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,6 +23,7 @@ using System.Text;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
+using Newtonsoft.Json;
 using Owin;
 using PclUnit.Runner;
 using YamlDotNet.RepresentationModel;
@@ -30,7 +32,7 @@ using YamlDotNet.RepresentationModel.Serialization.NamingConventions;
 
 namespace pclunit_runner
 {
-    public class RunConfigCommand:ConsoleCommand
+    public class RunConfigCommand : ConsoleCommand
     {
         public RunConfigCommand()
         {
@@ -42,7 +44,6 @@ namespace pclunit_runner
         public class YamlSettings
         {
             public Config Config { get; set; }
-
         }
 
 
@@ -56,7 +57,7 @@ namespace pclunit_runner
 
             public string FullId()
             {
-                return String.Format("{0}-{1}-{2}-{3}", Id, Version ?? "any", Profile ?? "any", Arch ?? "any" );
+                return String.Format("L:{0}-{1}-{2}-{3}", Id, Version ?? "any", Arch ?? "any", Profile ?? "any");
             }
 
             public string Readable()
@@ -71,15 +72,13 @@ namespace pclunit_runner
 
                 return String.Format("{0}{1}{2}{3}", Id, Version ?? String.Empty, profile, arch);
             }
-          
-
         }
 
         public class Satellite
         {
             public Satellite()
             {
-                 Tests = new List<TestMeta>();
+                Tests = new List<TestMeta>();
             }
 
             public string Path { get; set; }
@@ -94,7 +93,7 @@ namespace pclunit_runner
             public IList<Platform> Platforms { get; set; }
         }
 
-        static public string AssemblyDirectory
+        public static string AssemblyDirectory
         {
             get
             {
@@ -106,42 +105,68 @@ namespace pclunit_runner
         }
 
 
+        private IDictionary<string, Satellite> _satellites;
 
         public override int Run(string[] remainingArguments)
         {
+            var satpath = Path.Combine(AssemblyDirectory, "satellites.yml");
 
-            var satpath =Path.Combine(AssemblyDirectory, "satellites.yml");
 
             using (var input = new StringReader(File.ReadAllText(satpath)))
             {
                 var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
-                var sats = des.Deserialize<IList<Satellite>>(input);
+                _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Platform.FullId(), v => v);
             }
 
 
+            string configPath = remainingArguments.First();
+            using (var input = new StringReader(File.ReadAllText(configPath)))
+            {
+                var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
+                var setting = des.Deserialize<YamlSettings>(input);
 
-           using (var input = new StringReader(File.ReadAllText(remainingArguments.First())))
-           {
-               var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
-               var setting = des.Deserialize<YamlSettings>(input);
+                var fullConfigPath = Path.GetDirectoryName(Path.GetFullPath(configPath));
 
-
-
-               // This will *ONLY* bind to localhost, if you want to bind to all addresses
-               // use http://*:8080 to bind to all addresses. 
-               // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx for more info
-               string url = "http://*:8989";
-
-               
-
-               using (WebApplication.Start<Startup>(url))
-               {
-                   Console.WriteLine("Server running on {0}", url);
-                   Console.ReadLine();
-               }
-           }
+                // This will *ONLY* bind to localhost, if you want to bind to all addresses
+                // use http://*:8080 to bind to all addresses. 
+                // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx for more info
+                string url = "http://localhost:8989";
 
 
+                using (WebApplication.Start<Startup>(url))
+                {
+                    Console.WriteLine("Server running on {0}", url);
+
+
+                    var processList = new List<Process>();
+             
+                    foreach (var set in setting.Config.Platforms)
+                    {
+                        var sat = _satellites[set.FullId()];
+                        PlatformResult.WaitingForPlatforms.Add(set.FullId());
+                        var process = new Process()
+                                          {
+                            StartInfo = new ProcessStartInfo(sat.Path, String.Format("{0} {1}", url,
+                                  setting.Config.Assemblies.Select(it =>string.Format ("\"{0}\"",
+                                      Path.Combine(fullConfigPath,it)))
+                                      .Aggregate( String.Empty, (seed, item) => string.Format("{0} {1}", seed, item))))
+                                            {
+                                                CreateNoWindow = true,UseShellExecute = false
+                                            }
+                                          };
+                    
+                        processList.Add(process);
+                    }
+                    foreach (var process1 in processList)
+                    {
+                        process1.Start();
+                    }
+                    foreach (var process1 in processList)
+                    {
+                        process1.WaitForExit();
+                    }
+                }
+            }
 
 
             return 0;
@@ -149,35 +174,113 @@ namespace pclunit_runner
     }
 
 
-    class Startup
+    internal class Startup
     {
         public void Configuration(IAppBuilder app)
         {
             // Turn cross domain on 
-            var config = new HubConfiguration { EnableCrossDomain = true };
+            var config = new HubConfiguration {EnableCrossDomain = true};
 
             // This will map out to http://localhost:8989/signalr by default
             app.MapHubs(config);
         }
     }
 
+
+    public class PlatformResult
+    {
+        public PlatformResult(PlatformMeta platform)
+        {
+            Platform = platform;
+        }
+        public PlatformMeta Platform { get; set; }
+        public Result Result { get; set; }
+
+        public static readonly IDictionary<string, IList<PlatformResult>> ExpectedTests =
+           new Dictionary<string, IList<PlatformResult>>();
+
+
+        public static readonly HashSet<string> WaitingForPlatforms =
+           new HashSet<string>();
+    }
+
     public class PclUnitHub : Hub
     {
+       
+
         public void Connect(string id)
         {
-            Console.WriteLine("===================");
+            Console.WriteLine("*******************");
             Console.WriteLine(id);
-            Console.WriteLine("===================");
+            Console.WriteLine("*******************");
+        }
+
+        public void List(string platformTotalJson)
+        {
+            Console.WriteLine("+++++++++++++++++++");
+            var pm = Newtonsoft.Json.JsonConvert.DeserializeObject<PlatformMeta>(platformTotalJson);
+            foreach (var test in pm.Assemblies.SelectMany(it=>it.Fixtures).SelectMany(it=>it.Tests))
+            {
+                string key = string.Format("{0}|{1}|{2}", test.Fixture.Assembly.UniqueName, test.Fixture.UniqueName, test.UniqueName);
+                if (!PlatformResult.ExpectedTests.ContainsKey(key))
+                {
+                    PlatformResult.ExpectedTests[key] = new List<PlatformResult>();
+                }
+                PlatformResult.ExpectedTests[key].Add(new PlatformResult(pm));
+            }
+            Console.WriteLine(pm.UniqueName);
+            lock(PlatformResult.WaitingForPlatforms)
+            {
+                PlatformResult.WaitingForPlatforms.Remove(pm.UniqueName);
+                if (!PlatformResult.WaitingForPlatforms.Any())
+                {
+                    Clients.All.TestsAreReady("go");
+                }
+
+            }
+            Console.WriteLine("+++++++++++++++++++");
         }
 
         public void SendResult(string resultJson)
         {
-            Console.WriteLine("===================");
-            Console.WriteLine("result:");
-            Console.WriteLine(resultJson);
-            Console.WriteLine("===================");
+            //  Console.WriteLine(resultJson);
+            var result = Newtonsoft.Json.JsonConvert.DeserializeObject<Result>(resultJson);
+
+            string key = string.Format("{0}|{1}|{2}", result.Test.Fixture.Assembly.UniqueName, result.Test.Fixture.UniqueName, result.Test.UniqueName);
+
+            var dict = PlatformResult.ExpectedTests[key].ToDictionary(k => k.Platform.UniqueName, v => v);
+
+            var miniKey = result.Test.Fixture.Assembly.Platform.UniqueName;
+            dict[miniKey].Result = result;
+
+
+            if (dict.All(it => it.Value.Result != null))
+            {
+                Console.WriteLine(result.Test.Name);
+                foreach(var grpResult in dict.GroupBy(it => it.Value.Result.Kind))
+                {
+                    Console.Write("{0}:", grpResult.Key);
+                    foreach (var keyValuePair in grpResult)
+                    {
+                        Console.Write(" ");
+                        Console.Write(keyValuePair.Value.Platform.FullName);
+                    }
+                    Console.WriteLine();
+                }
+                TimeSpan span= new TimeSpan();
+                foreach (var r in dict.Select(it=>it.Value.Result))
+                {
+                    span += (r.EndTime - r.StartTime);
+                }
+                Console.WriteLine("avg time:{0}", new TimeSpan(span.Ticks / dict.Count));
+                foreach (var kp in dict)
+                {
+                    Console.WriteLine("{0}:", kp.Value.Platform.FullName);
+                    Console.WriteLine(kp.Value.Result.Output);
+                }
+               
+                Console.WriteLine("===================");
+            }
         }
     }
-
- 
 }

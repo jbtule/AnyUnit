@@ -1,14 +1,14 @@
 ﻿# Satellite runner locations
-- path: /net40-x86-client.exe
+- path: ..\..\..\Satellites\net-40-x86-full\bin\Debug\net-40-x86-full.exe
   platform:
     id: net
     version: 40
-    arch: 32
-    profile: client
+    arch: x86
+    profile: full
 
-- path: /net45-x64-full.exe
+- path: ..\..\..\Satellites\net-45-x64-full\bin\Debug\net-45-x64-full.exe
   platform:
     id: net
-    version: 40
-    arch: 32
+    version: 45
+    arch: x64
     profile: full

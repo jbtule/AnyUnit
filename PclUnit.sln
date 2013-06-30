@@ -22,6 +22,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contrib", "Contrib", "{83006684-DA66-48B5-940C-9DE54271B193}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pclunit-runner", "Runner\pclunit-runner\pclunit-runner.csproj", "{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D} = {E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C} = {C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Satellites", "Satellites", "{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}"
 EndProject
@@ -32,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-45-x64-full", "Runner\Satellites\net-45-x64-full\net-45-x64-full.csproj", "{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +73,10 @@ Global
 		{360DD182-DFD4-479E-B001-042413D2DE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{360DD182-DFD4-479E-B001-042413D2DE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{360DD182-DFD4-479E-B001-042413D2DE02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,5 +89,6 @@ Global
 		{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
 		{7251D9B8-DD2A-4DCA-A568-C53772081CE5} = {83006684-DA66-48B5-940C-9DE54271B193}
 		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D} = {3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}
+		{C2CABDBC-D4B3-4A9B-B3D8-6051DA13FF3C} = {3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}
 	EndGlobalSection
 EndGlobal

@@ -61,8 +61,8 @@ namespace PclUnit.Runner
 
 
 
-        public string UniqueName { get; protected set; }
-        public string Name { get; protected set; }
+        public string UniqueName { get; set; }
+        public string Name { get; set; }
 
 
   
@@ -70,6 +70,6 @@ namespace PclUnit.Runner
         public string Description { get; set; }
         public IList<string> Category { get; set; }
 
-        public IList<TestMeta> Tests { get; protected set; }  
+        public IList<TestMeta> Tests { get; set; }  
     }
 }

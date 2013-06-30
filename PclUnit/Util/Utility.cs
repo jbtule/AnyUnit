@@ -42,6 +42,15 @@ namespace PclUnit.Util
 
     public static class Utility
     {
+        public static string EscapeJson(this string json)
+        {
+            json = json.Replace(@"\", @"\\"); 
+            json = json.Replace(@"/", @"\/");
+            json = json.Replace("\"", "\\\"");
+
+            return json;
+        }
+
 
         public static string ToListJson(this IEnumerable<string> target)
         {

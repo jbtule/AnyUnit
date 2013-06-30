@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using PclUnit.Util;
 
 namespace PclUnit.Runner
 {
@@ -42,6 +43,11 @@ namespace PclUnit.Runner
 
             return new Result(test, ResultKind.Error, startTime, endTime, dummy);
         }
+       
+        public Result()
+        {
+            
+        }
 
         public Result(TestMeta test, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
         {
@@ -53,15 +59,15 @@ namespace PclUnit.Runner
             AssertCount = helper.Assert.AssertCount;
         }
 
-        public TestMeta Test { get; protected set; }
+        public TestMeta Test { get; set; }
 
-        public ResultKind Kind { get; protected set; }
+        public ResultKind Kind { get; set; }
 
-        public string Output { get; protected set; }
+        public string Output { get; set; }
 
-        public DateTime StartTime { get; protected set; }
-        public DateTime EndTime { get; protected set; }
-        public int AssertCount { get; protected set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public int AssertCount { get;  set; }
 
         public string ToListJson()
         {
@@ -70,8 +76,8 @@ namespace PclUnit.Runner
 
         public string ToItemJson()
         {
-            return String.Format("{{Test:{0}, Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\",   AssertCount:{2} Output:\"{3}\"}}",
-                                 Test.ToItemJson(), Kind, AssertCount, Output.Replace("\"", "\\\""), StartTime.ToString("R"), EndTime.ToString("R"));
+            return String.Format("{{Test:{0}, Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
+                                 Test.ToItemJson(), Kind, AssertCount, Output.EscapeJson(), StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
         }
     }
 }

@@ -40,7 +40,7 @@ namespace PclUnit.Runner
         public string UniqueName { get; set; }
         public string Name { get; set; }
     
-        public IList<FixtureMeta> Fixtures { get; protected set; }
+        public IList<FixtureMeta> Fixtures { get; set; }
 
 
         public string ToListJson()

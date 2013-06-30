@@ -28,8 +28,8 @@ namespace PclUnit.Runner
         public FixtureMeta Fixture { get; set; }
 
  
-        public string UniqueName { get; protected set; }
-        public string Name { get; protected set; }
+        public string UniqueName { get; set; }
+        public string Name { get; set; }
   
         public string ToListJson()
         {
@@ -47,6 +47,7 @@ namespace PclUnit.Runner
         public int? Timeout { get; set; }
         public string Description { get; set; }
         public IList<string> Category { get; set; }
+
     }
 
     internal class DummyHelper : IAssertionHelper

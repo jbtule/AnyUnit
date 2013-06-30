@@ -41,11 +41,16 @@ namespace PclUnit.Runner
             get { return "L:" + String.Format("{0}-{1}-{2}-{3}", Name, Version, Arch, Profile); }
         }
 
+
+        public string FullName
+        {
+            get { return String.Format("{0}{1}-{2}-{3}", Name, Version, Arch, Profile); }
+        }
         public string Name { get; set; }
 
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Version:\"{2}\", Profile:\"{3}\", Arch:\"{4}\" Assemblies:[{5}]}}",
+            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Version:\"{2}\", Profile:\"{3}\", Arch:\"{4}\", Assemblies:[{5}]}}",
                                  Name, UniqueName, Version, Profile, Arch,
                                  String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray())
                 );
@@ -64,7 +69,7 @@ namespace PclUnit.Runner
 
         public string Version { get; set; }
 
-        public IList<AssemblyMeta> Assemblies { get; protected set; }
+        public IList<AssemblyMeta> Assemblies { get; set; }
 
     }
 }
