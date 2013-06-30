@@ -31,8 +31,11 @@ namespace RoughRunner
 
         static private List<Result> _unknown = new List<Result>(); 
 
+
         static int Main(string[] args)
         {
+            
+            
             var pm = new PlatformMeta()
                          {
                              Name = "net", 
@@ -48,10 +51,17 @@ namespace RoughRunner
             //{
             //    writer.Write(pm.ToListJson());
             //}
-
+            
+            TeamCity.WriteLine("##teamcity[testSuiteStarted name='RoughRunner']");
             foreach (var test in Generate.Tests(pm, new[] {am, am2}))
             {
+                
                 var result = test.Run();
+                
+                
+            
+                TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true]", result.Test.Name);
+                
                 Console.WriteLine("*************************");
                 Console.WriteLine(result.Test.Name);
                 Console.Write(result.Kind);
@@ -63,6 +73,9 @@ namespace RoughRunner
                 if (!match.HasValue)
                 {
                     _unknown.Add(result);
+                    
+                    TeamCity.WriteLine("##teamcity[testIgnored name='{0}' message='Result type not specified']",
+                      result.Test.Name);
                     Console.WriteLine("???? Unknown Output ????");
                 }else if (match.Value)
                 {
@@ -72,9 +85,19 @@ namespace RoughRunner
                 else
                 {
                     _invalid.Add(result);
+                 
+                    TeamCity.WriteLine("##teamcity[testFailed name='{0}' message='Result type doesn't match'",result.Test.Name);
+                
                     Console.WriteLine("xxxx Invalid Output xxxx");
                 }
+                
+
+                TeamCity.WriteLine("##teamcity[testFinished name='{0}' duration='{1}']",result.Test.Name,(result.EndTime - result.StartTime).TotalMilliseconds);
             } 
+            
+          
+            TeamCity.WriteLine("##teamcity[testSuiteFinished name='RoughRunner']");
+            
             Console.WriteLine();
             Console.WriteLine("*************************");
             Console.WriteLine("*************************");
@@ -92,6 +115,22 @@ namespace RoughRunner
                 return -1;
             }
             return 0;
+        }
+        
+        internal static class TeamCity{
+            
+            private static bool _teamCityRunner;
+
+            static TeamCity(){
+                _teamCityRunner = !String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TEAMCITY_VERSION"));
+            }
+            
+            internal static void WriteLine(string format, params object[] objs){
+                if(_teamCityRunner)
+                    Console.WriteLine(format, objs);
+            }
+
+            
         }
 
         private static bool? ResultMatchesName(Result result)
