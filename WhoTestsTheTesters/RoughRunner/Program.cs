@@ -87,7 +87,7 @@ namespace RoughRunner
                     {
                         _invalid.Add(result);
                  
-                        TeamCity.WriteLine("##teamcity[testFailed name='{0}' message='Result type doesn't match'",result.Test.Name);
+                        TeamCity.WriteLine("##teamcity[testFailed name='{0}' message='Result type doesn't match']",result.Test.Name);
                 
                         Console.WriteLine("xxxx Invalid Output xxxx");
                     }
