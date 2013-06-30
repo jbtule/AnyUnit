@@ -60,7 +60,7 @@ namespace RoughRunner
                 
                 
             
-                TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true]", result.Test.Name);
+                TeamCity.WriteLine("##teamcity[testStarted name='{0}' captureStandardOutput='true']", result.Test.Name);
                 
                 Console.WriteLine("*************************");
                 Console.WriteLine(result.Test.Name);
