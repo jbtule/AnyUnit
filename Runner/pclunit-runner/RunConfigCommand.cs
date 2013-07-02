@@ -46,34 +46,6 @@ namespace pclunit_runner
             public Config Config { get; set; }
         }
 
-
-        public class Platform
-        {
-            public string Id { get; set; }
-            public string Profile { get; set; }
-            public string Arch { get; set; }
-            public string Version { get; set; }
-            public IList<string> Assemblies { get; set; }
-
-            public string FullId()
-            {
-                return String.Format("L:{0}-{1}-{2}-{3}", Id, Version ?? "any", Arch ?? "any", Profile ?? "any");
-            }
-
-            public string Readable()
-            {
-                var profile = String.Empty;
-                if (Profile != null)
-                    profile = "-" + Profile;
-
-                var arch = String.Empty;
-                if (Arch != null)
-                    arch = "-" + Arch;
-
-                return String.Format("{0}{1}{2}{3}", Id, Version ?? String.Empty, profile, arch);
-            }
-        }
-
         public class Satellite
         {
             public Satellite()
@@ -82,7 +54,7 @@ namespace pclunit_runner
             }
 
             public string Path { get; set; }
-            public Platform Platform { get; set; }
+            public string Id { get; set; }
             public IList<TestMeta> Tests { get; set; }
             public bool Connected { get; set; }
         }
@@ -92,7 +64,11 @@ namespace pclunit_runner
             public IList<string> Assemblies { get; set; }
             public IList<Platform> Platforms { get; set; }
         }
-
+        public class Platform
+        {
+             public string Id { get; set; }
+             public IList<string> Assemblies { get; set; }
+        }
         public static string AssemblyDirectory
         {
             get
@@ -115,7 +91,7 @@ namespace pclunit_runner
             using (var input = new StringReader(File.ReadAllText(satpath)))
             {
                 var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
-                _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Platform.FullId(), v => v);
+                _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Id, v => v);
             }
 
 
@@ -139,31 +115,62 @@ namespace pclunit_runner
 
 
                     var processList = new List<Process>();
-             
-                    foreach (var set in setting.Config.Platforms)
+                    try
                     {
-                        var sat = _satellites[set.FullId()];
-                        PlatformResult.WaitingForPlatforms.Add(set.FullId());
-                        var process = new Process()
-                                          {
-                            StartInfo = new ProcessStartInfo(sat.Path, String.Format("{0} {1}", url,
-                                  setting.Config.Assemblies.Select(it =>string.Format ("\"{0}\"",
-                                      Path.Combine(fullConfigPath,it)))
-                                      .Aggregate( String.Empty, (seed, item) => string.Format("{0} {1}", seed, item))))
-                                            {
-                                                CreateNoWindow = true,UseShellExecute = false
-                                            }
-                                          };
-                    
-                        processList.Add(process);
+                        lock (PlatformResult.WaitingForPlatforms)
+                        {
+                            //lock is not be necessary but underscores that fact
+                            //that the WaitingForPlatforms needs to be complete before the end of 
+                            //this block.
+                            foreach (var set in setting.Config.Platforms)
+                            {
+                                var sat = _satellites[set.Id];
+
+                                PlatformResult.WaitingForPlatforms.Add(set.Id);
+
+
+                                Func<string, string> expandPath =
+                                    it => string.Format("\"{0}\"", Path.Combine(fullConfigPath, it));
+
+                                var asmpaths = setting.Config.Assemblies
+                                                      .Select(expandPath)
+                                                      .Concat(
+                                                          (set.Assemblies ?? Enumerable.Empty<string>()).Select(
+                                                              expandPath))
+                                                      .Aggregate(String.Empty,
+                                                                 (seed, item) => string.Format("{0} {1}", seed, item));
+
+                                var process = new Process()
+                                                  {
+                                                      StartInfo =
+                                                          new ProcessStartInfo(sat.Path,
+                                                                               String.Format("{0} {1} {2}", sat.Id,
+                                                                                             url, asmpaths))
+                                                              {
+                                                                  CreateNoWindow = true,
+                                                                  UseShellExecute = false,
+                                                              }
+                                                  };
+
+                                processList.Add(process);
+                            }
+                        }
+
+                        foreach (var process1 in processList)
+                        {
+                            process1.Start();
+                        }
+                        foreach (var process1 in processList)
+                        {
+                            process1.WaitForExit();
+                        }
                     }
-                    foreach (var process1 in processList)
+                    finally
                     {
-                        process1.Start();
-                    }
-                    foreach (var process1 in processList)
-                    {
-                        process1.WaitForExit();
+                        foreach (var process1 in processList)
+                        {
+                            process1.Dispose();
+                        }
                     }
                 }
             }
@@ -221,12 +228,16 @@ namespace pclunit_runner
             var pm = Newtonsoft.Json.JsonConvert.DeserializeObject<PlatformMeta>(platformTotalJson);
             foreach (var test in pm.Assemblies.SelectMany(it=>it.Fixtures).SelectMany(it=>it.Tests))
             {
-                string key = string.Format("{0}|{1}|{2}", test.Fixture.Assembly.UniqueName, test.Fixture.UniqueName, test.UniqueName);
-                if (!PlatformResult.ExpectedTests.ContainsKey(key))
+                lock (PlatformResult.ExpectedTests)
                 {
-                    PlatformResult.ExpectedTests[key] = new List<PlatformResult>();
+                    string key = string.Format("{0}|{1}|{2}", test.Fixture.Assembly.UniqueName, test.Fixture.UniqueName,
+                                               test.UniqueName);
+                    if (!PlatformResult.ExpectedTests.ContainsKey(key))
+                    {
+                        PlatformResult.ExpectedTests.Add(key, new List<PlatformResult>());
+                    }
+                    PlatformResult.ExpectedTests[key].Add(new PlatformResult(pm));
                 }
-                PlatformResult.ExpectedTests[key].Add(new PlatformResult(pm));
             }
             Console.WriteLine(pm.UniqueName);
             lock(PlatformResult.WaitingForPlatforms)
@@ -263,7 +274,7 @@ namespace pclunit_runner
                     foreach (var keyValuePair in grpResult)
                     {
                         Console.Write(" ");
-                        Console.Write(keyValuePair.Value.Platform.FullName);
+                        Console.Write(keyValuePair.Value.Platform.Name);
                     }
                     Console.WriteLine();
                 }
@@ -275,7 +286,7 @@ namespace pclunit_runner
                 Console.WriteLine("avg time:{0}", new TimeSpan(span.Ticks / dict.Count));
                 foreach (var kp in dict)
                 {
-                    Console.WriteLine("{0}:", kp.Value.Platform.FullName);
+                    Console.WriteLine("{0}:", kp.Value.Platform.Name);
                     Console.WriteLine(kp.Value.Result.Output);
                 }
                

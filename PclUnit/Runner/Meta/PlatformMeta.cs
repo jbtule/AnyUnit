@@ -27,47 +27,32 @@ namespace PclUnit.Runner
             Assemblies = new CallBackList<AssemblyMeta>(it => it.Platform = this);
         }
 
-        public PlatformMeta(string name, string version= null, string arch= null, string profile= null):this()
+        public PlatformMeta(string name):this()
         {
             Name = name;
-            Version = version;
-            arch = arch;
-            profile = profile;
+            UniqueName = name;
         }
 
 
-        public string UniqueName
-        {
-            get { return "L:" + String.Format("{0}-{1}-{2}-{3}", Name, Version, Arch, Profile); }
-        }
+        public string UniqueName { get; set; }
 
 
-        public string FullName
-        {
-            get { return String.Format("{0}{1}-{2}-{3}", Name, Version, Arch, Profile); }
-        }
         public string Name { get; set; }
 
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Version:\"{2}\", Profile:\"{3}\", Arch:\"{4}\", Assemblies:[{5}]}}",
-                                 Name, UniqueName, Version, Profile, Arch,
+            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Assemblies:[{2}]}}",
+                                 Name, UniqueName,
                                  String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray())
                 );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{ Profile:\"{3}\", Arch:\"{4}\", UniqueName:\"{1}\", Version:\"{2}\",Name:\"{0}\"}}",
-                                 Name, UniqueName, Version, Profile, Arch
+            return String.Format("{{UniqueName:\"{1}\", Name:\"{0}\"}}",
+                                 Name, UniqueName
                 );
         }
-
-        public string Profile { get; set; }
-
-        public string Arch { get; set; }
-
-        public string Version { get; set; }
 
         public IList<AssemblyMeta> Assemblies { get; set; }
 

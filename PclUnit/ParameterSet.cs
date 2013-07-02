@@ -10,6 +10,9 @@ namespace PclUnit
         private readonly object[] _parameters;
         private int _retainCount = 0;
 
+
+        public int Index { get; set; }
+
         public ParameterSet(params object[] parameters)
         {
             _parameters = parameters;

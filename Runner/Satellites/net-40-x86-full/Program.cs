@@ -11,12 +11,17 @@ namespace net_runner
 {
     class Program
     {
-        private static IEnumerable<Test> Tests;
-
         static void Main(string[] args)
         {
-            var url = args.First();
-            var dlls = args.Skip(1);
+            var id = args.First();
+            var url = args.Skip(1).First();
+            var dlls = args.Skip(2);
+
+#if x64
+            if(!Environment.Is64BitProcess)
+                throw new Exception("This runner is expected to run 64bit");
+#endif
+
 
             Console.WriteLine(url);
             Console.WriteLine(dlls.First());
@@ -26,19 +31,7 @@ namespace net_runner
             hubConnection.Start().Wait();
 
 
-            var pm = new PlatformMeta()
-            {
-           
-                Arch = Environment.Is64BitProcess ? "x64" : "x86",
-#if NET40
-                Name = "net",
-                Version = "40",
-#elif NET45
-                Name = "net",
-                Version = "45",  
-#endif
-                Profile = "full"
-            };
+            var pm = new PlatformMeta(id);
 
             serverHub.Invoke("Connect", pm.UniqueName).Wait();
               

@@ -79,10 +79,14 @@ namespace PclUnit.Runner
                                 if (attr2.Category.SafeSplit(",").Any(exclude.ContainsKey))
                                     continue;
 
+                                int i = 0;
                                 foreach (var constructorSet in attr.ParameterSets(type))
-                                {
+                                {  
+                                    int j = 0;
+                                    constructorSet.Index = i++;
                                     foreach (var testSet in attr2.ParameterSets(method))
                                     {
+                                        testSet.Index = j++;
                                         fixture.Tests.Add(new Test(attr2, type, constructorSet, method, testSet));
                                     }
                                 }

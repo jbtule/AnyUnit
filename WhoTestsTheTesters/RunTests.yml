@@ -4,18 +4,10 @@ config:
   assemblies:
     - BasicTests\bin\Debug\BasicTests.dll
   platforms:
-    - id: net
-      version: 40
-      arch: x86
-      profile: full
+    - id: net40-x86
+    - id: net45-x64
 
-    - id: net
-      version: 45
-      arch: x64
-      profile: full
 
-#  - id: sl
-#    version: 50
-#    arch: x86
+#  - id: sl50-x86
 #    assemblies:
 #      - path/to/silverlight/tests.dll  

@@ -43,11 +43,9 @@ namespace PclUnit.Runner
             Name = String.Empty;
             if (constructorArgs.Parameters.Any())
             {
-                var uniqueargs =constructorArgs.Parameters.Select(it => string.Format("{0}#{1}", it.GetType(), it.GetHashCode()));
+                var nameArgs = constructorArgs.Parameters.Select(it => it.ToString()).ToList();
 
-                UniqueName += string.Format("({0})", String.Join(",", uniqueargs.ToArray()));
-
-                var nameArgs = constructorArgs.Parameters.Select(it => it.ToString());
+                UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
@@ -59,11 +57,9 @@ namespace PclUnit.Runner
 
             if (methodArgs.Parameters.Any())
             {
-                var uniqueargs = methodArgs.Parameters.Select(it => string.Format("{0}#{1}", it.GetType().ToString(), it.GetHashCode().ToString()));
-
-                UniqueName += string.Format("({0})", String.Join(",", uniqueargs.ToArray()));
-
                 var nameArgs = methodArgs.Parameters.Select(it => it.ToString());
+
+                UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }

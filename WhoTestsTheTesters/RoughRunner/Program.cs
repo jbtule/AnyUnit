@@ -38,10 +38,7 @@ namespace RoughRunner
             
             var pm = new PlatformMeta()
                          {
-                             Name = "net", 
-                             Arch = Environment.Is64BitProcess ? "x64" : "x86",
-                             Version = "40",
-                             Profile = "full"
+                             Name = "net40-"+(Environment.Is64BitProcess ? "x64" : "x86")
                          };
             var am = Assembly.GetAssembly(typeof(BasicTests.Basic));
             var am2 = Assembly.GetAssembly(typeof(ConstraintsTests.Basic));
