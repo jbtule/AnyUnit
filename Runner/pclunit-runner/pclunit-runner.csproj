@@ -13,9 +13,10 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +24,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <Commandlineparameters>runConfig ../../../../WhoTestsTheTesters/RunTests.yml</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,7 +39,6 @@
   <ItemGroup>
     <Reference Include="ManyConsole">
       <HintPath>..\..\packages\ManyConsole.0.4.2.16\lib\ManyConsole.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\..\packages\Microsoft.AspNet.SignalR.Core.1.1.2\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
@@ -86,7 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
   </ItemGroup>

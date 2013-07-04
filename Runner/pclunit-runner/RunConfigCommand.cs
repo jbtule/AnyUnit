@@ -83,6 +83,13 @@ namespace pclunit_runner
 
         private IDictionary<string, Satellite> _satellites;
 
+		private static string PlatformFixPath(string path){
+			path = path.Replace("\\", Path.DirectorySeparatorChar.ToString());
+			path = path.Replace("/", Path.DirectorySeparatorChar.ToString());
+			return path;
+		}
+
+
         public override int Run(string[] remainingArguments)
         {
             var satpath = Path.Combine(AssemblyDirectory, "satellites.yml");
@@ -126,6 +133,8 @@ namespace pclunit_runner
                             {
                                 var sat = _satellites[set.Id];
 
+								var pgr = Path.Combine(Path.GetDirectoryName(satpath), PlatformFixPath(sat.Path));
+
                                 PlatformResult.WaitingForPlatforms.Add(set.Id);
 
 
@@ -143,14 +152,12 @@ namespace pclunit_runner
                                 var process = new Process()
                                                   {
                                                       StartInfo =
-                                                          new ProcessStartInfo(sat.Path,
+																new ProcessStartInfo(pgr,
                                                                                String.Format("{0} {1} {2}", sat.Id,
                                                                                              url, asmpaths))
                                                               {
-#if !DEBUG
                                                                   CreateNoWindow = true,
                                                                   UseShellExecute = false,
-#endif
                                                               }
                                                   };
 
@@ -166,6 +173,7 @@ namespace pclunit_runner
                         {
                             process1.WaitForExit();
                         }
+						Console.ReadLine();
                     }
                     finally
                     {

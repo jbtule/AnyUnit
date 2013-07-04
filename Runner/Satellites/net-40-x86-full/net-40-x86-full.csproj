@@ -13,6 +13,8 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -23,6 +25,8 @@
     <DefineConstants>TRACE;DEBUG;NET40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <Commandlineparameters>http://localhost:8989 mono-mac ../../../../../WhoTestsTheTesters/BasicTests/bin/Debug/BasicTests.dll</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -54,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
   </ItemGroup>
@@ -67,4 +71,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
 </Project>

@@ -11,6 +11,8 @@
     <AssemblyName>RoughRunner</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,15 +48,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\BasicTests\BasicTests.csproj">
-      <Project>{07944fc5-debb-478f-a464-ad62ca4dd7a0}</Project>
+      <Project>{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}</Project>
       <Name>BasicTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\ConstraintsTests\ConstraintsTests.csproj">
-      <Project>{360dd182-dfd4-479e-b001-042413d2de02}</Project>
+      <Project>{360DD182-DFD4-479E-B001-042413D2DE02}</Project>
       <Name>ConstraintsTests</Name>
     </ProjectReference>
   </ItemGroup>

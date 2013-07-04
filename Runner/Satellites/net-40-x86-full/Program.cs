@@ -85,10 +85,10 @@ namespace net_runner
             var baseUri = new Uri(args.RequestingAssembly.CodeBase); 
             var shortName = new AssemblyName(args.Name).Name;
 
-            Debug.WriteLine(args.RequestingAssembly.CodeBase);
-            Debug.WriteLine(shortName);
+			Console.WriteLine(args.RequestingAssembly.CodeBase);
+			Console.WriteLine(shortName);
             string fullName = Path.Combine(Path.GetDirectoryName(Uri.UnescapeDataString(baseUri.AbsolutePath)), shortName +".dll");
-            Debug.WriteLine(fullName);
+			Console.WriteLine(fullName);
             Assembly asm = null;
             try
             {
