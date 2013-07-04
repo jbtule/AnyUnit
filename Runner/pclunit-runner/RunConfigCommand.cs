@@ -147,8 +147,10 @@ namespace pclunit_runner
                                                                                String.Format("{0} {1} {2}", sat.Id,
                                                                                              url, asmpaths))
                                                               {
+#if !DEBUG
                                                                   CreateNoWindow = true,
                                                                   UseShellExecute = false,
+#endif
                                                               }
                                                   };
 
