@@ -23,7 +23,6 @@ using System.Text;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
-using Microsoft.Owin.Diagnostics;
 using Newtonsoft.Json;
 using Owin;
 using PclUnit.Runner;
@@ -117,7 +116,7 @@ namespace pclunit_runner
                 string url = "http://localhost:8989";
 
 
-                using (WebApplication.Start<Startup>(url))
+                using (WebApp.Start<Startup>(url))
                 {
                     Console.WriteLine("Server running on {0}", url);
 
@@ -197,7 +196,6 @@ namespace pclunit_runner
         {
             // Turn cross domain on 
             var config = new HubConfiguration {EnableCrossDomain = true};
-            app.UseErrorPage();
             // This will map out to http://localhost:8989/signalr by default
             app.MapHubs(config);
         }
