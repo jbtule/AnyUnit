@@ -6,7 +6,7 @@ config:
     - ConstraintsTests\bin\Debug\ConstraintsTests.dll
   platforms:
     - id: net40-x86
-    - id: net45-x64
+#    - id: net45-x64
 
 
 #  - id: sl50-x86
