@@ -23,6 +23,7 @@ using System.Text;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
+using Microsoft.Owin.Diagnostics;
 using Newtonsoft.Json;
 using Owin;
 using PclUnit.Runner;
@@ -133,7 +134,7 @@ namespace pclunit_runner
                             {
                                 var sat = _satellites[set.Id];
 
-								var pgr = Path.Combine(Path.GetDirectoryName(satpath), PlatformFixPath(sat.Path));
+                                var pgr = Path.Combine(Path.GetDirectoryName(satpath), PlatformFixPath(sat.Path));
 
                                 PlatformResult.WaitingForPlatforms.Add(set.Id);
 
@@ -173,7 +174,6 @@ namespace pclunit_runner
                         {
                             process1.WaitForExit();
                         }
-						Console.ReadLine();
                     }
                     finally
                     {
@@ -197,7 +197,7 @@ namespace pclunit_runner
         {
             // Turn cross domain on 
             var config = new HubConfiguration {EnableCrossDomain = true};
-
+            app.UseErrorPage();
             // This will map out to http://localhost:8989/signalr by default
             app.MapHubs(config);
         }
