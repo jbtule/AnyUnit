@@ -35,8 +35,6 @@ namespace PclUnit.Runner
             Fixtures = new CallBackList<FixtureMeta>(it => it.Assembly = this);
         }
 
-        public PlatformMeta Platform { get; set; }
-
         public string UniqueName { get; set; }
         public string Name { get; set; }
     
@@ -53,9 +51,8 @@ namespace PclUnit.Runner
 
         public string ToItemJson()
         {
-            return String.Format("{{Platform:{2}, UniqueName:\"{1}\",  Name:\"{0}\"}}",
-                                 Name, UniqueName,
-                                 Platform.ToItemJson());
+            return String.Format("{{UniqueName:\"{1}\",  Name:\"{0}\"}}",
+                                 Name, UniqueName);
 
         }
 

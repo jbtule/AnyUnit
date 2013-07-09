@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PclUnit.Util;
 namespace PclUnit.Runner
 {
@@ -23,7 +24,11 @@ namespace PclUnit.Runner
         public TestMeta()
         {
             Category = new List<string>();
+
+            Results = new CallBackList<Result>(it => it.Test = this);
         }
+
+        public IList<Result> Results { get; set; }
 
         public FixtureMeta Fixture { get; set; }
 
@@ -33,13 +38,13 @@ namespace PclUnit.Runner
   
         public string ToListJson()
         {
-              return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}}}",
-                                 Name, UniqueName, Description, Category.ToListJson(), Timeout);
+            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}, Results:[{5}]}}",
+                                 Name, UniqueName, Description, Category.ToListJson(), Timeout, string.Join(",",Results.Select(it => it.ToListJson()).ToArray()));
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Fixture:{4}, Timeout:{5}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\"}}",
+            return String.Format("{{Fixture:{4}, Timeout:{5}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\", }}",
                                  Name, UniqueName, Description, Category.ToListJson(), Fixture.ToItemJson(),Timeout);
 
         }

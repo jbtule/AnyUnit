@@ -31,7 +31,7 @@ namespace PclUnit.Runner
     public class Result:IJsonSerialize
     {
 
-        public static Result Error(TestMeta test, string message, DateTime startTime, DateTime endTime)
+        public static Result Error(string platform, string message, DateTime startTime, DateTime endTime)
         {
             var dummy =new AssertionHelper()
                 {
@@ -41,7 +41,7 @@ namespace PclUnit.Runner
 
             dummy.Log.Write(message);
 
-            return new Result(test, ResultKind.Error, startTime, endTime, dummy);
+            return new Result(platform, ResultKind.Error, startTime, endTime, dummy);
         }
        
         public Result()
@@ -49,17 +49,17 @@ namespace PclUnit.Runner
             
         }
 
-        public Result(TestMeta test, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
+        public Result(string platform, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
         {
-            Test = test;
+            Platform = platform;
             Kind = kind;
             StartTime = startTime;
             EndTime = endTime;
             Output = helper.Log.ToString();
-            AssertCount = helper.Assert.AssertCount;
+            AssertCount = helper.Assert.AssertCount; 
         }
 
-        public TestMeta Test { get; set; }
+        public string Platform { get; set; }
 
         public ResultKind Kind { get; set; }
 
@@ -68,16 +68,22 @@ namespace PclUnit.Runner
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public int AssertCount { get;  set; }
-
+        public TestMeta Test { get; set; }
         public string ToListJson()
         {
-            return ToItemJson();
+             return String.Format("{{Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
+                                 Platform, Kind, AssertCount, Output.EscapeJson(), 
+                                 StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt")
+                                 );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Test:{0}, Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
-                                 Test.ToItemJson(), Kind, AssertCount, Output.EscapeJson(), StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
+            return String.Format("{{Test:{6}, Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
+                                 Platform, Kind, AssertCount, Output.EscapeJson(), 
+                                 StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"),
+                                 Test.ToItemJson()
+                                 );
         }
     }
 }

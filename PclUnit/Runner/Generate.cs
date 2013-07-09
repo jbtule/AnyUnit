@@ -20,7 +20,6 @@ using PclUnit.Util;
 
 namespace PclUnit.Runner
 {
-
     public static class Generate
     {
 
@@ -36,10 +35,10 @@ namespace PclUnit.Runner
         }
 
 
-        public static IEnumerable<Test> Tests(PlatformMeta platform, IEnumerable<Assembly> assemblies,
+        public static Runner Tests(string platformId, IEnumerable<Assembly> assemblies,
                                                  Options options = null)
         {
-
+            var runner = new Runner(platformId);
 
             var exclude = new Dictionary<string, string>();
             if (options != null)
@@ -54,7 +53,7 @@ namespace PclUnit.Runner
             {
                 var assemblyMeta = new AssemblyMeta(assembly);
 
-                platform.Assemblies.Add(assemblyMeta);
+                runner.Assemblies.Add(assemblyMeta);
 
                 foreach (var type in assembly.GetTypes())
                 {
@@ -87,7 +86,9 @@ namespace PclUnit.Runner
                                     foreach (var testSet in attr2.ParameterSets(method))
                                     {
                                         testSet.Index = j++;
-                                        fixture.Tests.Add(new Test(attr2, type, constructorSet, method, testSet));
+                                        var test = new Test(attr2, type, constructorSet, method, testSet);
+                                        fixture.Tests.Add(test);
+                                        runner.Tests.Add(test);
                                     }
                                 }
                                
@@ -98,11 +99,7 @@ namespace PclUnit.Runner
 
                 }
             }
-            return platform.Assemblies
-                .SelectMany(it => it.Fixtures)
-                .SelectMany(it=>it.Tests)
-                .OfType<Test>()
-                .ToList();
+            return runner;
         }
     }
 }

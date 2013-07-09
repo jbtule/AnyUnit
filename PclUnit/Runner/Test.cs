@@ -72,31 +72,37 @@ namespace PclUnit.Runner
 
         internal class State
         {
-            public State()
+            public State(string platform)
             {
-               Event = new ManualResetEvent(false);   
+               Platform = platform;
+               Event = new ManualResetEvent(false);
             }
-
+            public string Platform { get; protected set; }
             public Result Result { get; set; }
             public ManualResetEvent Event { get; protected set; }
         }
 
-        public Result Run()
+        public Result Run(string platform)
         {
-
-            var state = new State();
+            var state = new State(platform);
             var startTime = DateTime.Now;
             ThreadPool.QueueUserWorkItem(RunHelper, state);
-
+            Result result =null;
             if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))
             {
                 _constructorArgs.Release();
                 _methodArgs.Release();
-                return state.Result;
+                result = state.Result;
             }
-            _constructorArgs.Release();
-            _methodArgs.Release();
-            return Result.Error(this, "Tests Execution Timed Out", startTime, DateTime.Now);
+            else
+            {
+                _constructorArgs.Release();
+                _methodArgs.Release();
+                result = Result.Error(platform, "Tests Execution Timed Out", startTime, DateTime.Now);
+            }
+            Results.Add(result);
+            return result;
+
         }
 
         private void RunHelper(Object stateInfo)
@@ -131,11 +137,11 @@ namespace PclUnit.Runner
 
                     if (!(helper is DummyHelper) && helper.Assert.AssertCount == 0)
                     {
-                        returnVal = new Result(this, ResultKind.NoError, startTime, DateTime.Now, helper);
+                        returnVal = new Result(state.Platform, ResultKind.NoError, startTime, DateTime.Now, helper);
                     }
                     else
                     {
-                        returnVal = new Result(this, ResultKind.Success, startTime, DateTime.Now, helper);
+                        returnVal = new Result(state.Platform, ResultKind.Success, startTime, DateTime.Now, helper);
                     }
                 }
                     //Reflection wraps exceptions with target exceptions
@@ -152,13 +158,13 @@ namespace PclUnit.Runner
                         helper.Log.WriteLine(ex.Message);
                         helper.Log.WriteLine(ex.StackTrace);
 
-                        returnVal = new Result(this, ResultKind.Fail, startTime, DateTime.Now, helper);
+                        returnVal = new Result(state.Platform, ResultKind.Fail, startTime, DateTime.Now, helper);
 
                     }
                     else if (ex is IgnoreException)
                     {
                         helper.Log.Write(ex.Message);
-                        returnVal = new Result(this, ResultKind.Ignore, startTime, DateTime.Now, helper);
+                        returnVal = new Result(state.Platform, ResultKind.Ignore, startTime, DateTime.Now, helper);
                     }
                     else
                     {
@@ -168,7 +174,8 @@ namespace PclUnit.Runner
                         helper.Log.WriteLine(ex.Message);
                         helper.Log.WriteLine(ex.StackTrace);
 
-                        returnVal = new Result(this, ResultKind.Error, startTime,DateTime.Now, helper);
+
+                        returnVal = new Result(state.Platform, ResultKind.Error, startTime, DateTime.Now, helper);
                     }
                 }
                 finally

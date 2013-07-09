@@ -50,13 +50,14 @@
     <Compile Include="ParameterSet.cs" />
     <Compile Include="Runner\Meta\AssemblyMeta.cs" />
     <Compile Include="Runner\Assert.cs" />
+    <Compile Include="Runner\Meta\ResultsFile.cs" />
     <Compile Include="Runner\Meta\FixtureMeta.cs" />
     <Compile Include="Runner\Generate.cs" />
     <Compile Include="Runner\Meta\IJsonSerialize.cs" />
     <Compile Include="Runner\Meta\IMeta.cs" />
     <Compile Include="Runner\Log.cs" />
-    <Compile Include="Runner\Meta\PlatformMeta.cs" />
     <Compile Include="Runner\Meta\Result.cs" />
+    <Compile Include="Runner\Runner.cs" />
     <Compile Include="Runner\Test.cs" />
     <Compile Include="Runner\Meta\TestMeta.cs" />
     <Compile Include="TestAttribute.cs" />

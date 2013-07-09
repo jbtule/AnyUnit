@@ -4,3 +4,6 @@
 
 - path: ..\..\..\Satellites\net-45-x64-full\bin\Debug\net-45-x64-full.exe
   id: net45-x64
+
+- path: ..\..\..\Satellites\sl-50-x86\bin\Debug\sl-50-x86.exe
+  id: sl50-x86

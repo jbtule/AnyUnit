@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Hubs;
 using PclUnit.Runner;
 
@@ -23,7 +24,8 @@ namespace net_runner
 
             var id = args.First();
             var url = args.Skip(1).First();
-            var dlls = args.Skip(2);
+            var sharedpath = args.Skip(2).First();
+            var dlls = args.Skip(3);
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
 
@@ -48,34 +50,32 @@ namespace net_runner
             hubConnection.Start().Wait();
 
 
-            var pm = new PlatformMeta(id);
-
-            serverHub.Invoke("Connect", pm.UniqueName).Wait();
-              
-          
+            serverHub.Invoke("Connect", id).Wait();
 
             var am = dlls.Select(Assembly.LoadFile).ToList();
 
 
 
 
-           var tests = Generate.Tests(pm, am);
+            var runner = Generate.Tests(id, am);
 
             bool run = false;
             
             serverHub.On("TestsAreReady", message =>
                                               {
-                                                  foreach (var test in tests)
-                                                  {
-                                                      var result = test.Run();
-                                                      serverHub.Invoke("SendResult", result.ToItemJson()).Wait();
-                                                  }
+                                                  runner.RunAll(result => serverHub.Invoke("SendResult",
+                                                                                           result.ToItemJson()).Wait());
                                                   run = true;
                                               });
 
-            serverHub.Invoke("List", pm.ToListJson()).Wait();
+            serverHub.Invoke("List", runner.ToListJson()).Wait();
 
-           SpinWait.SpinUntil(()=> run); 
+            while (true)
+            {
+                Thread.Sleep(50);
+                if(run)
+                    break;
+            }
         }
 
 
@@ -85,10 +85,10 @@ namespace net_runner
             var baseUri = new Uri(args.RequestingAssembly.CodeBase); 
             var shortName = new AssemblyName(args.Name).Name;
 
-			Console.WriteLine(args.RequestingAssembly.CodeBase);
-			Console.WriteLine(shortName);
-            string fullName = Path.Combine(Path.GetDirectoryName(Uri.UnescapeDataString(baseUri.AbsolutePath)), shortName +".dll");
-			Console.WriteLine(fullName);
+            Console.WriteLine(args.RequestingAssembly.CodeBase);
+            Console.WriteLine(shortName);
+            string fullName = Path.Combine(Path.GetDirectoryName(Uri.UnescapeDataString(baseUri.AbsolutePath)), string.Format("{0}.dll", shortName));
+            Console.WriteLine(fullName);
             Assembly asm = null;
             try
             {
