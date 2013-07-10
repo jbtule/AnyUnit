@@ -23,6 +23,8 @@ namespace PclUnit
 {
     public delegate IEnumerable<ParameterSet> ParameterSetFixtureProducer(Type type);
 
+    public delegate object FixtureInitializer(Type type, object[] args);
+
     [AttributeUsage(AttributeTargets.Class)]
     public class TestFixtureAttribute : Attribute
     {
@@ -34,6 +36,11 @@ namespace PclUnit
         public Type TargetOfParameterSet { get; set; }
 
         public string StaticMethodOfParameterSet { get; set; }
+
+        public virtual FixtureInitializer FixtureInit
+        {
+            get { return Activator.CreateInstance; }
+        }
 
         public virtual ParameterSetFixtureProducer ParameterSets
         {

@@ -82,7 +82,7 @@ namespace ConventionTestProcessor
 
         public static void PrintOutResult(Result result)
         {
-            TeamCity.WriteLine("##teamcity[testStarted name='{0}|{1}' captureStandardOutput='true']", result.Test.Name,
+            TeamCity.WriteLine("##teamcity[testStarted name='{0}__{1}' captureStandardOutput='true']", result.Test.Name,
                                result.Platform);
 
             TeamCity.DontWrite(result.Test.Fixture.Assembly.Name + ".");
@@ -121,7 +121,7 @@ namespace ConventionTestProcessor
             TeamCity.DontWriteLine(String.Empty);
             TeamCity.DontWriteLine("*************************");
          
-            TeamCity.WriteLine("##teamcity[testFinished name='{0}|{1}' duration='{2}']", result.Test.Name, result.Platform,
+            TeamCity.WriteLine("##teamcity[testFinished name='{0}__{1}' duration='{2}']", result.Test.Name, result.Platform,
                                (result.EndTime - result.StartTime).TotalMilliseconds);
         }
 

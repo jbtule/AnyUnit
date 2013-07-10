@@ -86,7 +86,8 @@ namespace PclUnit.Runner
                                     foreach (var testSet in attr2.ParameterSets(method))
                                     {
                                         testSet.Index = j++;
-                                        var test = new Test(attr2, type, constructorSet, method, testSet);
+                                        var test = new Test(attr, type, constructorSet, 
+                                                           attr2, method, testSet);
                                         fixture.Tests.Add(test);
                                         runner.Tests.Add(test);
                                     }

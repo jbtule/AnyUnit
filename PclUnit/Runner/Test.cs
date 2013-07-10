@@ -23,12 +23,16 @@ namespace PclUnit.Runner
 {
     public class Test : TestMeta
     {
+        private readonly FixtureInitializer _init;
         private readonly Type _type;
+        private readonly TestInvoker _invoke;
         private readonly ParameterSet _constructorArgs;
         private readonly MethodInfo _method;
         private readonly ParameterSet _methodArgs;
 
-        public Test(TestAttribute attribute, Type type, ParameterSet constructorArgs, MethodInfo method, ParameterSet methodArgs)
+        public Test(
+            TestFixtureAttribute fixtureAttribute, Type type, ParameterSet constructorArgs,
+            TestAttribute attribute, MethodInfo method, ParameterSet methodArgs)
         {
             Category = attribute.Category.SafeSplit(",").ToList();
             Description = attribute.Description;
@@ -63,8 +67,10 @@ namespace PclUnit.Runner
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
-             
+
+            _init = fixtureAttribute.FixtureInit;
             _type = type;
+            _invoke = attribute.TestInvoke;
             _constructorArgs = constructorArgs.Retain();
             _method = method;
             _methodArgs = methodArgs.Retain();
@@ -110,7 +116,7 @@ namespace PclUnit.Runner
 
             var state = (State) stateInfo;
             var startTime = DateTime.Now;
-            var fixture = Activator.CreateInstance(_type, _constructorArgs.Parameters);
+            var fixture = _init(_type, _constructorArgs.Parameters);
 
             var helper = fixture as IAssertionHelper ?? new DummyHelper();
             helper.Assert = new Assert();
@@ -121,7 +127,7 @@ namespace PclUnit.Runner
                 try
                 {
 
-                    var result = _method.Invoke(fixture, _methodArgs.Parameters);
+                    var result = _invoke(_method, fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
                     if (result as bool? ?? false)

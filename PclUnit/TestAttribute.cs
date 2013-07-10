@@ -22,6 +22,8 @@ namespace PclUnit
 {
     public delegate IEnumerable<ParameterSet> ParameterSetTestProducer(MethodInfo method);
 
+    public delegate object TestInvoker(MethodInfo method, object target, object[] args);
+
     [AttributeUsage(AttributeTargets.Method)]
     public class TestAttribute : Attribute
     {
@@ -33,6 +35,11 @@ namespace PclUnit
         public Type ParameterSetsTarget { get; set; }
 
         public string ParameterSetsStaticMethod { get; set; }
+
+        public virtual TestInvoker TestInvoke
+        {
+            get { return (method, target, args) => method.Invoke(target, args); }
+        }
 
         public virtual ParameterSetTestProducer ParameterSets
         {
