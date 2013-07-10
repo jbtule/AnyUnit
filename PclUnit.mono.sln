@@ -6,6 +6,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WhoTestsTheTesters", "WhoTestsTheTesters", "{6ECDD5E9-7354-4153-89F6-0AE99785F648}"
 	ProjectSection(SolutionItems) = preProject
 		WhoTestsTheTesters\RunTests.yml = WhoTestsTheTesters\RunTests.yml
+		WhoTestsTheTesters\RunTests.mono.yml = WhoTestsTheTesters\RunTests.mono.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoughRunner", "WhoTestsTheTesters\RoughRunner\RoughRunner.csproj", "{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}"
