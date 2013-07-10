@@ -10,6 +10,3 @@ config:
     - id: sl50-x86
       assemblies:
         - SilverlightTests\bin\Debug\SilverlightTests.dll
-    - id: sl50-x64
-      assemblies:
-        - SilverlightTests\bin\Debug\SilverlightTests.dll
