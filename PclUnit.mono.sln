@@ -1,0 +1,100 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit", "PclUnit\PclUnit.csproj", "{999019D5-60C5-4CE6-A070-28B197C44D2A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WhoTestsTheTesters", "WhoTestsTheTesters", "{6ECDD5E9-7354-4153-89F6-0AE99785F648}"
+	ProjectSection(SolutionItems) = preProject
+		WhoTestsTheTesters\RunTests.yml = WhoTestsTheTesters\RunTests.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoughRunner", "WhoTestsTheTesters\RoughRunner\RoughRunner.csproj", "{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConventionTestProcessor", "WhoTestsTheTesters\ConventionTestProcessor\ConventionTestProcessor.csproj", "{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CB47488D-6ECE-4697-90C2-3BDA8488F00C}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runner", "Runner", "{D499D912-5D0C-4EB5-B90E-B418E9A9D609}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pclunit-runner", "Runner\pclunit-runner\pclunit-runner.csproj", "{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Satellites", "Satellites", "{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-40-x86-full", "Runner\Satellites\net\net40\net-40-x86-full.csproj", "{96409D0A-2D64-40D3-A932-A6A7927CE1EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-45-x86-full", "Runner\Satellites\net\net45\net-45-x86-full.csproj", "{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contrib", "Contrib", "{83006684-DA66-48B5-940C-9DE54271B193}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.Constraints", "Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj", "{7251D9B8-DD2A-4DCA-A568-C53772081CE5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{360DD182-DFD4-479E-B001-042413D2DE02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{360DD182-DFD4-479E-B001-042413D2DE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{360DD182-DFD4-479E-B001-042413D2DE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{360DD182-DFD4-479E-B001-042413D2DE02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7251D9B8-DD2A-4DCA-A568-C53772081CE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7251D9B8-DD2A-4DCA-A568-C53772081CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7251D9B8-DD2A-4DCA-A568-C53772081CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7251D9B8-DD2A-4DCA-A568-C53772081CE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96409D0A-2D64-40D3-A932-A6A7927CE1EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96409D0A-2D64-40D3-A932-A6A7927CE1EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96409D0A-2D64-40D3-A932-A6A7927CE1EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96409D0A-2D64-40D3-A932-A6A7927CE1EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{360DD182-DFD4-479E-B001-042413D2DE02} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
+		{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
+		{96409D0A-2D64-40D3-A932-A6A7927CE1EB} = {3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}
+		{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D} = {3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}
+		{7251D9B8-DD2A-4DCA-A568-C53772081CE5} = {83006684-DA66-48B5-940C-9DE54271B193}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Runner\pclunit-runner\pclunit-runner.csproj
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,9 @@
+# Run PCL tests
+---
+config:
+  assemblies:
+    - BasicTests\bin\Debug\BasicTests.dll
+    - ConstraintsTests\bin\Debug\ConstraintsTests.dll
+  platforms:
+    - id: net40-x86
+    - id: net45-x86

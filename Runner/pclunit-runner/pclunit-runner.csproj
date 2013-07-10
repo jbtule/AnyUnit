@@ -26,7 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
-    <Commandlineparameters>runConfig ../../../../WhoTestsTheTesters/RunTests.yml</Commandlineparameters>
+    <Commandlineparameters>runConfig -o test.json  ../../../../WhoTestsTheTesters/RunTests.yml --noerror</Commandlineparameters>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

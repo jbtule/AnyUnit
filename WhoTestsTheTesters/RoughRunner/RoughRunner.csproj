@@ -60,7 +60,7 @@
       <Name>ConstraintsTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\ConventionTestProcessor\ConventionTestProcessor.csproj">
-      <Project>{5afb0620-f75f-45d6-b287-f1a2f1337db2}</Project>
+      <Project>{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}</Project>
       <Name>ConventionTestProcessor</Name>
     </ProjectReference>
   </ItemGroup>

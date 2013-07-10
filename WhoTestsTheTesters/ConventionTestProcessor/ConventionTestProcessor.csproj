@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
   </ItemGroup>
