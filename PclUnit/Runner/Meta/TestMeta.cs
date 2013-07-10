@@ -21,6 +21,26 @@ namespace PclUnit.Runner
 {
     public class TestMeta : IMeta
     {
+        public static TestMeta FakeTest(string description)
+        {
+            return new TestMeta
+                       {
+                           Name = description,
+                           UniqueName = description,
+                           Fixture = new FixtureMeta()
+                                         {
+                                             Name = description,
+                                             UniqueName = description,
+                                             Assembly = new AssemblyMeta()
+                                                            {
+                                                                Name = description,
+                                                                UniqueName = description
+                                                            }
+                                         }
+                       };
+        }
+
+
         public TestMeta()
         {
             Category = new List<string>();
@@ -39,7 +59,9 @@ namespace PclUnit.Runner
         public string ToListJson()
         {
             return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}, Results:[{5}]}}",
-                                 Name, UniqueName, Description, Category.ToListJson(), Timeout, string.Join(",",Results.Select(it => it.ToListJson()).ToArray()));
+                                 Name, UniqueName, Description, Category.ToListJson(),
+                                 Timeout.MaybeStruct(m => m.ToString(), () => "null"), 
+                                 string.Join(",",Results.Select(it => it.ToListJson()).ToArray()));
         }
 
         public string ToItemJson()

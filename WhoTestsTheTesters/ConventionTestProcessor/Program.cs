@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using PclUnit.Runner;
 
 namespace ConventionTestProcessor
@@ -20,7 +21,7 @@ namespace ConventionTestProcessor
             }
 
             var json =File.ReadAllText(file);
-            var results =Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(json);
+            var results = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(json);
 
 
             foreach (var asm in results.Assemblies)

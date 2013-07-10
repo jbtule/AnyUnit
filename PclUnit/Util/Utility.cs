@@ -95,7 +95,8 @@ namespace PclUnit.Util
                           .SingleOrDefault();
         }
 
-        public static TR Maybe<T, TR>(this T target, Func<T, TR> func, Func<TR> defaultValue =null) where T:class 
+        public static TR Maybe<T, TR>(this T target, Func<T, TR> func, Func<TR> defaultValue =null)
+            where T : class 
         {
             if (target == null)
             {
@@ -109,7 +110,8 @@ namespace PclUnit.Util
         }
 
 
-        public static TR Maybe<T, TR>(this T? target, Func<T, TR> func, Func<TR> defaultValue = null) where T : struct 
+        public static TR MaybeStruct<T, TR>(this T? target, Func<T, TR> func, Func<TR> defaultValue = null)
+            where T : struct 
         {
             if (target == null)
             {

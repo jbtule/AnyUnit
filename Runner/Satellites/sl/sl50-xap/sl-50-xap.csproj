@@ -9,8 +9,8 @@
     <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>sl_50_x86_xap</RootNamespace>
-    <AssemblyName>sl-50-x86-xap</AssemblyName>
+    <RootNamespace>sl_50_xap</RootNamespace>
+    <AssemblyName>sl-50-xap</AssemblyName>
     <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
@@ -19,9 +19,9 @@
     </SupportedCultures>
     <XapOutputs>true</XapOutputs>
     <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
-    <XapFilename>sl-50-x86-xap.xap</XapFilename>
+    <XapFilename>sl-50-xap.xap</XapFilename>
     <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
-    <SilverlightAppEntry>sl_50_x86_xap.App</SilverlightAppEntry>
+    <SilverlightAppEntry>sl_50_xap.App</SilverlightAppEntry>
     <TestPageFileName>sl_50_x86_xapTestPage.html</TestPageFileName>
     <CreateTestPage>true</CreateTestPage>
     <ValidateXaml>true</ValidateXaml>
@@ -44,7 +44,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\sl-50-x86\xap\</OutputPath>
+    <OutputPath>..\sl50\xap\</OutputPath>
     <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
@@ -63,11 +63,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.AspNet.SignalR.Client">
-      <HintPath>..\..\..\packages\Microsoft.AspNet.SignalR.Client.1.1.2\lib\sl5\Microsoft.AspNet.SignalR.Client.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.AspNet.SignalR.Client.1.1.2\lib\sl5\Microsoft.AspNet.SignalR.Client.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\sl4\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Newtonsoft.Json.4.5.11\lib\sl4\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows" />
     <Reference Include="system" />
@@ -79,6 +79,9 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\RunTests.cs">
+      <Link>RunTests.cs</Link>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -102,7 +105,7 @@
     <None Include="Properties\AppManifest.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
