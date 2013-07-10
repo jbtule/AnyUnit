@@ -22,7 +22,8 @@ See [Pcl Unit Design and Philosophy][Design].
 
 ####Status
 Alpha Version
-  - Core Libraries and Basic Test Runner Only
+  - Core Libraries and Basic Test Runner -Win & Mono
+  - Aggregating Test Runner (net40 x86,x64) (net45 x86, x64) (sl50 x86, x64) -Win
 
 [travis-ci]:https://travis-ci.org/
 [Design]:http://github.com/jbtule/PclUnit/wiki/Design
