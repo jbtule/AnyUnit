@@ -14,4 +14,5 @@ before_script:
   - .ci/install_portable_refs.sh 
 script:
   - xbuild PclUnit.mono.sln
-  - mono --runtime=v4.0.30319 WhoTestsTheTesters/RoughRunner/bin/Debug/RoughRunner.exe
+  - mono WhoTestsTheTesters/RunTests.Mono.Manually.sh
+  - mono WhoTestsTheTesters/ConventionTestsProcessor/bin/Debug/ConventionTestsProcessor.exe mono-results/*.json

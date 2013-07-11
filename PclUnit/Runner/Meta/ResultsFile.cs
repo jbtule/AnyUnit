@@ -15,9 +15,20 @@ namespace PclUnit.Runner
 
         public IList<AssemblyMeta> Assemblies { get; set; }
 
+        public bool HasError
+        {
+            get
+            {
+                return Assemblies.SelectMany(it => it.Fixtures)
+                          .SelectMany(it => it.Tests)
+                          .SelectMany(it => it.Results)
+                          .Any(it => it.Kind == ResultKind.Error || it.Kind == ResultKind.Fail);
+            }
+        }
 
         public void Add(Result result)
         {
+
             lock (this)
             {
                 var lv1 = Assemblies.SingleOrDefault(it => it.UniqueName == result.Test.Fixture.Assembly.UniqueName);
@@ -46,7 +57,7 @@ namespace PclUnit.Runner
                 }
             }
         }
-          
+
 
 
         public string ToListJson()

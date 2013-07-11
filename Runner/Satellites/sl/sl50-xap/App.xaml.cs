@@ -46,7 +46,7 @@ namespace sl_50_xap
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-          
+            var alone = e.InitParams["testalone"].Contains("t");
             var id =e.InitParams["testplatform"];
             var url =e.InitParams["testurl"];
             var bytes = Convert.FromBase64String(e.InitParams["testdlls"]);
@@ -54,7 +54,7 @@ namespace sl_50_xap
                                 .Split(new[] {"|"},
                                         StringSplitOptions.RemoveEmptyEntries);
 
-            this.RootVisual = new MainPage(id,url, dlls);
+            this.RootVisual = new MainPage(alone,id,url, dlls);
          
         }
 

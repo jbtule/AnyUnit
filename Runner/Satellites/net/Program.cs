@@ -21,9 +21,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using ManyConsole;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Hubs;
 using PclUnit.Runner;
+using Runner.Shared;
 
 
 namespace net_runner
@@ -35,19 +37,26 @@ namespace net_runner
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
         }
 
-     
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            var hidden = args.First();
-            var id = args.Skip(1).First();
-            var url = args.Skip(2).First();
-            var sharedpath = args.Skip(3).First();
-            var dlls = args.Skip(4);
-           new Runner.Shared.RunTests().Run(id,url, dlls.ToArray());
+                
+#if x64
+            if (!Environment.Is64BitProcess)
+                throw new Exception("This runner is expected to run 64bit");
+#endif
+
+            var commands = new ConsoleCommand[]
+                               {
+                                   new RunAloneCommand(),
+                                   new RunSatelliteCommand(),
+                               };
+
+            return ConsoleCommandDispatcher.DispatchCommand(commands, args, Console.Out);
+
         }
 
 
-
+        //Dynamically load missing assemblies when testing
         private static Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             var baseUri = new Uri(args.RequestingAssembly.CodeBase); 

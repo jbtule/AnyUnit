@@ -15,35 +15,37 @@ namespace ConventionTestProcessor
         static int Main(string[] args)
         {
             var file = args.FirstOrDefault();
-            if (file == null)
+            if (args.Any())
             {
                 throw new ArgumentException("Missing argument to process file");
             }
 
-            var json =File.ReadAllText(file);
 
-            return VerifyJsonResults(json);
+            return VerifyJsonResults(args.Select(File.ReadAllText));
         }
 
-        public static int VerifyJsonResults(string json)
+        public static int VerifyJsonResults(IEnumerable<string> jsons)
         {
-            var results = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(json);
 
-
-            foreach (var asm in results.Assemblies)
+            foreach (var json in jsons)
             {
-                using (TeamCity.WriteSuite(asm.Name))
-                    foreach (var fix in asm.Fixtures)
-                    {
-                        using (TeamCity.WriteSuite(fix.Name))
-                            foreach (var test in fix.Tests)
-                            {
-                                foreach (var result in test.Results)
+                var results = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(json);
+
+                foreach (var asm in results.Assemblies)
+                {
+                    using (TeamCity.WriteSuite(asm.Name))
+                        foreach (var fix in asm.Fixtures)
+                        {
+                            using (TeamCity.WriteSuite(fix.Name))
+                                foreach (var test in fix.Tests)
                                 {
-                                    ConventionMatch.PrintOutResult(result);
+                                    foreach (var result in test.Results)
+                                    {
+                                        ConventionMatch.PrintOutResult(result);
+                                    }
                                 }
-                            }
-                    }
+                        }
+                }
             }
 
 

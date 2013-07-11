@@ -38,8 +38,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ManyConsole">
+      <HintPath>..\..\..\..\packages\ManyConsole.0.4.2.16\lib\ManyConsole.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client">
       <HintPath>..\..\..\..\packages\Microsoft.AspNet.SignalR.Client.1.1.2\lib\net40\Microsoft.AspNet.SignalR.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="NDesk.Options">
+      <HintPath>..\..\..\..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
@@ -53,11 +59,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\Commands.cs">
+      <Link>Commands.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\RunTests.cs">
       <Link>RunTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\WriteResults.cs">
+      <Link>WriteResults.cs</Link>
+    </Compile>
     <Compile Include="..\Program.cs">
       <Link>Program.cs</Link>
+    </Compile>
+    <Compile Include="..\RunAloneCommand.cs">
+      <Link>RunAloneCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\RunSatelliteCommand.cs">
+      <Link>RunSatelliteCommand.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -33,7 +33,7 @@ namespace CoverageRunner
                               });
             var result =file.ToListJson();
 
-            return ConventionTestProcessor.Program.VerifyJsonResults(result);
+            return ConventionTestProcessor.Program.VerifyJsonResults(new[]{result});
         }
     }
 }

@@ -26,6 +26,29 @@ namespace Runner.Shared
 {
     public partial class RunTests
     {
+        public ResultsFile RunAlone(string id, IEnumerable<string> dlls)
+        {
+
+#if x64
+            if(!Environment.Is64BitProcess)
+                throw new Exception("This runner is expected to run 64bit");
+#endif
+
+#if SILVERLIGHT
+            var am = dlls.Select(Assembly.Load).ToList();
+#else
+            var am = dlls.Select(Assembly.LoadFile).ToList();
+#endif
+
+            var runner = Generate.Tests(id, am);
+            var file = new ResultsFile();
+            runner.RunAll(file.Add);
+
+            return file;
+        }
+    
+
+
         public void Run(string id, string url, string[] dlls)
         {
 

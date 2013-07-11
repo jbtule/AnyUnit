@@ -42,6 +42,7 @@ namespace pclunit_runner
             IsCommand("runconfig", "run tests based on config file.");
 
             this.HasOption("o|output=", "Results File Output", v => { _outputLocation = v; });
+            this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => { _nunitOutputLocation = v; });
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             HasAdditionalArguments(1, " configFile");
@@ -67,6 +68,7 @@ namespace pclunit_runner
 
         private bool _noerrorcode;
         private bool _showsats;
+        private string _nunitOutputLocation;
 
         private static string PlatformFixPath(string path){
             path = path.Replace("\\", Path.DirectorySeparatorChar.ToString());
@@ -143,7 +145,7 @@ namespace pclunit_runner
                                                   {
                                                       StartInfo =
                                                               new ProcessStartInfo(pgr,
-                                                                               String.Format("{4} {0} {1} {2} {3}", sat.Id,
+                                                                               String.Format("sat {4} {0} {1} {2} {3}", sat.Id,
                                                                                              url, sharedpath, asmpaths, !_showsats ? "hidden": "show"))
                                                               {
                                                                   CreateNoWindow = !_showsats,
@@ -208,7 +210,7 @@ namespace pclunit_runner
             }catch{}
 
             if (!_noerrorcode && (PlatformResult.Errors.Any() || PlatformResult.Failures.Any()))
-                return -1;
+                return 1;
             return 0;
         }
 

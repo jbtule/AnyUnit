@@ -47,7 +47,7 @@ namespace PclUnit.Util
             json = json.Replace(@"\", @"\\"); 
             json = json.Replace(@"/", @"\/");
             json = json.Replace("\"", "\\\"");
-
+            json = json.Replace(@"'", @"\'");
             return json;
         }
 

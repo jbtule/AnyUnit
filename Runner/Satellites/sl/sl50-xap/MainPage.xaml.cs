@@ -13,10 +13,12 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -80,23 +82,26 @@ namespace sl_50_xap
     public partial class MainPage : UserControl
     {
         private RunTests _runTest;
+        private string _results = string.Empty;
 
-
-        public MainPage(string id, string url, string[] dlls)
+        public MainPage(bool alone, string id, string url, string[] dlls)
         {
             InitializeComponent();
 
             _runTest = new RunTests(Output);
 
-            var thread = new Thread(() => RunTests(id, url, dlls));
+            var thread = new Thread(() => RunTests(alone, id, url, dlls));
             thread.Start();
         }
 
-        private void RunTests(string id, string url, string[] dlls)
+        private void RunTests(bool alone, string id, string url, string[] dlls)
         {
 
             Deployment.Current.Dispatcher.BeginInvoke(Start);
-            _runTest.Run(id, url, dlls);
+            if (alone)
+                _results = _runTest.RunAlone(id, dlls).ToListJson();
+            else
+                _runTest.Run(id, url, dlls);
             Deployment.Current.Dispatcher.BeginInvoke(End);
             
         }
@@ -108,7 +113,15 @@ namespace sl_50_xap
 
         public void End()
         {
-             System.Windows.Browser.HtmlPage.Window.Eval("window.document.title = 'DONE';");
+            System.Windows.Browser.HtmlPage.Window.Eval(string.Format("document.getElementById('output_results').setAttribute('value','{0}');",
+                EncodeString(_results)));
+
+            System.Windows.Browser.HtmlPage.Window.Eval("window.document.title = 'DONE';");
+        }
+
+        private static string EncodeString(string data)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
         }
 
     }
