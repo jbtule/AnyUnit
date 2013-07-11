@@ -29,7 +29,6 @@ namespace RoughRunner
         private static int Main(string[] args)
         {
 
-
             var id = "net40-" + (Environment.Is64BitProcess ? "x64" : "x86");
 
             //Just hard code in assemblies to test

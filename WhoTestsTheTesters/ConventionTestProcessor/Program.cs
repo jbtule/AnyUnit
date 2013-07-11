@@ -8,7 +8,7 @@ using PclUnit.Runner;
 
 namespace ConventionTestProcessor
 {
-    class Program
+    public class Program
     {
 
 
@@ -21,27 +21,32 @@ namespace ConventionTestProcessor
             }
 
             var json =File.ReadAllText(file);
+
+            return VerifyJsonResults(json);
+        }
+
+        public static int VerifyJsonResults(string json)
+        {
             var results = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(json);
 
 
             foreach (var asm in results.Assemblies)
             {
                 using (TeamCity.WriteSuite(asm.Name))
-                foreach (var fix in asm.Fixtures)
-                {
-                    using (TeamCity.WriteSuite(fix.Name))
-                    foreach (var test in fix.Tests)
+                    foreach (var fix in asm.Fixtures)
                     {
-                        
-                        foreach (var result in test.Results)
-                        {
-                            ConventionMatch.PrintOutResult(result);
-                        }
-                    } 
-                }
+                        using (TeamCity.WriteSuite(fix.Name))
+                            foreach (var test in fix.Tests)
+                            {
+                                foreach (var result in test.Results)
+                                {
+                                    ConventionMatch.PrintOutResult(result);
+                                }
+                            }
+                    }
             }
 
-     
+
             ConventionMatch.WriteOutTrailer();
 
 
@@ -51,8 +56,6 @@ namespace ConventionTestProcessor
             }
             return 0;
         }
-
-     
     }
 
 
@@ -200,6 +203,13 @@ namespace ConventionTestProcessor
             }
         }
 
+        public static bool Disable { get; set; }
+
+        public static bool ShouldDisplay
+        {
+            get { return _teamCityRunner && !Disable; }
+        }
+
         public static IDisposable WriteSuite(string name)
         {
             WriteLine("##teamcity[testSuiteStarted name='{0}']", name);
@@ -209,17 +219,17 @@ namespace ConventionTestProcessor
 
         public static void WriteLine(string format, params object[] objs)
         {
-            if (_teamCityRunner)
+            if (ShouldDisplay)
                 Console.WriteLine(format, objs);
         }
         public static void DontWriteLine(string format, params object[] objs)
         {
-            if (!_teamCityRunner)
+            if (!ShouldDisplay)
                 Console.WriteLine(format, objs);
         }
         public static void DontWrite(string format, params object[] objs)
         {
-            if (!_teamCityRunner)
+            if (!ShouldDisplay)
                 Console.Write(format, objs);
         }
 
