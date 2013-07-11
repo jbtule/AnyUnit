@@ -15,4 +15,4 @@ before_script:
 script:
   - xbuild PclUnit.mono.sln
   - mono WhoTestsTheTesters/RunTests.Mono.Manually.sh
-  - mono WhoTestsTheTesters/ConventionTestsProcessor/bin/Debug/ConventionTestsProcessor.exe mono-results/*.json
+  - mono WhoTestsTheTesters/ConventionTestProcessor/bin/Debug/ConventionTestProcessor.exe mono-results/*.json
