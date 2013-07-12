@@ -14,5 +14,5 @@ before_script:
   - .ci/install_portable_refs.sh 
 script:
   - xbuild PclUnit.mono.sln
-  - mono WhoTestsTheTesters/RunTests.Mono.Manually.sh
+  - WhoTestsTheTesters/RunTests.Mono.Manually.sh
   - mono WhoTestsTheTesters/ConventionTestProcessor/bin/Debug/ConventionTestProcessor.exe mono-results/*.json
