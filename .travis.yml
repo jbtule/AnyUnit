@@ -3,8 +3,9 @@ language: objective-c
 env:
   global:
     - EnableNuGetPackageRestore=true
+    - secure: "m+Kz51SNkKIpEFdmRZ4Zxgpow7R2gWVz3M9u0iinZTam0KV0ju9TvcnLF4ny\nSTLYKD04C4LoPqYfdEJ/qwv5H0ch254MbRMh2rt5X36PS11VfGL2yfKrdW8T\n/e8iTmGLWq+nn72P1927ZLOs9wkJvAAvUpC71OxYPB553wIYJXw="
   matrix:
-    - MONO_VER="3.1.1"
+    - MONO_VER="3.0.12"
 before_install:
   # Make sure mono is installed,
   - wget "http://download.mono-project.com/archive/${MONO_VER}/macos-10-x86/MonoFramework-MDK-${MONO_VER}.macos10.xamarin.x86.dmg"
