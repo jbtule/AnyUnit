@@ -15,7 +15,7 @@ namespace ConventionTestProcessor
         static int Main(string[] args)
         {
             var file = args.FirstOrDefault();
-            if (args.Any())
+            if (!args.Any())
             {
                 throw new ArgumentException("Missing argument to process file");
             }
