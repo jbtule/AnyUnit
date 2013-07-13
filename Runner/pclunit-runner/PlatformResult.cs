@@ -90,7 +90,7 @@ namespace pclunit_runner
 
                 if (!PlatformResult.WaitingForPlatforms.Any() && !go)
                 {
-                    Console.WriteLine("Go");
+                    PrintResults.PrintStart();
                     go = true;
                     Clients.All.TestsAreReady("go");
                 }

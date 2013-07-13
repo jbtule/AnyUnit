@@ -21,7 +21,7 @@ namespace sl_runner
 
 
 
-        public static Thread LaunchBrowserRunner(bool ishidden, string temphtml, IDictionary<string,string> outputs=null, string cleanupdir =null)
+        public static Thread LaunchBrowserRunner(bool ishidden, string temphtml, Action<ResultsFile> whenFinished =null, Action whenExiting =null)
         {
             var thread = new Thread(() =>
             {
@@ -51,15 +51,15 @@ namespace sl_runner
                     if (browser.DocumentTitle.Contains(
                             "DONE"))
                     {
-                        if (outputs != null && outputs.Any())
+
+
+                        if (whenFinished != null)
                         {
                             var encresults = browser.Document.GetElementById("output_results").GetAttribute("value");
-                            var resultsjson =Encoding.UTF8.GetString(Convert.FromBase64String(encresults));
-                            var file =Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(resultsjson);
-                            WriteResults.ToFiles(file, outputs);
-                            Environment.ExitCode = file.HasError ? 1 : 0;
+                            var resultsjson = Encoding.UTF8.GetString(Convert.FromBase64String(encresults));
+                            var file = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultsFile>(resultsjson);
+                            whenFinished(file);
                         }
-
                         Application.Exit();
                     }
 
@@ -69,16 +69,10 @@ namespace sl_runner
 
                 Application.Run(form);
 
-                if (!String.IsNullOrWhiteSpace(cleanupdir))
+                if (whenExiting != null)
                 {
-                    try
-                    {
-                        //Try Delete Temp shared path
-                        Directory.Delete(cleanupdir);
-                    }
-                    catch { }
+                    whenExiting();
                 }
-
                 
             });
             thread.SetApartmentState(ApartmentState.STA);

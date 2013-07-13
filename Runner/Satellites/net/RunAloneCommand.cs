@@ -15,7 +15,7 @@ namespace Runner.Shared
 #else
             var id = string.Format("net45-{0}",(Environment.Is64BitProcess ? "x64" : "x86"));
 #endif
-
+            Console.WriteLine(id);
             var dlls = args.Select(Path.GetFullPath);
             var results =new RunTests().RunAlone(id, dlls);
 

@@ -19,12 +19,25 @@ namespace PclUnit.Runner
         {
             get
             {
-                return Assemblies.SelectMany(it => it.Fixtures)
-                          .SelectMany(it => it.Tests)
-                          .SelectMany(it => it.Results)
+                return Results
                           .Any(it => it.Kind == ResultKind.Error || it.Kind == ResultKind.Fail);
             }
         }
+
+        public IDictionary<ResultKind, int> ResultCount
+        {
+            get { return Results.GroupBy(it => it.Kind).ToDictionary(k => k.Key, v => v.Count()); }
+        } 
+
+        public IEnumerable<Result> Results
+        {
+          get
+          {
+              return Assemblies.SelectMany(it => it.Fixtures)
+                        .SelectMany(it => it.Tests)
+                        .SelectMany(it => it.Results);
+          }
+        } 
 
         public void Add(Result result)
         {

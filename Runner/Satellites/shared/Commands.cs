@@ -11,7 +11,8 @@ namespace Runner.Shared
         {
             IsCommand("run", "runs test runner to output file");
             this.HasOption("o|output=", "Results File Output", v => _outputs.Add(WriteResults.JsonType,v));
-            this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => _outputs.Add(WriteResults.NunitType, v));
+         //   this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => _outputs.Add(WriteResults.NunitType, v));
+            this.HasOption("teamcity", "Team City results to Std out.", v => { RunTests.TeamCity = true; });
             HasAdditionalArguments(null, " <assemblypaths...>");
         }
     }

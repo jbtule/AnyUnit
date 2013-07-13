@@ -59,14 +59,26 @@ namespace Runner.Shared
                 _output = output;
             }
 
-
-            public void WriteLine(string p0)
+            public void WriteLine()
             {
-
-                Deployment.Current.Dispatcher.BeginInvoke(() => _output.Text += p0 + "\n");
+                Deployment.Current.Dispatcher.BeginInvoke(() => _output.Text += "\n");
             }
 
+            public void WriteLine(string format, params object[] args)
+            {
 
+                Deployment.Current.Dispatcher.BeginInvoke(() => _output.Text += String.Format(format, args) + "\n");
+            }
+
+            public void Write(string format, params object[] args)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() => _output.Text += String.Format(format, args));
+            }
+
+            internal void Write(object obj)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() => _output.Text += String.Format("{0}", obj));
+            }
         }
 
     }

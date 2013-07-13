@@ -90,10 +90,12 @@
   <ItemGroup>
     <Compile Include="PclUnitHub.cs" />
     <Compile Include="PlatformResult.cs" />
+    <Compile Include="PrintResults.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunConfigCommand.cs" />
     <Compile Include="Reshare.cs" />
+    <Compile Include="WriteResults.cs" />
     <Compile Include="Yml.cs" />
   </ItemGroup>
   <ItemGroup>

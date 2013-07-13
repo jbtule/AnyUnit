@@ -41,10 +41,11 @@ namespace pclunit_runner
         {
             IsCommand("runconfig", "run tests based on config file.");
 
-            this.HasOption("o|output=", "Results File Output", v => { _outputLocation = v; });
-            this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => { _nunitOutputLocation = v; });
+            this.HasOption("o|output=", "Results File Output", v => _outputs.Add(WriteResults.JsonType, v));
+           // this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => _outputs.Add(WriteResults.NunitType, v));
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
+            this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
             HasAdditionalArguments(1, " configFile");
         }
 
@@ -63,12 +64,11 @@ namespace pclunit_runner
 
 
         private IDictionary<string, Satellite> _satellites;
-        private string _outputLocation
-            ;
+
 
         private bool _noerrorcode;
         private bool _showsats;
-        private string _nunitOutputLocation;
+        private Dictionary<string,string> _outputs = new Dictionary<string, string>();
 
         private static string PlatformFixPath(string path){
             path = path.Replace("\\", Path.DirectorySeparatorChar.ToString());
@@ -180,28 +180,9 @@ namespace pclunit_runner
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(_outputLocation))
-            {
-                using (var stream = File.Open(_outputLocation, FileMode.Create))
-                using(var writer = new StreamWriter(stream))
-                {
-                    writer.Write( PlatformResult.File.ToListJson());
-                }
-            }
+            WriteResults.ToFiles(PlatformResult.File, _outputs);
             
-            Console.WriteLine("");
-            Console.WriteLine("*******************");
-            Console.WriteLine("*******************");
-            Console.WriteLine("*******************");
-            Console.WriteLine("");
-
-
-
-            PrintCount(PlatformResult.Errors, "Errors:");
-            PrintCount(PlatformResult.Failures, "Failures:");
-            PrintCount(PlatformResult.Ignores, "Ignores:");
-            PrintCount(PlatformResult.NoErrors, "NoErrors:");
-            PrintTotaledCount(PlatformResult.Success, "Success:");
+            PrintResults.PrintEnd(PlatformResult.File);
            
             try
             {         
@@ -213,63 +194,6 @@ namespace pclunit_runner
                 return 1;
             return 0;
         }
-
-     
-
-        public static void PrintTotaledCount(IEnumerable<Result> results, string header)
-        {
-
-            lock (PlatformResult.ExpectedTests)
-            {
-                Console.WriteLine(header);
-                var totalCount = PlatformResult.ExpectedTests.SelectMany(it => it.Value)
-                                               .Select(it => it.Result)
-                                               .ToLookup(it => it.Platform)
-                                               .ToDictionary(k => k.Key, v => v.Count());
-                foreach (var result in results.GroupBy(it => it.Platform))
-                {
-                    Console.Write("  " + result.Key);
-                    Console.Write(":   ");
-                    Console.Write(result.Count());
-                    Console.Write("/");
-                    if (totalCount.ContainsKey(result.Key))
-                    {
-                        Console.Write(totalCount[result.Key]);
-                    }
-                    else
-                    {
-                        Console.Write("0");
-                    }
-                    Console.WriteLine();
-                }
-
-                Console.Write("  Total");
-                Console.Write(":   ");
-                Console.Write(results.Count());
-                Console.Write("/");
-                Console.Write(totalCount.Sum(it => it.Value));
-                Console.WriteLine();
-
-                Console.WriteLine();
-            }
-        }
-
-        public static void PrintCount(IEnumerable<Result> results, string header)
-        {
-            if (results.Any())
-            {
-                Console.WriteLine(header);
-                foreach (var result in results.GroupBy(it => it.Platform))
-                {
-                    Console.Write("  "+result.Key);
-                    Console.Write(":   ");
-                    Console.Write(result.Count());
-                    Console.WriteLine();
-                }
-                Console.WriteLine();
-            }
-        }
-
     }
 
 

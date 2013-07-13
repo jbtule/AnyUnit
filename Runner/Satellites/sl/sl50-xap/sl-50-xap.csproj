@@ -79,6 +79,9 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\PrintTests.cs">
+      <Link>PrintTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\RunTests.cs">
       <Link>RunTests.cs</Link>
     </Compile>

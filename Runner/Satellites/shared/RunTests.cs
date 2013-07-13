@@ -26,6 +26,7 @@ namespace Runner.Shared
 {
     public partial class RunTests
     {
+       
         public ResultsFile RunAlone(string id, IEnumerable<string> dlls)
         {
 
@@ -41,12 +42,18 @@ namespace Runner.Shared
 #endif
 
             var runner = Generate.Tests(id, am);
+            PrintOutAloneStart(id);
             var file = new ResultsFile();
-            runner.RunAll(file.Add);
-
+            runner.RunAll(r =>
+                              {
+                                  PrintOutAloneResults(r);
+                                  file.Add(r);
+                              });
+            PrintOutAloneEnd(id,file);
             return file;
         }
-    
+
+ 	
 
 
         public void Run(string id, string url, string[] dlls)
@@ -115,5 +122,8 @@ namespace Runner.Shared
 
 
         }
+
+        
     }
+   
 }

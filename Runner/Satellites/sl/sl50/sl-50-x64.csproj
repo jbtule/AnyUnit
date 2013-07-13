@@ -59,6 +59,9 @@
     <Compile Include="..\..\shared\Commands.cs">
       <Link>Commands.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\PrintTests.cs">
+      <Link>PrintTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\WriteResults.cs">
       <Link>WriteResults.cs</Link>
     </Compile>

@@ -28,22 +28,18 @@ namespace pclunit_runner
 
         public void Connect(string id)
         {
-            Console.WriteLine("*******************");
-            Console.WriteLine(id);
-            Console.WriteLine("*******************");
+            Console.WriteLine("Connecting:{0,15}",id);
             PlatformResult.Clients = Clients;
         }
 
         public void List(string platformTotalJson)
         {
-            Console.WriteLine("+++++++++++++++++++");
             var pm = Newtonsoft.Json.JsonConvert.DeserializeObject<Runner>(platformTotalJson);
             foreach (var test in pm.Assemblies.SelectMany(it=>it.Fixtures).SelectMany(it=>it.Tests))
             {
                 PlatformResult.AddTest(test, pm.Platform);
             }
-            Console.WriteLine(pm.Platform);
-            Console.WriteLine("+++++++++++++++++++");
+            Console.WriteLine("Receiving Test List:{0,15}", pm.Platform);
             PlatformResult.ReceivedTests(pm.Platform);
         
         }
@@ -59,40 +55,7 @@ namespace pclunit_runner
             var dict = PlatformResult.AddResult(result);
 
 
-            if (dict.All(it => it.Value.Result != null))
-            {
-                Console.Write(result.Test.Fixture.Assembly.Name + ".");
-                Console.Write(result.Test.Fixture.Name + ".");
-                Console.WriteLine(result.Test.Name);
-                foreach(var grpResult in dict.GroupBy(it => it.Value.Result.Kind))
-                {
-                    Console.Write("{0}:", grpResult.Key);
-                    foreach (var keyValuePair in grpResult)
-                    {
-                        Console.Write(" ");
-                        Console.Write(keyValuePair.Value.Platform);
-                    }
-                    Console.WriteLine();
-                }
-                var span= new TimeSpan();
-                foreach (var r in dict.Select(it=>it.Value.Result))
-                {
-                    span += (r.EndTime - r.StartTime);
-                }
-                Console.WriteLine("avg time:{0}", new TimeSpan(span.Ticks / dict.Count));
-              
-
-                foreach (var lup in dict.ToLookup(it => it.Value.Result.Output))
-                {
-
-                    var name = string.Join(",", lup.Select(it => it.Value.Platform));
-                   
-                    Console.WriteLine("{0}:", name);
-                    Console.WriteLine(lup.Key);
-                }
-               
-                Console.WriteLine("===================");
-            }
+            PrintResults.PrintResult(dict);
         }
     }
 }
