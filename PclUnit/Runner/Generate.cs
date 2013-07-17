@@ -23,31 +23,22 @@ namespace PclUnit.Runner
     public static class Generate
     {
 
-        public class Options
+        internal class DefaultGenerator : TestFixtureGeneratorAttribute
         {
-            public Options()
+            public override FixtureGenerator Generator
             {
-                Exclude = new List<string>();
+                get
+                {
+                    return a => a.GetExportedTypes()
+                                 .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttribute>(), t))
+                                 .Where(f => f.Attribute != null);
+                }
             }
-
-            
-            public IList<string> Exclude { get; set; }
         }
 
-
-        public static Runner Tests(string platformId, IEnumerable<Assembly> assemblies,
-                                                 Options options = null)
+        public static Runner Tests(string platformId, IEnumerable<Assembly> assemblies)
         {
             var runner = new Runner(platformId);
-
-            var exclude = new Dictionary<string, string>();
-            if (options != null)
-            {
-                foreach (var category in options.Exclude)
-                {
-                    exclude.Add(category,category);
-                } 
-            }
 
             foreach (var assembly in assemblies)
             {
@@ -55,51 +46,36 @@ namespace PclUnit.Runner
 
                 runner.Assemblies.Add(assemblyMeta);
 
-                foreach (var type in assembly.GetTypes())
+                var generators = assembly.GetCustomAttributes(true).OfType<TestFixtureGeneratorAttribute>().ToList();
+                generators.Add(new DefaultGenerator());
+                foreach (var generator in generators)
                 {
-                     var attr = type.GetTopMostCustomAttribute<TestFixtureAttribute>();
-
-                    if (attr != null)
-                    {  
-                        //Skip excluded categories
-                        if (attr.Category.SafeSplit(",").Any(exclude.ContainsKey))
-                            continue;
-
-                        var fixture = new FixtureMeta(attr, type);
+                    foreach (var fixture in generator.Generator(assembly))
+                    {
                         assemblyMeta.Fixtures.Add(fixture);
 
-                        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance))
+                        foreach (var testHarness in fixture.GetHarnesses())
                         {
-                            var attr2 = method.GetTopMostCustomAttribute<TestAttribute>();
 
-                            if (attr2 != null)
+                            int i = 0;
+                            foreach (var constructorSet in fixture.ParameterSets())
                             {
-                                //Skip excluded categories
-                                if (attr2.Category.SafeSplit(",").Any(exclude.ContainsKey))
-                                    continue;
-
-                                int i = 0;
-                                foreach (var constructorSet in attr.ParameterSets(type))
-                                {  
-                                    int j = 0;
-                                    constructorSet.Index = i++;
-                                    foreach (var testSet in attr2.ParameterSets(method))
-                                    {
-                                        testSet.Index = j++;
-                                        var test = new Test(attr, type, constructorSet, 
-                                                           attr2, method, testSet);
-                                        fixture.Tests.Add(test);
-                                        runner.Tests.Add(test);
-                                    }
+                                int j = 0;
+                                constructorSet.Index = i++;
+                                foreach (var testSet in testHarness.ParameterSets())
+                                {
+                                    testSet.Index = j++;
+                                    var test = new Test(fixture, constructorSet,
+                                                        testHarness, testSet);
+                                    fixture.Tests.Add(test);
+                                    runner.Tests.Add(test);
                                 }
-                               
                             }
                         }
-
                     }
-
                 }
             }
+
             return runner;
         }
     }

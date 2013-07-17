@@ -36,12 +36,17 @@ namespace PclUnit.Runner
 
 
         public FixtureMeta(TestFixtureAttribute attribute, Type type):this()
-        {
-            if(!String.IsNullOrEmpty(attribute.Category))
-                Category = attribute.Category.Split(',');
+        {   
+       
             Name = type.Name;
             UniqueName = string.Format("T:{0}.{1}", type.Namespace, type.Name);
-            Description = attribute.Description;
+
+            if (attribute != null)
+            {
+                Description = attribute.Description; 
+                if (!String.IsNullOrEmpty(attribute.Category))
+                    Category = attribute.Category.Split(',');
+            }
 
         }
         public string ToListJson()

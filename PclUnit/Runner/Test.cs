@@ -30,19 +30,17 @@ namespace PclUnit.Runner
         private readonly MethodInfo _method;
         private readonly ParameterSet _methodArgs;
 
-        public Test(
-            TestFixtureAttribute fixtureAttribute, Type type, ParameterSet constructorArgs,
-            TestAttribute attribute, MethodInfo method, ParameterSet methodArgs)
+        public Test(Fixture fixture, ParameterSet constructorArgs, TestHarness harness, ParameterSet methodArgs)
         {
-            Category = attribute.Category.SafeSplit(",").ToList();
-            Description = attribute.Description;
+            Category = harness.Category;
+            Description = harness.Description;
             if (Timeout != System.Threading.Timeout.Infinite)
             {
-                Timeout = attribute.Timeout;
+                Timeout = harness.Timeout;
             }
-   
-            
-            UniqueName = string.Format("M:{0}.{1}", method.DeclaringType.Namespace, method.DeclaringType.Name);
+
+
+            UniqueName = string.Format("M:{0}.{1}", harness.Method.DeclaringType.Namespace, harness.Method.DeclaringType.Name);
 
             Name = String.Empty;
             if (constructorArgs.Parameters.Any())
@@ -54,10 +52,10 @@ namespace PclUnit.Runner
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
 
-           
 
-            UniqueName += "." + method.Name;
-            Name += method.Name;
+
+            UniqueName += "." + harness.Method.Name;
+            Name += harness.Method.Name;
 
             if (methodArgs.Parameters.Any())
             {
@@ -68,11 +66,11 @@ namespace PclUnit.Runner
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
 
-            _init = fixtureAttribute.FixtureInit;
-            _type = type;
-            _invoke = attribute.TestInvoke;
+            _init = fixture.Attribute.FixtureInit;
+            _type = fixture.Type;
+            _invoke = harness.Attribute.TestInvoke;
             _constructorArgs = constructorArgs.Retain();
-            _method = method;
+            _method = harness.Method;
             _methodArgs = methodArgs.Retain();
         }
 

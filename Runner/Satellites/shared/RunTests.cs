@@ -97,12 +97,14 @@ namespace Runner.Shared
 
             bool run = false;
 
-            serverHub.On<dynamic>("TestsAreReady", message =>
+            serverHub.On<string[]>("TestsAreReady", includes =>
                                                       {
                                                           Console.WriteLine("Running Tests...");
 
                                                           runner.RunAll(result => serverHub.Invoke("SendResult",
-                                                                                                   result.ToItemJson()).Wait());
+                                                                                                   result.ToItemJson()).Wait(),
+                                                                                                 TestFilter.Create(includes)
+                                                                                                   );
                                                           run = true;
                                                       });
 

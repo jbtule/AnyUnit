@@ -22,15 +22,21 @@ namespace PclUnit.Runner
         public IList<AssemblyMeta> Assemblies { get; set; }
         public IList<Test> Tests { get; set; }
 
-        public void RunAll(Action<Result> resultCallBack)
+        public void RunAll(Action<Result> resultCallBack, TestFilter testFilter = null)
         {
+            testFilter = testFilter ?? new TestFilter();
+
+
             foreach (var test in Tests)
             {
+                if(!testFilter.ShouldRun(test))
+                    continue;
                 var result = test.Run(Platform);
                 resultCallBack(result);
             }
         }
         
+      
         
         public string ToListJson()
         {

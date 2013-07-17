@@ -92,7 +92,7 @@ namespace pclunit_runner
                 {
                     PrintResults.PrintStart();
                     go = true;
-                    Clients.All.TestsAreReady("go");
+                    Clients.All.TestsAreReady(new string[]{});
                 }
 
             }

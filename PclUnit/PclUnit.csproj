@@ -48,6 +48,7 @@
     <Compile Include="AssertionException.cs" />
     <Compile Include="AssertionHelper.cs" />
     <Compile Include="ParameterSet.cs" />
+    <Compile Include="Runner\Fixture.cs" />
     <Compile Include="Runner\Meta\AssemblyMeta.cs" />
     <Compile Include="Runner\Assert.cs" />
     <Compile Include="Runner\Meta\ResultsFile.cs" />
@@ -60,9 +61,12 @@
     <Compile Include="Runner\Runner.cs" />
     <Compile Include="Runner\Test.cs" />
     <Compile Include="Runner\Meta\TestMeta.cs" />
+    <Compile Include="Runner\TestFilter.cs" />
+    <Compile Include="Runner\TestHarness.cs" />
     <Compile Include="TestAttribute.cs" />
     <Compile Include="TestFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestFixtureGeneratorAttribute.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
