@@ -7,6 +7,11 @@ config:
   platforms:
     - id: net40-x86
     - id: net40-x64 
+    - id: net45-x86
+    - id: net45-x64
     - id: sl50-x86
+      assemblies:
+        - SilverlightTests\bin\Debug\SilverlightTests.dll
+    - id: sl50-x64
       assemblies:
         - SilverlightTests\bin\Debug\SilverlightTests.dll
