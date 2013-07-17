@@ -26,18 +26,89 @@ namespace ConstraintsTests
         public void TestIsTrueWithMessage_Fail()
         {
             Assert.That(false, Is.True, "With message");
+
         }
 
         [Test]
-        public void TestAssertThrow_Success()
+        public void TestIsRefTrue_Success()
         {
-            Assert.That(() => { throw new NotImplementedException(); }, Throws.InstanceOf<NotImplementedException>());
+            bool value = true;
+
+            Assert.That(ref value, Is.True);
         }
 
         [Test]
-        public void TestAssertThrow_Fail()
+        public void TestIsRefTrue_Fail()
         {
-            Assert.That(() => { throw new NotSupportedException(); }, Throws.InstanceOf<NotImplementedException>());
+            bool value = false;
+
+            Assert.That(ref value, Is.True);
         }
+
+
+        [Test]
+        public void TestIsFuncTrue_Success()
+        {
+
+            Assert.That(()=>true, Is.True);
+        }
+
+        [Test]
+        public void TestIsFuncTrue_Faile()
+        {
+            Assert.That(() => false, Is.True);
+        }
+
+
+        [Test]
+        public void TestIsFalse_Success()
+        {
+            Assert.That(false, Is.False);
+        }
+
+        [Test]
+        public void TestIsFalse_Fail()
+        {
+            Assert.That(true, Is.False);
+        }
+
+        [Test]
+        public void TestIsFalseWithMessage_Fail()
+        {
+            Assert.That(true, Is.False, "With message");
+
+        }
+
+        [Test]
+        public void TestIsRefFalse_Success()
+        {
+            bool value = false;
+
+            Assert.That(ref value, Is.False);
+        }
+
+        [Test]
+        public void TestIsRefFalse_Fail()
+        {
+            bool value = true;
+
+            Assert.That(ref value, Is.False);
+        }
+
+
+        [Test]
+        public void TestIsFuncFalse_Success()
+        {
+
+            Assert.That(() => false, Is.False);
+        }
+
+        [Test]
+        public void TestIsFuncFalse_Faile()
+        {
+            Assert.That(() => true, Is.False);
+        }
+
+
     }
 }
