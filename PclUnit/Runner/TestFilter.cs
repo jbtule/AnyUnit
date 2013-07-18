@@ -40,6 +40,9 @@ namespace PclUnit.Runner
             if (_nameFilters.ContainsKey(test.Fixture.Assembly.UniqueName))
                 return true;
 
+            if (test.Category.Any(c => _nameFilters.ContainsKey(string.Format("C:{0}", c))))
+                return true;
+
             return false;
         }
 

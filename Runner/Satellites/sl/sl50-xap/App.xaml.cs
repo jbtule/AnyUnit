@@ -86,9 +86,9 @@ namespace sl_50_xap
         {
             try
             {
+                System.Windows.Browser.HtmlPage.Window.Eval("window.document.title = 'ERROR';");
                 string errorMsg = e.ExceptionObject.Message + e.ExceptionObject.StackTrace;
                 errorMsg = errorMsg.Replace('"', '\'').Replace("\r\n", @"\n");
-
                 System.Windows.Browser.HtmlPage.Window.Eval("throw new Error(\"Unhandled Error in Silverlight Application " + errorMsg + "\");");
             }
             catch (Exception)

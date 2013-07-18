@@ -52,7 +52,7 @@ namespace sl_runner
                             "DONE"))
                     {
 
-
+                        Console.WriteLine("Finished, needs exit");
                         if (whenFinished != null)
                         {
                             var encresults = browser.Document.GetElementById("output_results").GetAttribute("value");
@@ -63,17 +63,24 @@ namespace sl_runner
                         Application.Exit();
                     }
 
+                    if (browser.DocumentTitle.Contains("ERROR"))
+                    {
+                        Console.WriteLine("Error, need Exit");
+                        Environment.ExitCode = 1;
+                        Application.Exit();
+                    }
+
                 };
 
                 form.Controls.Add(browser);
 
                 Application.Run(form);
-
+                Console.WriteLine("Exiting");
                 if (whenExiting != null)
                 {
                     whenExiting();
                 }
-                
+                Environment.Exit(Environment.ExitCode);
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();

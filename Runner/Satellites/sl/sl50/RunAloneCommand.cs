@@ -62,7 +62,6 @@ namespace Runner.Shared
                 }
                 catch { }
             }
-            Environment.Exit(Environment.ExitCode);
         }
 
 

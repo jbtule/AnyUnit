@@ -46,6 +46,9 @@ namespace pclunit_runner
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
+            this.HasOption("include=", "Include only specified assemblies, fixtures, tests or categories by uniquename",
+                           v => { PlatformResult.Includes.Add(v); }
+                );
             HasAdditionalArguments(1, " configFile");
         }
 
