@@ -20,9 +20,9 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Hubs;
-using PclUnit.Runner;
+using PclUnit.Run;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
     public partial class RunTests
     {
@@ -41,7 +41,7 @@ namespace Runner.Shared
             var am = dlls.Select(Assembly.LoadFile).ToList();
 #endif
 
-            var runner = Generate.Tests(id, am);
+            var runner = Runner.Create(id, am);
             PrintOutAloneStart(id);
             var file = new ResultsFile();
             runner.RunAll(r =>
@@ -92,18 +92,18 @@ namespace Runner.Shared
             Console.WriteLine("Generating Tests...");
 
 
-            var runner = Generate.Tests(id, am);
+            var runner = Runner.Create(id, am);
 
 
             bool run = false;
 
-            serverHub.On<string[]>("TestsAreReady", includes =>
+            serverHub.On<TestFilter>("TestsAreReady", filter =>
                                                       {
                                                           Console.WriteLine("Running Tests...");
 
                                                           runner.RunAll(result => serverHub.Invoke("SendResult",
                                                                                                    result.ToItemJson()).Wait(),
-                                                                                                 TestFilter.Create(includes)
+                                                                                                   filter
                                                                                                    );
                                                           run = true;
                                                       });

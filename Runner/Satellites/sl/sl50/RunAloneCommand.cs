@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using ManyConsole;
-using PclUnit.Runner;
+using PclUnit.Run;
 using sl_runner;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
 
     public partial class RunAloneCommand : ConsoleCommand

@@ -13,30 +13,77 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using PclUnit.Run.Attributes;
 using PclUnit.Util;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
-    public static class Generate
-    {
 
-        internal class DefaultGenerator : TestFixtureGeneratorAttribute
+    internal class DefaultGenerator : TestFixtureGeneratorAttribute
+    {
+        public override FixtureGenerator Generator
         {
-            public override FixtureGenerator Generator
+            get
             {
-                get
-                {
-                    return a => a.GetExportedTypes()
-                                 .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttribute>(), t))
-                                 .Where(f => f.Attribute != null);
-                }
+                return a => a.GetExportedTypes()
+                             .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
+                             .Where(f => f.Attribute != null);
             }
         }
+    }
 
-        public static Runner Tests(string platformId, IEnumerable<Assembly> assemblies)
+
+    public class Runner:IJsonSerialize
+    {
+        public Runner()
+        {
+            Assemblies = new List<AssemblyMeta>();
+            Tests = new List<Test>();
+        }
+
+        protected Runner(string platform):this()
+        {
+            Platform = platform;
+
+        }
+
+        public string Platform { get; set; }
+        public IList<AssemblyMeta> Assemblies { get; set; }
+        public IList<Test> Tests { get; set; }
+
+        public void RunAll(Action<Result> resultCallBack, TestFilter testFilter = null)
+        {
+            testFilter = testFilter ?? new TestFilter();
+
+
+            foreach (var test in Tests)
+            {
+                if(!testFilter.ShouldRun(test))
+                    continue;
+                var result = test.Run(Platform);
+                resultCallBack(result);
+            }
+        }
+        
+      
+        
+        public string ToListJson()
+        {
+            return String.Format("{{Platform:\"{1}\", Assemblies:[{0}]}}",
+                          String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray()), Platform);
+        }
+
+        public string ToItemJson()
+        {
+            return ToListJson();
+        }
+
+
+        public static Runner Create(string platformId, IEnumerable<Assembly> assemblies)
         {
             var runner = new Runner(platformId);
 
@@ -46,7 +93,8 @@ namespace PclUnit.Runner
 
                 runner.Assemblies.Add(assemblyMeta);
 
-                var generators = assembly.GetCustomAttributes(true).OfType<TestFixtureGeneratorAttribute>().ToList();
+                var generators = assembly.GetCustomAttributes(true)
+                                         .OfType<TestFixtureGeneratorAttributeBase>().ToList();
                 generators.Add(new DefaultGenerator());
                 foreach (var generator in generators)
                 {

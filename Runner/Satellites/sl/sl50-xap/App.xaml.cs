@@ -28,7 +28,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.AspNet.SignalR.Client.Hubs;
-using PclUnit.Runner;
 
 namespace sl_50_xap
 {

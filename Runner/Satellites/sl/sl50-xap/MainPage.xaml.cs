@@ -29,10 +29,9 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Hubs;
-using PclUnit.Runner;
-using Runner.Shared;
+using SatelliteRunner.Shared;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
     public partial class RunTests
     {

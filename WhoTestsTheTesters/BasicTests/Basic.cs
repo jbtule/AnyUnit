@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using PclUnit;
+using PclUnit.Run;
 
 namespace BasicTests
 {
@@ -59,31 +61,37 @@ namespace BasicTests
         {
             return true;
         }
-          
-        
-        [Test(Timeout = 1000)]
+
+
+        [Test(Timeout = 1000, Category = "Timeout")]
         public void TestTimeout_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
-                Assert.Okay();
+                Assert.Okay(); 
+                Test.Sleep(100);
             }
         }
 
-        [Test(Timeout = 2000)]
+        [Test(Timeout = 2000,Category = "Timeout")]
         public void TestTimeout2_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
+                Test.Sleep(100);
             }
         }
-        [Test(Timeout = 3000)]
+        [Test(Timeout = 3000, Category = "Timeout")]
         public void TestTimeout3_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
+                Test.Sleep(100);
             }
         }
 

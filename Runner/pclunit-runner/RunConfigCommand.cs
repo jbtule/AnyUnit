@@ -26,7 +26,6 @@ using ManyConsole;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
 using Owin;
-using PclUnit.Runner;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.RepresentationModel.Serialization;
 using YamlDotNet.RepresentationModel.Serialization.NamingConventions;
@@ -47,8 +46,9 @@ namespace pclunit_runner
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
             this.HasOption("include=", "Include only specified assemblies, fixtures, tests or categories by uniquename",
-                           v => { PlatformResult.Includes.Add(v); }
-                );
+                           v => { PlatformResult.Includes.Add(v); });
+            this.HasOption("exclude=", "Exclude specified assemblies, fixtures, tests or categories by uniquename",
+                           v => { PlatformResult.Excludes.Add(v); });
             HasAdditionalArguments(1, " configFile");
         }
 

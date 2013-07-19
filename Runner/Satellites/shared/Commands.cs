@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using ManyConsole;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
     public partial class RunAloneCommand : ConsoleCommand
     {

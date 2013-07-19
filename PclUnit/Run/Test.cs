@@ -17,12 +17,17 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using PclUnit.Util;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
     public class Test : TestMeta
     {
+
+        public static void Sleep(int milliseconds)
+        {
+            WaitHandle.WaitAll(new[] { new ManualResetEvent(false) }, milliseconds);
+        }
+
         private readonly FixtureInitializer _init;
         private readonly Type _type;
         private readonly TestInvoker _invoke;
@@ -111,7 +116,6 @@ namespace PclUnit.Runner
 
         private void RunHelper(Object stateInfo)
         {
-
             var state = (State) stateInfo;
             var startTime = DateTime.Now;
             var fixture = _init(_type, _constructorArgs.Parameters);
@@ -139,7 +143,7 @@ namespace PclUnit.Runner
                         helper.Assert.Fail("Test returned false.");
                     }
 
-                    if (!(helper is DummyHelper) && helper.Assert.AssertCount == 0)
+                    if (!(helper is DummyHelper) && !Assert._globalStyleUsed && helper.Assert.AssertCount == 0)
                     {
                         returnVal = new Result(state.Platform, ResultKind.NoError, startTime, DateTime.Now, helper);
                     }

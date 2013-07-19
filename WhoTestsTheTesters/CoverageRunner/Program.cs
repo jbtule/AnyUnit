@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace CoverageRunner
 {
@@ -23,7 +23,7 @@ namespace CoverageRunner
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
                            };
 
-            var runner = Generate.Tests(id, asms);
+            var runner = Runner.Create(id, asms);
             var file = new ResultsFile();
             runner.RunAll(r =>
                               {

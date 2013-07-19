@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using PclUnit;
+using PclUnit.Run;
 
 namespace SilverlightTests
 {
@@ -68,30 +69,35 @@ namespace SilverlightTests
             return true;
         }
 
-
-        [Test(Timeout = 1000)]
+        [Test(Timeout = 1000, Category = "Timeout")]
         public void TestTimeout_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
+                Test.Sleep(100);
             }
         }
 
-        [Test(Timeout = 2000)]
+        [Test(Timeout = 2000, Category = "Timeout")]
         public void TestTimeout2_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
+                Test.Sleep(100);
             }
         }
-        [Test(Timeout = 3000)]
+        [Test(Timeout = 3000, Category = "Timeout")]
         public void TestTimeout3_Error()
         {
-            while (true)
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
+                Test.Sleep(100);
             }
         }
 

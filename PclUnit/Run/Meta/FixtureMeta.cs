@@ -16,9 +16,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PclUnit.Run.Attributes;
 using PclUnit.Util;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
 
    
@@ -35,7 +36,8 @@ namespace PclUnit.Runner
         }
 
 
-        public FixtureMeta(TestFixtureAttribute attribute, Type type):this()
+        public FixtureMeta(TestFixtureAttributeBase attribute, Type type)
+            : this()
         {   
        
             Name = type.Name;
@@ -43,9 +45,8 @@ namespace PclUnit.Runner
 
             if (attribute != null)
             {
-                Description = attribute.Description; 
-                if (!String.IsNullOrEmpty(attribute.Category))
-                    Category = attribute.Category.Split(',');
+                Description = attribute.GetDescription();
+                Category = attribute.GetCategories();
             }
 
         }

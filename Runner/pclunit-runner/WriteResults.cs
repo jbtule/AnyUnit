@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace pclunit_runner
 {

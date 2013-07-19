@@ -1,7 +1,8 @@
 using System;
-using PclUnit.Runner;
 using System.Linq;
-namespace Runner.Shared
+using PclUnit.Run;
+
+namespace SatelliteRunner.Shared
 {
 
 public partial class RunTests{

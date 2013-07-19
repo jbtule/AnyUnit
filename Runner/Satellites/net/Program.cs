@@ -24,8 +24,7 @@ using System.Threading;
 using ManyConsole;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.AspNet.SignalR.Client.Hubs;
-using PclUnit.Runner;
-using Runner.Shared;
+using SatelliteRunner.Shared;
 
 
 namespace net_runner

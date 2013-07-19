@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using PclUnit.Runner;
+using PclUnit.Run;
+
 public static class WriteResults
 {
     public const string JsonType = "json";

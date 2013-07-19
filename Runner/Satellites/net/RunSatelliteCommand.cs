@@ -1,7 +1,7 @@
 using System.Linq;
 using ManyConsole;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
 
     public partial class RunSatelliteCommand : ConsoleCommand
@@ -14,7 +14,7 @@ namespace Runner.Shared
             var url = args.Skip(2).First();
             var sharedpath = args.Skip(3).First();
             var dlls = args.Skip(4);
-            new Runner.Shared.RunTests().Run(id, url, dlls.ToArray());
+            new RunTests().Run(id, url, dlls.ToArray());
             return 0;
         }
     }

@@ -163,6 +163,9 @@ Global
 		{4A2B5777-B565-49A6-ACE7-ED3FCAB12FA0} = {3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}
 		{7251D9B8-DD2A-4DCA-A568-C53772081CE5} = {83006684-DA66-48B5-940C-9DE54271B193}
 	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Runner\pclunit-runner\pclunit-runner.csproj
 	EndGlobalSection

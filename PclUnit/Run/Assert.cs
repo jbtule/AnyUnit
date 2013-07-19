@@ -13,13 +13,28 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
     public class Assert : IAssert
     {
+        internal static bool _globalStyleUsed =false;
+
+        [Obsolete("If use global style asserts you will lose the ability"
+            + " to distinguish passed tests from tests that have no assertions.")]
+        public static IAssert GlobalStyle
+        {
+            get
+            {
+                _globalStyleUsed = true;
+                return new Assert();
+            }
+        }
+
+
         public static readonly string[] ExcludeFromStack;
 
         static Assert()

@@ -17,7 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PclUnit.Util;
-namespace PclUnit.Runner
+
+namespace PclUnit.Run
 {
     public class TestMeta : IMeta
     {

@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using ManyConsole;
 using sl_runner;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
     public partial class RunSatelliteCommand : ConsoleCommand
     {

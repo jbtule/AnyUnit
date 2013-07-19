@@ -19,7 +19,7 @@ using System.Linq;
 using System.Reflection;
 using PclUnit.Util;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
     public class AssemblyMeta : IMeta
     {

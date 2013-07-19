@@ -16,7 +16,7 @@
 using System;
 using PclUnit.Util;
 
-namespace PclUnit.Runner
+namespace PclUnit.Run
 {
 
     public enum ResultKind

@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using Ionic.Zip;
 using Ionic.Zlib;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace sl_runner
 {

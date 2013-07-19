@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace pclunit_runner
 {

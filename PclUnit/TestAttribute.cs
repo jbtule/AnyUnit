@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using PclUnit.Run.Attributes;
+using PclUnit.Util;
 
 namespace PclUnit
 {
@@ -24,8 +26,8 @@ namespace PclUnit
 
     public delegate object TestInvoker(MethodInfo method, object target, object[] args);
 
-    [AttributeUsage(AttributeTargets.Method)]
-    public class TestAttribute : Attribute
+
+    public class TestAttribute : TestAttributeBase
     {
         public TestAttribute()
         {
@@ -36,12 +38,7 @@ namespace PclUnit
 
         public string ParameterSetsStaticMethod { get; set; }
 
-        public virtual TestInvoker TestInvoke
-        {
-            get { return (method, target, args) => method.Invoke(target, args); }
-        }
-
-        public virtual ParameterSetTestProducer ParameterSets
+        public override ParameterSetTestProducer ParameterSets
         {
             get
             {
@@ -69,6 +66,21 @@ namespace PclUnit
                                              .Invoke(typeTarget, new object[] {m});
                         };
             }
+        }
+
+        public override int GetTimeout()
+        {
+            return Timeout;
+        }
+
+        public override List<string> GetCategories()
+        {
+            return Category.SafeSplit(",").ToList();
+        }
+
+        public override string GetDescription()
+        {
+            return Description;
         }
 
         public string Description { get; set; }

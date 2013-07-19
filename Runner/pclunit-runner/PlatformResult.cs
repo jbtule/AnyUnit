@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.SignalR.Hubs;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace pclunit_runner
 {
@@ -31,6 +31,9 @@ namespace pclunit_runner
         public static readonly List<Result> Ignores = new List<Result>();
 
         public static readonly List<string> Includes = new List<string>();
+        public static readonly List<string> Excludes = new List<string>();
+
+        public static readonly Lazy<TestFilter> TestFilter = new Lazy<TestFilter>(()=> new TestFilter(Includes,Excludes)); 
 
         public static IDictionary<string,PlatformResult> AddResult(Result result)
         {
@@ -91,11 +94,11 @@ namespace pclunit_runner
 
                 if (!PlatformResult.WaitingForPlatforms.Any() && !go)
                 {
-                    var filter = TestFilter.Create(Includes);
+                
 
                     foreach (var expectedTest in ExpectedTests.ToDictionary(k=>k.Key,v=>v.Value))
                     {
-                        var remove = !expectedTest.Value.All(pr => filter.ShouldRun(pr.MissingTest));
+                        var remove = !expectedTest.Value.All(pr => TestFilter.Value.ShouldRun(pr.MissingTest));
                         if (remove)
                         {
                             ExpectedTests.Remove(expectedTest.Key);
@@ -104,7 +107,7 @@ namespace pclunit_runner
 
                     PrintResults.PrintStart();
                     go = true;
-                    Clients.All.TestsAreReady(Includes.ToArray());
+                    Clients.All.TestsAreReady(TestFilter.Value);
                 }
 
             }

@@ -13,13 +13,24 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace PclUnit.Runner
-{
-    public interface IMeta:IJsonSerialize
-    {
+using System;
+using System.Collections.Generic;
 
-        string UniqueName { get; }
-        string Name { get; }
-  
+namespace PclUnit.Run.Attributes
+{
+    [AttributeUsage(AttributeTargets.Method)]
+    public abstract class TestAttributeBase : Attribute
+    {
+        public virtual TestInvoker TestInvoke
+        {
+            get { return (method, target, args) => method.Invoke(target, args); }
+        }
+
+        public abstract ParameterSetTestProducer ParameterSets { get; }
+        public abstract int GetTimeout();
+
+        public abstract List<string> GetCategories();
+
+        public abstract string GetDescription();
     }
 }

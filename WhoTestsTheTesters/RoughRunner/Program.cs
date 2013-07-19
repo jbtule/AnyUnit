@@ -20,7 +20,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using ConventionTestProcessor;
-using PclUnit.Runner;
+using PclUnit.Run;
 
 namespace RoughRunner
 {
@@ -38,7 +38,7 @@ namespace RoughRunner
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
                            };
 
-            var runner = Generate.Tests(id, asms);
+            var runner = Runner.Create(id, asms);
 
             foreach (var asm in runner.Assemblies)
             {

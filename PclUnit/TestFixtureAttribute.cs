@@ -17,7 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using PclUnit.Run.Attributes;
+using PclUnit.Util;
 
 namespace PclUnit
 {
@@ -25,8 +26,8 @@ namespace PclUnit
 
     public delegate object FixtureInitializer(Type type, object[] args);
 
-    [AttributeUsage(AttributeTargets.Class)]
-    public class TestFixtureAttribute : Attribute
+
+    public class TestFixtureAttribute : TestFixtureAttributeBase
     {
         public TestFixtureAttribute()
         {
@@ -37,12 +38,12 @@ namespace PclUnit
 
         public string StaticMethodOfParameterSet { get; set; }
 
-        public virtual FixtureInitializer FixtureInit
+        public override FixtureInitializer FixtureInit
         {
             get { return Activator.CreateInstance; }
         }
 
-        public virtual ParameterSetFixtureProducer ParameterSets
+        public override ParameterSetFixtureProducer ParameterSets
         {
             get
             {
@@ -70,6 +71,16 @@ namespace PclUnit
                                              .Invoke(typeTarget, new object[] {m});
                         };
             }
+        }
+
+        public override IList<string> GetCategories()
+        {
+            return Category.SafeSplit(",").ToList();
+        }
+
+        public override string GetDescription()
+        {
+            return Description;
         }
 
         public string Description { get; set; }

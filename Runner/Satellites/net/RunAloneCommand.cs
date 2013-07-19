@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using ManyConsole;
 
-namespace Runner.Shared
+namespace SatelliteRunner.Shared
 {
     public partial class RunAloneCommand : ConsoleCommand
     {

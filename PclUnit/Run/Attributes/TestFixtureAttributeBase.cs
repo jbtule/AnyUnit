@@ -1,4 +1,4 @@
-﻿// 
+// 
 //  Copyright 2013 PclUnit Contributors
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,31 +14,19 @@
 //    limitations under the License.
 
 using System;
-using ManyConsole;
-using SatelliteRunner.Shared;
+using System.Collections.Generic;
 
-namespace sl_runner
+namespace PclUnit.Run.Attributes
 {
-    class Program
+    [AttributeUsage(AttributeTargets.Class)]
+    public abstract class TestFixtureAttributeBase : Attribute
     {
-        
-        static void Main(string[] args)
-        {
-#if x64
-            if (!Environment.Is64BitProcess)
-                throw new Exception("This runner is expected to run 64bit");
-#endif
+        public abstract FixtureInitializer FixtureInit { get; }
+        public abstract ParameterSetFixtureProducer ParameterSets { get; }
 
-            var commands = new ConsoleCommand[]
-                               {
-                                   new RunAloneCommand(),
-                                   new RunSatelliteCommand(),
-                               };
 
-            // then run them.
-            ConsoleCommandDispatcher.DispatchCommand(commands, args, Console.Out);
-        }
+        public abstract IList<String> GetCategories();
+        public abstract string GetDescription();
 
-        
     }
 }

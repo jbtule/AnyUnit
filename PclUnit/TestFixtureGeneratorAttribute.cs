@@ -1,33 +1,49 @@
-﻿using System;
+﻿// 
+//  Copyright 2013 PclUnit Contributors
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using PclUnit.Runner;
+using PclUnit.Run;
+using PclUnit.Run.Attributes;
 
 namespace PclUnit
 {
 
     public class TypeWithFixture
     {
-        public TypeWithFixture(Type type, TestFixtureAttribute attribute)
+        public TypeWithFixture(Type type, TestFixtureAttributeBase attribute)
         {
             Type = type;
             Attribute = attribute;
         }
 
         public Type Type { get; protected set; }
-        public TestFixtureAttribute Attribute { get; protected set; }
+        public TestFixtureAttributeBase Attribute { get; protected set; }
     }
 
     public delegate IEnumerable<Fixture> FixtureGenerator(Assembly assembly);
 
     [AttributeUsage(AttributeTargets.Assembly)]
-    public class TestFixtureGeneratorAttribute:Attribute
+    public class TestFixtureGeneratorAttribute:TestFixtureGeneratorAttributeBase
     {
 
 
-        public virtual FixtureGenerator Generator
+        public override FixtureGenerator Generator
         {
             get
             {

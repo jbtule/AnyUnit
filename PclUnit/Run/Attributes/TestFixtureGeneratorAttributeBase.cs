@@ -13,11 +13,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace PclUnit.Runner
+using System;
+
+namespace PclUnit.Run.Attributes
 {
-    public interface IJsonSerialize
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public abstract class TestFixtureGeneratorAttributeBase : Attribute
     {
-        string ToListJson();
-        string ToItemJson();
+        public abstract FixtureGenerator Generator { get; }
     }
 }
