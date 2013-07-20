@@ -23,23 +23,10 @@ using PclUnit.Run.Attributes;
 
 namespace PclUnit
 {
-
-    public class TypeWithFixture
-    {
-        public TypeWithFixture(Type type, TestFixtureAttributeBase attribute)
-        {
-            Type = type;
-            Attribute = attribute;
-        }
-
-        public Type Type { get; protected set; }
-        public TestFixtureAttributeBase Attribute { get; protected set; }
-    }
-
     public delegate IEnumerable<Fixture> FixtureGenerator(Assembly assembly);
 
-    [AttributeUsage(AttributeTargets.Assembly)]
-    public class TestFixtureGeneratorAttribute:TestFixtureGeneratorAttributeBase
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+    public class TestFixtureDiscoveryAttribute:TestFixtureDiscoveryAttributeBase
     {
 
 

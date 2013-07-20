@@ -99,14 +99,12 @@ namespace PclUnit.Run
             Result result =null;
             if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))
             {
-                _constructorArgs.Release();
-                _methodArgs.Release();
+                ParameterSetRelease();
                 result = state.Result;
             }
             else
             {
-                _constructorArgs.Release();
-                _methodArgs.Release();
+                ParameterSetRelease();
                 result = Result.Error(platform, "Tests Execution Timed Out", startTime, DateTime.Now);
             }
             Results.Add(result);
@@ -114,10 +112,20 @@ namespace PclUnit.Run
 
         }
 
+        public void ParameterSetRelease()
+        {
+            _constructorArgs.Release();
+            _methodArgs.Release();
+        }
+
         private void RunHelper(Object stateInfo)
         {
             var state = (State) stateInfo;
             var startTime = DateTime.Now;
+
+         
+
+
             var fixture = _init(_type, _constructorArgs.Parameters);
 
             var helper = fixture as IAssertionHelper ?? new DummyHelper();
@@ -128,6 +136,15 @@ namespace PclUnit.Run
             {
                 try
                 {
+
+                    if (_constructorArgs.Disposed)
+                    {
+                        throw new InvalidOperationException("Type ParameterSet Disposed Regenerated Tests to rerun");
+                    }
+                    if (_methodArgs.Disposed)
+                    {
+                        throw new InvalidOperationException("Method ParameterSet Disposed Regenerated Tests to rerun");
+                    }
 
                     var result = _invoke(_method, fixture, _methodArgs.Parameters);
 

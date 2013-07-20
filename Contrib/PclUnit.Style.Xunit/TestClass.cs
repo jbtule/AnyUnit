@@ -13,13 +13,15 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
 
-namespace PclUnit.Run.Attributes
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace PclUnit.Style.Xunit
 {
-    [AttributeUsage(AttributeTargets.Assembly)]
-    public abstract class TestFixtureGeneratorAttributeBase : Attribute
+    public class TestClass:AssertionHelper
     {
-        public abstract FixtureGenerator Generator { get; }
     }
 }

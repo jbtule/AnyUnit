@@ -56,21 +56,25 @@ namespace PclUnit.Run
         }
 
 
-
-        public void Fail(string message = null, IEnumerable<string> excludedFromStackTrace = null )
+        public void Fail(AssertionException assertion)
         {
-            excludedFromStackTrace = excludedFromStackTrace ?? Enumerable.Empty<string>();
             AssertCount++;
-            var assertion = CreateException(message);
             foreach (var s in ExcludeFromStack)
             {
                 assertion.ExcludeFromStackTrace.Add(s);
             }
+            throw assertion;
+        }
+
+        public void Fail(string message = null, IEnumerable<string> excludedFromStackTrace = null )
+        {
+            excludedFromStackTrace = excludedFromStackTrace ?? Enumerable.Empty<string>();
+            var assertion = CreateException(message);
             foreach (var s in excludedFromStackTrace)
             {
                 assertion.ExcludeFromStackTrace.Add(s);
             }
-            throw assertion;
+            Fail(assertion);
         }
 
 

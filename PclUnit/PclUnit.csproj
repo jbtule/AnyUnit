@@ -70,8 +70,8 @@
     <Compile Include="TestFixtureAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Run\Attributes\TestFixtureAttributeBase.cs" />
-    <Compile Include="TestFixtureGeneratorAttribute.cs" />
-    <Compile Include="Run\Attributes\TestFixtureGeneratorAttributeBase.cs" />
+    <Compile Include="TestFixtureDiscoveryAttribute.cs" />
+    <Compile Include="Run\Attributes\TestFixtureDiscoveryAttributeBase.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

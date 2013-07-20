@@ -7,7 +7,7 @@ using PclUnit;
 
 namespace BasicTests
 {
-    [TestFixture(TargetOfParameterSet = typeof(Paramed), StaticMethodOfParameterSet = "GetConstructorParamSet")]
+    [TestFixture(ParameterMethodSource = typeof(Paramed), ParameterMethod = "GetConstructorParamSet")]
     public class Paramed:AssertionHelper
     {
         private bool _reversableTrue;
@@ -100,7 +100,7 @@ namespace BasicTests
 
     
 
-       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetParamSet")]
+       [Test(ParameterMethodSource = typeof(Basic), ParameterMethod = "GetParamSet")]
        public void TestParams_Success(int i)
        {
            if (_reversableTrue)
@@ -109,7 +109,7 @@ namespace BasicTests
                Assert.True(i > 10, String.Format("expected {0} to be less than 10", i));
        }
 
-       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetParamSet")]
+       [Test(ParameterMethodSource = typeof(Basic), ParameterMethod = "GetParamSet")]
        public void TestParams_Fail(int i)
        {
            if (_reversableTrue)
@@ -118,7 +118,7 @@ namespace BasicTests
                Assert.True(i < 10, String.Format("expected {0} to be less than 10", i));
        }
 
-       [Test(ParameterSetsTarget = typeof(Basic), ParameterSetsStaticMethod = "GetPartialParamSet")]
+       [Test(ParameterMethodSource = typeof(Basic), ParameterMethod = "GetPartialParamSet")]
        public void TestParams_Partial(int i, Expected expected)
        {
            if(_reversableTrue)

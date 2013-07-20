@@ -22,7 +22,7 @@ using PclUnit.Util;
 
 namespace PclUnit
 {
-    public delegate IEnumerable<ParameterSet> ParameterSetFixtureProducer(Type type);
+    public delegate IEnumerable<ParameterSet> FixtureParameterSetProducer(Type type);
 
     public delegate object FixtureInitializer(Type type, object[] args);
 
@@ -34,51 +34,45 @@ namespace PclUnit
         }
 
 
-        public Type TargetOfParameterSet { get; set; }
+        public Type ParameterMethodSource { get; set; }
 
-        public string StaticMethodOfParameterSet { get; set; }
+        public string ParameterMethod { get; set; }
 
-        public override FixtureInitializer FixtureInit
-        {
-            get { return Activator.CreateInstance; }
-        }
+  
 
-        public override ParameterSetFixtureProducer ParameterSets
+        public override FixtureParameterSetProducer ParameterSets
         {
             get
             {
-                if (String.IsNullOrEmpty(StaticMethodOfParameterSet))
-                    return m => new List<ParameterSet>()
-                                    {
-                                        new ParameterSet()
-                                    };
+                if (String.IsNullOrEmpty(ParameterMethod))
+                    return base.ParameterSets;
 
                 return
                     m =>
                         {
-                            Type typeTarget = (TargetOfParameterSet ?? m);
+                            Type typeTarget = (ParameterMethodSource ?? m);
 
-                            var invoker = typeTarget.GetMethod(StaticMethodOfParameterSet,
+                            var invoker = typeTarget.GetMethod(ParameterMethod,
                                                                BindingFlags.Static | BindingFlags.Public |
                                                                BindingFlags.NonPublic);
                             if (invoker == null)
                                 throw new MissingMemberException(
-                                    String.Format("Cound not find member {0} on {1}.", StaticMethodOfParameterSet,
+                                    String.Format("Cound not find member {0} on {1}.", ParameterMethod,
                                                   typeTarget));
 
                             return (IEnumerable<ParameterSet>)
-                                   typeTarget.GetMethod(StaticMethodOfParameterSet, new[] {typeof (Type)})
+                                   typeTarget.GetMethod(ParameterMethod, new[] {typeof (Type)})
                                              .Invoke(typeTarget, new object[] {m});
                         };
             }
         }
 
-        public override IList<string> GetCategories()
+        public override IList<string> GetCategories(Type type)
         {
             return Category.SafeSplit(",").ToList();
         }
 
-        public override string GetDescription()
+        public override string GetDescription(Type type)
         {
             return Description;
         }

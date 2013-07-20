@@ -27,15 +27,15 @@ namespace PclUnit.Run
             Method = method;
             if (attribute != null)
             {
-                Category = attribute.GetCategories();
-                Description = attribute.GetDescription();
-                Timeout = attribute.GetTimeout();
+                Category = attribute.GetCategories(method);
+                Description = attribute.GetDescription(method);
+                Timeout = attribute.GetTimeout(method);
             }
         }
 
         public string Description { get; set; }
 
-        public List<string> Category { get; set; }
+        public IList<string> Category { get; set; }
 
         public TestAttributeBase Attribute { get; set; }
 

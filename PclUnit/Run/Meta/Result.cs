@@ -56,7 +56,10 @@ namespace PclUnit.Run
             StartTime = startTime;
             EndTime = endTime;
             Output = helper.Log.ToString();
-            AssertCount = helper.Assert.AssertCount; 
+            if (Assert._globalStyleUsed && helper.Assert.AssertCount == 0)
+                AssertCount = -1;
+            else
+                AssertCount = helper.Assert.AssertCount;
         }
 
         public string Platform { get; set; }

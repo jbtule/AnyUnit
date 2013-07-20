@@ -18,7 +18,7 @@
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OldPCL)' != '' ">
-      <TargetFrameworkProfile>Profile1</TargetFrameworkProfile>
+    <TargetFrameworkProfile>Profile1</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

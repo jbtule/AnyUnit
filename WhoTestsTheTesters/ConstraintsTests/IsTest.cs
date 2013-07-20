@@ -52,7 +52,7 @@ namespace ConstraintsTests
             return Enumerable.Range(1, 6).Select(it => new ParameterSet(it, it <=4 ? Expected._Success : Expected._Fail));
         }
 
-        [Test(ParameterSetsStaticMethod = "ValuesRangeSuccessBetween1And4")]
+        [Test(ParameterMethod = "ValuesRangeSuccessBetween1And4")]
         public void Range(int i, Expected result)
         {
             Assert.That(i,Is.InRange(1,4));

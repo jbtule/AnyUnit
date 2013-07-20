@@ -15,18 +15,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace PclUnit.Run.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,
+                   Inherited = true)]
     public abstract class TestFixtureAttributeBase : Attribute
     {
-        public abstract FixtureInitializer FixtureInit { get; }
-        public abstract ParameterSetFixtureProducer ParameterSets { get; }
+        public virtual FixtureInitializer FixtureInit
+        {
+            get { return Activator.CreateInstance; }
+        }
+        public virtual FixtureParameterSetProducer ParameterSets { get { return ParameterSet.GetDefaultParameterSet; } }
 
 
-        public abstract IList<String> GetCategories();
-        public abstract string GetDescription();
+        public abstract IList<string> GetCategories(Type type);
+        public abstract string GetDescription(Type type);
 
     }
 }

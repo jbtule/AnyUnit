@@ -45,8 +45,8 @@ namespace PclUnit.Run
 
             if (attribute != null)
             {
-                Description = attribute.GetDescription();
-                Category = attribute.GetCategories();
+                Description = attribute.GetDescription(type);
+                Category = attribute.GetCategories(type);
             }
 
         }

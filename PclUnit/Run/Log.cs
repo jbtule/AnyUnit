@@ -52,8 +52,10 @@ namespace PclUnit.Run
 
         public void Write(string format, params object[] args)
         {
-           
-            using (var reader = new StringReader(String.Format(format, args)))
+            string start =format;
+            if(args.Any())
+                start = String.Format(start, args);
+            using (var reader = new StringReader(start))
             {
                 string line = reader.ReadLine();
                 bool first = true;
@@ -79,7 +81,10 @@ namespace PclUnit.Run
 
         public void WriteLine(string format, params object[] args)
         {
-            using (var reader = new StringReader(String.Format(format, args)))
+            string start = format;
+            if (args.Any())
+                start = String.Format(start, args);
+            using (var reader = new StringReader(start))
             {
                 string line = reader.ReadLine(); 
                 while (line != null)
