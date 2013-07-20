@@ -10,7 +10,7 @@ namespace SatelliteRunner.Shared
 
         public override int Run(string[] args)
         {
-#if net40
+#if NET40
             var id = string.Format("net40-{0}", (Environment.Is64BitProcess ? "x64" : "x86"));
 #else
             var id = string.Format("net45-{0}",(Environment.Is64BitProcess ? "x64" : "x86"));
