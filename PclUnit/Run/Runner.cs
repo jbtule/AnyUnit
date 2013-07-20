@@ -23,7 +23,7 @@ using PclUnit.Util;
 namespace PclUnit.Run
 {
 
-    internal class DefaultGenerator : TestFixtureGeneratorAttribute
+    internal class DefaultDiscovery : TestFixtureDiscoveryAttribute
     {
         public override FixtureGenerator Generator
         {
@@ -62,8 +62,11 @@ namespace PclUnit.Run
 
             foreach (var test in Tests)
             {
-                if(!testFilter.ShouldRun(test))
+                if (!testFilter.ShouldRun(test))
+                {
+                    test.ParameterSetRelease();
                     continue;
+                }
                 var result = test.Run(Platform);
                 resultCallBack(result);
             }
@@ -94,8 +97,8 @@ namespace PclUnit.Run
                 runner.Assemblies.Add(assemblyMeta);
 
                 var generators = assembly.GetCustomAttributes(true)
-                                         .OfType<TestFixtureGeneratorAttributeBase>().ToList();
-                generators.Add(new DefaultGenerator());
+                                         .OfType<TestFixtureDiscoveryAttributeBase>().ToList();
+                generators.Add(new DefaultDiscovery());
                 foreach (var generator in generators)
                 {
                     foreach (var fixture in generator.Generator(assembly))

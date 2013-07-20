@@ -15,10 +15,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace PclUnit.Run.Attributes
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false,
+                   Inherited = true)]
     public abstract class TestAttributeBase : Attribute
     {
         public virtual TestInvoker TestInvoke
@@ -26,11 +28,15 @@ namespace PclUnit.Run.Attributes
             get { return (method, target, args) => method.Invoke(target, args); }
         }
 
-        public abstract ParameterSetTestProducer ParameterSets { get; }
-        public abstract int GetTimeout();
+        public virtual TestParameterSetProducer ParameterSets 
+        {
+            get { return ParameterSet.GetDefaultParameterSet; } 
+        }
 
-        public abstract List<string> GetCategories();
+        public abstract int GetTimeout(MethodInfo method);
 
-        public abstract string GetDescription();
+        public abstract IList<string> GetCategories(MethodInfo method);
+
+        public abstract string GetDescription(MethodInfo method);
     }
 }

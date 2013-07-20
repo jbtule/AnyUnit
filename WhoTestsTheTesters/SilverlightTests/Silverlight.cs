@@ -101,6 +101,13 @@ namespace SilverlightTests
             }
         }
 
+        [Test(Timeout = 10000)]
+        public void TestTimeout10_Success()
+        {
+            Assert.Okay();
+        }
+
+
         [Test]
         public bool TestReturn_Fail()
         {
@@ -130,13 +137,13 @@ namespace SilverlightTests
             return Enumerable.Range(1, 5).Select(it => new ParameterSet(it));
         }
 
-        [Test(ParameterSetsStaticMethod = "GetParamSet")]
+        [Test(ParameterMethod = "GetParamSet")]
         public void TestParams_Success(int i)
         {
             Assert.True(i < 10, "You shouldn't seee this message");
         }
 
-        [Test(ParameterSetsStaticMethod = "GetParamSet")]
+        [Test(ParameterMethod = "GetParamSet")]
         public void TestParams_Fail(int i)
         {
             Assert.True(i > 10, String.Format("expected {0} to be greater than 10", i));
@@ -154,7 +161,7 @@ namespace SilverlightTests
                            new ParameterSet(5,Expected._Success),
                        };
         }
-        [Test(ParameterSetsStaticMethod = "GetPartialParamSet")]
+        [Test(ParameterMethod = "GetPartialParamSet")]
         public void TestParams_Partial(int i, Expected expected)
         {
             Assert.True(i > 3, String.Format("expected {0} to be greater than 3", i));

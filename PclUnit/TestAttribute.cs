@@ -22,7 +22,7 @@ using PclUnit.Util;
 
 namespace PclUnit
 {
-    public delegate IEnumerable<ParameterSet> ParameterSetTestProducer(MethodInfo method);
+    public delegate IEnumerable<ParameterSet> TestParameterSetProducer(MethodInfo method);
 
     public delegate object TestInvoker(MethodInfo method, object target, object[] args);
 
@@ -34,51 +34,48 @@ namespace PclUnit
             Timeout = -1;
         }
 
-        public Type ParameterSetsTarget { get; set; }
+        public Type ParameterMethodSource { get; set; }
 
-        public string ParameterSetsStaticMethod { get; set; }
+        public string ParameterMethod { get; set; }
 
-        public override ParameterSetTestProducer ParameterSets
+        public override TestParameterSetProducer ParameterSets
         {
             get
             {
-                if (String.IsNullOrEmpty(ParameterSetsStaticMethod))
-                    return m => new List<ParameterSet>()
-                                    {
-                                        new ParameterSet()
-                                    };
+                if (String.IsNullOrEmpty(ParameterMethod))
+                    return base.ParameterSets;
 
                 return
                     m =>
                         {
-                            var typeTarget = ParameterSetsTarget ?? m.DeclaringType;
+                            var typeTarget = ParameterMethodSource ?? m.DeclaringType;
 
-                            var invoker = typeTarget.GetMethod(ParameterSetsStaticMethod,
+                            var invoker = typeTarget.GetMethod(ParameterMethod,
                                                                BindingFlags.Static | BindingFlags.Public |
                                                                BindingFlags.NonPublic);
                             if (invoker == null)
                                 throw new MissingMemberException(
-                                    String.Format("Cound not find static member {0} on {1}.", ParameterSetsStaticMethod,
+                                    String.Format("Cound not find static member {0} on {1}.", ParameterMethod,
                                                   typeTarget));
 
                             return (IEnumerable<ParameterSet>)
-                                   typeTarget.GetMethod(ParameterSetsStaticMethod, new[] {typeof (MethodInfo)})
+                                   typeTarget.GetMethod(ParameterMethod, new[] {typeof (MethodInfo)})
                                              .Invoke(typeTarget, new object[] {m});
                         };
             }
         }
 
-        public override int GetTimeout()
+        public override int GetTimeout(MethodInfo method)
         {
             return Timeout;
         }
 
-        public override List<string> GetCategories()
+        public override IList<string> GetCategories(MethodInfo method)
         {
             return Category.SafeSplit(",").ToList();
         }
 
-        public override string GetDescription()
+        public override string GetDescription(MethodInfo method)
         {
             return Description;
         }

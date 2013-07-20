@@ -13,6 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
 using System.Collections.Generic;
 
 namespace PclUnit
@@ -23,12 +24,16 @@ namespace PclUnit
     {
         int AssertCount { get; }
         void Fail(string message = null, IEnumerable<string> excludedFromStackTrace = null);
+        void Fail(AssertionException assertion);
         void Okay();
         void Ignore(string message = null);
         void True(bool actual, string message = null);
         void False(bool actual, string message = null);
 
-        string ToString();
+        [Obsolete("Built in Equals Do Not Call", error:true)]
+        bool Equals(object obj);
+
+      
     }
 
 

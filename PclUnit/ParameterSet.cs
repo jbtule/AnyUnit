@@ -16,12 +16,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace PclUnit
 {
     public class ParameterSet
     {
+
+        public static IEnumerable<ParameterSet> GetDefaultParameterSet(MethodInfo method)
+        {
+            return new List<ParameterSet>()
+                                    {
+                                        new ParameterSet()
+                                    };
+        }
+
+        public static IEnumerable<ParameterSet> GetDefaultParameterSet(Type method)
+        {
+            return new List<ParameterSet>()
+                                    {
+                                        new ParameterSet()
+                                    };
+        } 
+
+
+
         private readonly object[] _parameters;
         private int _retainCount = 0;
 
@@ -39,6 +59,8 @@ namespace PclUnit
             return this;
         }
 
+        public virtual bool Disposed { get; protected set; }
+
         public bool  Release(){
             if (--_retainCount <= 0)
             {
@@ -52,6 +74,7 @@ namespace PclUnit
         {
             foreach (var o in _parameters.OfType<IDisposable>())
             {
+                Disposed = true;
                 o.Dispose();
             }
         }

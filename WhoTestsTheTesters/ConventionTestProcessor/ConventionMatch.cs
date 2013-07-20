@@ -80,7 +80,7 @@ namespace ConventionTestProcessor
                 Console.WriteLine("{0}: ", header);
                 foreach (var result in results)
                 {
-                    Console.WriteLine("  {0}.{1}[{2}] {3}", result.Test.Fixture.Name, result.Test.Name, result.Platform, result.Kind);
+                    Console.WriteLine("  {4}.{0}.{1}[{2}] {3}", result.Test.Fixture.Name, result.Test.Name, result.Platform, result.Kind, result.Test.Fixture.Assembly.Name);
                     if (result.Kind == ResultKind.Error || printoutAll)
                     {
                         Console.WriteLine(result.Output);
