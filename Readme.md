@@ -24,8 +24,10 @@ See [Pcl Unit Design and Philosophy][Design].
 
 ####Status
 Alpha Version
-  - Core Libraries and Basic Test Runner -Win & Mono
-  - Aggregating Test Runner (net40 x86,x64) (net45 x86, x64) (sl50 x86, x64) -Win
+  - PclUnit, Core Libraries and Basic Test Runner -Win & Mono
+  - pclunit-runner, Aggregating Test Runner (net40 x86,x64) (net45 x86, x64) (sl50 x86, x64) -Win
+  - PclUnit.Constraints, (port of Nunit Constraints)
+  - PclUnit.Style.Xunit, (port of xunit test attributes & assertions)
 
 [travis-ci]:https://travis-ci.org/
 [Design]:http://github.com/jbtule/PclUnit/wiki/Design
