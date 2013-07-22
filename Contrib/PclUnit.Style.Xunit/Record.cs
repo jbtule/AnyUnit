@@ -16,7 +16,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using PclUnit.Style.Xunit.Util;
 
 namespace PclUnit.Style.Xunit

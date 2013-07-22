@@ -15,7 +15,6 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
 
 namespace PclUnit.Style.Xunit.Exceptions
 {

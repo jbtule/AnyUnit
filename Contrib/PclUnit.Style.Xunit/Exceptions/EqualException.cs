@@ -18,10 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Runtime.Serialization;
-using System.Security;
 using System.Text;
-using PclUnit.Style.Xunit.Util;
 
 namespace PclUnit.Style.Xunit.Exceptions
 {
@@ -78,6 +75,18 @@ namespace PclUnit.Style.Xunit.Exceptions
         /// </summary>
         public int ExpectedIndex { get; private set; }
 
+        private class ShortenEncoded
+        {
+            public ShortenEncoded(string item1, string item2)
+            {
+                PrintedValue = item1;
+                PrintedPointer = item2;
+            }
+
+            public string PrintedValue { get; private set; }
+            public string PrintedPointer { get; private set; }
+        }
+
         /// <inheritdoc/>
         public override string Message
         {
@@ -95,22 +104,22 @@ namespace PclUnit.Style.Xunit.Exceptions
             if (ExpectedIndex == -1)
                 return base.Message;
 
-            Tuple<string, string> printedExpected = ShortenAndEncode(Expected, ExpectedIndex, '↓');
-            Tuple<string, string> printedActual = ShortenAndEncode(Actual, ActualIndex, '↑');
+            var printedExpected = ShortenAndEncode(Expected, ExpectedIndex, '↓');
+            var printedActual = ShortenAndEncode(Actual, ActualIndex, '↑');
 
             return String.Format(
                 CultureInfo.CurrentCulture,
                 "{1}{0}          {2}{0}Expected: {3}{0}Actual:   {4}{0}          {5}",
                 Environment.NewLine,
                 UserMessage,
-                printedExpected.Item2,
-                printedExpected.Item1 ?? "(null)",
-                printedActual.Item1 ?? "(null)",
-                printedActual.Item2
+                printedExpected.PrintedPointer,
+                printedExpected.PrintedValue ?? "(null)",
+                printedActual.PrintedValue ?? "(null)",
+                printedActual.PrintedPointer
             );
         }
 
-        static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer)
+        static ShortenEncoded ShortenAndEncode(string value, int position, char pointer)
         {
             int start = Math.Max(position - 20, 0);
             int end = Math.Min(position + 41, value.Length);
@@ -149,7 +158,7 @@ namespace PclUnit.Style.Xunit.Exceptions
             if (end < value.Length)
                 printedValue.Append("···");
 
-            return new Tuple<string, string>(printedValue.ToString(), printedPointer.ToString());
+            return new ShortenEncoded(printedValue.ToString(), printedPointer.ToString());
         }
     }
 }
