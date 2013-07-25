@@ -15,7 +15,7 @@ See [Pcl Unit Design and Philosophy][Design].
 | [![Build Status][MonoImg]][MonoLink] | Mono CI Provided by [travis-ci][] |
 
 
-[WinImg]:http://teamcity.codebetter.com/app/rest/builds/buildType:(id:bt1048)/statusIcon
+[WinImg]:http://teamcity.codebetter.com/app/rest/builds/buildType:(id:bt1048)/statusIcon?updatecache=1
 [WinLink]:http://teamcity.codebetter.com/viewLog.html?buildTypeId=bt1048&buildId=lastFinished&guest=1
 [JetBrains]:http://www.jetbrains.com/
 [CodeBetter]:http://codebetter.com/
