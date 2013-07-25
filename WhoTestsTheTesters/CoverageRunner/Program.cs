@@ -21,6 +21,9 @@ namespace CoverageRunner
                            {
                                Assembly.GetAssembly(typeof (BasicTests.Basic)),
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
+                               Assembly.GetAssembly(typeof (XunitTests.Basic)),
+
+                           
                            };
 
             var runner = Runner.Create(id, asms);
