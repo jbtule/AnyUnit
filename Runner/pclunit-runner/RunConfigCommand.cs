@@ -104,7 +104,11 @@ namespace pclunit_runner
                 // use http://*:8080 to bind to all addresses. 
                 // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx for more info
                 string url = "http://localhost:8989";
-            
+                if (Util.IsMono)
+                {
+                    url = "http://127.0.0.1:8989";
+                }
+
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
 
