@@ -106,6 +106,9 @@
     <Compile Include="..\pclunit-runner\RunConfigCommand.cs">
       <Link>RunConfigCommand.cs</Link>
     </Compile>
+    <Compile Include="..\pclunit-runner\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
     <Compile Include="..\pclunit-runner\WriteResults.cs">
       <Link>WriteResults.cs</Link>
     </Compile>
