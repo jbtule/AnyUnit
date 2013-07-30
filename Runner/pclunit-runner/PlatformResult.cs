@@ -16,26 +16,46 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using PclUnit.Run;
 
 namespace pclunit_runner
 {
-    public class PlatformResult
+    
+    public class PlatformResults
     {
 
-        public  static readonly List<Result> NoErrors = new List<Result>();
-        public static readonly List<Result> Success = new List<Result>();
-        public static readonly List<Result> Failures = new List<Result>();
-        public static readonly List<Result> Errors = new List<Result>();
-        public static readonly List<Result> Ignores = new List<Result>();
+        private readonly static Lazy<PlatformResults> _instance 
+            = new Lazy<PlatformResults>(() => new PlatformResults(GlobalHost.ConnectionManager.GetHubContext<PclUnitHub>().Clients));
 
-        public static readonly List<string> Includes = new List<string>();
-        public static readonly List<string> Excludes = new List<string>();
+        public PlatformResults(IHubConnectionContext clients)
+        {
+            Clients = clients;
+            TestFilter = new Lazy<TestFilter>(()=> new TestFilter(Includes,Excludes)); 
+        }
 
-        public static readonly Lazy<TestFilter> TestFilter = new Lazy<TestFilter>(()=> new TestFilter(Includes,Excludes)); 
+        public static PlatformResults Instance
+        {
+            get
+            {
+                return _instance.Value;
+            }
+        }
 
-        public static IDictionary<string,PlatformResult> AddResult(Result result)
+
+        public readonly List<Result> NoErrors = new List<Result>();
+        public readonly List<Result> Success = new List<Result>();
+        public readonly List<Result> Failures = new List<Result>();
+        public readonly List<Result> Errors = new List<Result>();
+        public readonly List<Result> Ignores = new List<Result>();
+
+        public readonly List<string> Includes = new List<string>();
+        public readonly List<string> Excludes = new List<string>();
+
+        public readonly Lazy<TestFilter> TestFilter;
+
+        public IDictionary<string,PlatformResult> AddResult(Result result)
         {
             File.Add(result);
 
@@ -61,7 +81,7 @@ namespace pclunit_runner
 
             string key = string.Format("{0}|{1}|{2}", result.Test.Fixture.Assembly.UniqueName, result.Test.Fixture.UniqueName, result.Test.UniqueName);
 
-            var dict = PlatformResult.ExpectedTests[key].ToDictionary(k => k.Platform, v => v);
+            var dict = ExpectedTests[key].ToDictionary(k => k.Platform, v => v);
 
 
             var miniKey = result.Platform;
@@ -70,7 +90,7 @@ namespace pclunit_runner
             return dict;
         }
 
-        public static void AddTest(TestMeta test, string id)
+        public void AddTest(TestMeta test, string id)
         {
          
             string key = string.Format("{0}|{1}|{2}", test.Fixture.Assembly.UniqueName, test.Fixture.UniqueName,
@@ -85,14 +105,14 @@ namespace pclunit_runner
             }
         }
 
-        private static bool go = false;
-        public static void ReceivedTests(string id)
+        private bool go = false;
+        public void ReceivedTests(string id)
         {
-            lock (PlatformResult.WaitingForPlatforms)
+            lock (WaitingForPlatforms)
             {
-                PlatformResult.WaitingForPlatforms.Remove(id);
+                WaitingForPlatforms.Remove(id);
 
-                if (!PlatformResult.WaitingForPlatforms.Any() && !go)
+                if (!WaitingForPlatforms.Any() && !go)
                 {
                 
 
@@ -104,18 +124,22 @@ namespace pclunit_runner
                             ExpectedTests.Remove(expectedTest.Key);
                         }
                     }
-
-                    PrintResults.PrintStart();
+                     
                     go = true;
-                    Clients.All.TestsAreReady(TestFilter.Value);
+                    if (Clients != null)
+                    {
+                        PrintResults.PrintStart();
+
+                        Clients.All.TestsAreReady(TestFilter.Value);
+                    }
                 }
 
             }
         }
 
-        public static void Exited(string id)
+        public void Exited(string id)
         {
-            lock (PlatformResult.WaitingForPlatforms)
+            lock (WaitingForPlatforms)
             {
                 if (WaitingForPlatforms.Contains(id))
                 {
@@ -146,6 +170,21 @@ namespace pclunit_runner
             ReceivedTests(id);
         }
 
+  
+        public IHubConnectionContext Clients { get; set; }
+
+        public readonly IDictionary<string, IList<PlatformResult>> ExpectedTests =
+            new Dictionary<string, IList<PlatformResult>>();
+
+        public readonly ResultsFile File = new ResultsFile();
+
+        public readonly HashSet<string> WaitingForPlatforms =
+            new HashSet<string>();
+
+    }
+
+    public class PlatformResult
+    {
         public PlatformResult(string platform)
         {
             Platform = platform;
@@ -155,14 +194,5 @@ namespace pclunit_runner
 
         public TestMeta MissingTest { get; set; }
 
-        public static HubConnectionContext Clients { get; set; }
-
-        public static readonly IDictionary<string, IList<PlatformResult>> ExpectedTests =
-            new Dictionary<string, IList<PlatformResult>>();
-
-        public static readonly ResultsFile File = new ResultsFile();
-
-        public static readonly HashSet<string> WaitingForPlatforms =
-            new HashSet<string>();
     }
 }

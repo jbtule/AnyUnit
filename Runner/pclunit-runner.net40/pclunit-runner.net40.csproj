@@ -88,6 +88,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\pclunit-runner\Commands\RunConfig.cs">
+      <Link>Commands\RunConfig.cs</Link>
+    </Compile>
     <Compile Include="..\pclunit-runner\PclUnitHub.cs">
       <Link>PclUnitHub.cs</Link>
     </Compile>
@@ -103,9 +106,6 @@
     <Compile Include="..\pclunit-runner\Reshare.cs">
       <Link>Reshare.cs</Link>
     </Compile>
-    <Compile Include="..\pclunit-runner\RunConfigCommand.cs">
-      <Link>RunConfigCommand.cs</Link>
-    </Compile>
     <Compile Include="..\pclunit-runner\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
@@ -118,8 +118,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\pclunit-runner\satellites.yml">
-      <Link>satellites.yml</Link>
+    <None Include="..\pclunit-runner\platforms.yml">
+      <Link>platforms.yml</Link>
     </None>
     <None Include="app.config" />
     <None Include="packages.config" />

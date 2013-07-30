@@ -7,7 +7,7 @@ TESTDLL3="$BASEDIR/Style/XunitTests/bin/Debug/XunitTests.dll"
 
 
 mkdir mono-results
-mono "$BASEDIR/../Runner/Satellites/net/net40/bin/x86/Debug/net-40-x86-full.exe" run -o mono-results/net40-x86.json $TESTDLL1 $TESTDLL2 $TESTDLL3
-mono "$BASEDIR/../Runner/Satellites/net/net45/bin/x86/Debug/net-45-x86-full.exe" run -o mono-results/net45-x86.json $TESTDLL1 $TESTDLL2 $TESTDLL3
+mono "$BASEDIR/../Runner/Platforms/net/net40/bin/x86/Debug/net-40-x86-full.exe" run -o mono-results/net40-x86.json $TESTDLL1 $TESTDLL2 $TESTDLL3
+mono "$BASEDIR/../Runner/Platforms/net/net45/bin/x86/Debug/net-45-x86-full.exe" run -o mono-results/net45-x86.json $TESTDLL1 $TESTDLL2 $TESTDLL3
 
 mono "$BASEDIR/ConventionTestProcessor/bin/Debug/ConventionTestProcessor.exe" mono-results/*.json

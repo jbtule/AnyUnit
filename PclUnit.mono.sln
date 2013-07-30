@@ -30,11 +30,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runner", "Runner", "{D499D9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pclunit-runner", "Runner\pclunit-runner\pclunit-runner.csproj", "{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Satellites", "Satellites", "{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-40-x86-full", "Runner\Satellites\net\net40\net-40-x86-full.csproj", "{96409D0A-2D64-40D3-A932-A6A7927CE1EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-40-x86-full", "Runner\Platforms\net\net40\net-40-x86-full.csproj", "{96409D0A-2D64-40D3-A932-A6A7927CE1EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-45-x86-full", "Runner\Satellites\net\net45\net-45-x86-full.csproj", "{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-45-x86-full", "Runner\Platforms\net\net45\net-45-x86-full.csproj", "{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contrib", "Contrib", "{83006684-DA66-48B5-940C-9DE54271B193}"
 EndProject

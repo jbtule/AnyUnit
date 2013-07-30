@@ -1,0 +1,18 @@
+﻿# Satellite runner locations
+- path: ..\..\..\Platforms\net\net40\bin\x86\Debug\net-40-x86-full.exe
+  id: net40-x86
+
+- path: ..\..\..\Platforms\net\net40\bin\x64\Debug\net-40-x64-full.exe
+  id: net40-x64
+
+- path: ..\..\..\Platforms\net\net45\bin\x86\Debug\net-45-x86-full.exe
+  id: net45-x86
+
+- path: ..\..\..\Platforms\net\net45\bin\x64\Debug\net-45-x64-full.exe
+  id: net45-x64
+
+- path: ..\..\..\Platforms\sl\sl50\bin\x86\Debug\sl-50-x86.exe
+  id: sl50-x86
+
+- path: ..\..\..\Platforms\sl\sl50\bin\x64\Debug\sl-50-x64.exe
+  id: sl50-x64

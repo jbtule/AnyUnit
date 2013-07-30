@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+//  Copyright 2013 PclUnit Contributors
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,9 +37,9 @@ namespace pclunit_runner
             }
         }
 
-        public static void PrintEnd(ResultsFile file)
+        public static void PrintEnd(PlatformResults results)
         {
-
+            var file = results.File;
 
             if (TeamCity)
             {
@@ -33,11 +48,11 @@ namespace pclunit_runner
             else
             {
 
-                PrintCount(PlatformResult.Errors, "Errors:");
-                PrintCount(PlatformResult.Failures, "Failures:");
-                PrintCount(PlatformResult.Ignores, "Ignores:");
-                PrintCount(PlatformResult.NoErrors, "NoErrors:");
-                PrintTotaledCount(PlatformResult.Success, "Success:");
+                PrintCount(results.Errors, "Errors:");
+                PrintCount(results.Failures, "Failures:");
+                PrintCount(results.Ignores, "Ignores:");
+                PrintCount(results.NoErrors, "NoErrors:");
+                PrintTotaledCount(results, results.Success, "Success:");
 
                 Console.WriteLine("Final Total");
                 Console.WriteLine();
@@ -51,13 +66,13 @@ namespace pclunit_runner
         }
 
 
-        public static void PrintTotaledCount(IEnumerable<Result> results, string header)
+        public static void PrintTotaledCount(PlatformResults fullResults, IEnumerable<Result> results, string header)
         {
 
-            lock (PlatformResult.ExpectedTests)
+            lock (fullResults.ExpectedTests)
             {
                 Console.WriteLine(header);
-                var totalCount = PlatformResult.ExpectedTests.SelectMany(it => it.Value)
+                var totalCount = fullResults.ExpectedTests.SelectMany(it => it.Value)
                                                .Select(it => it.Result)
                                                .ToLookup(it => it.Platform)
                                                .ToDictionary(k => k.Key, v => v.Count());

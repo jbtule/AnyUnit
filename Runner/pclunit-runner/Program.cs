@@ -14,9 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ManyConsole;
 
 namespace pclunit_runner
@@ -28,7 +25,7 @@ namespace pclunit_runner
 
             var commands = new[]
                                {
-                                   new RunConfigCommand()
+                                   new RunConfig()
                                };
 
             // then run them.

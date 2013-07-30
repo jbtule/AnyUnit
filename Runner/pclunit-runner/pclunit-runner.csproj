@@ -93,7 +93,7 @@
     <Compile Include="PrintResults.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RunConfigCommand.cs" />
+    <Compile Include="Commands\RunConfig.cs" />
     <Compile Include="Reshare.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="WriteResults.cs" />
@@ -102,7 +102,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <Content Include="satellites.yml">
+    <Content Include="platforms.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

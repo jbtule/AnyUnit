@@ -60,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\Commands.cs">
-      <Link>Commands.cs</Link>
+      <Link>Commands\Commands.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\PrintTests.cs">
       <Link>PrintTests.cs</Link>
@@ -75,10 +75,10 @@
       <Link>Program.cs</Link>
     </Compile>
     <Compile Include="..\RunAloneCommand.cs">
-      <Link>RunAloneCommand.cs</Link>
+      <Link>Commands\RunAloneCommand.cs</Link>
     </Compile>
     <Compile Include="..\RunSatelliteCommand.cs">
-      <Link>RunSatelliteCommand.cs</Link>
+      <Link>Commands\RunSatelliteCommand.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -92,6 +92,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

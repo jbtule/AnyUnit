@@ -29,7 +29,6 @@ namespace pclunit_runner
         public void Connect(string id)
         {
             Console.WriteLine("Connecting:{0,15}",id);
-            PlatformResult.Clients = Clients;
         }
 
         public void List(string platformTotalJson)
@@ -37,10 +36,10 @@ namespace pclunit_runner
             var pm = Newtonsoft.Json.JsonConvert.DeserializeObject<Runner>(platformTotalJson);
             foreach (var test in pm.Assemblies.SelectMany(it=>it.Fixtures).SelectMany(it=>it.Tests))
             {
-                PlatformResult.AddTest(test, pm.Platform);
+                PlatformResults.Instance.AddTest(test, pm.Platform);
             }
             Console.WriteLine("Receiving Test List:{0,15}", pm.Platform);
-            PlatformResult.ReceivedTests(pm.Platform);
+            PlatformResults.Instance.ReceivedTests(pm.Platform);
         
         }
 
@@ -52,7 +51,7 @@ namespace pclunit_runner
             var result = JsonConvert.DeserializeObject<Result>(resultJson);
 
 
-            var dict = PlatformResult.AddResult(result);
+            var dict = PlatformResults.Instance.AddResult(result);
 
 
             PrintResults.PrintResult(dict);

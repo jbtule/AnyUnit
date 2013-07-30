@@ -19,14 +19,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
 using Owin;
-using YamlDotNet.RepresentationModel;
 using YamlDotNet.RepresentationModel.Serialization;
 using YamlDotNet.RepresentationModel.Serialization.NamingConventions;
 
@@ -34,9 +33,13 @@ namespace pclunit_runner
 {
 
 
-    public class RunConfigCommand : ConsoleCommand
+    public class RunConfig : ConsoleCommand
     {
-        public RunConfigCommand()
+        private readonly List<string> _includes = new List<string>();
+        private readonly List<string> _excludes = new List<string>();
+        private int? _port =null;
+
+        public RunConfig()
         {
             IsCommand("runconfig", "run tests based on config file.");
 
@@ -45,15 +48,14 @@ namespace pclunit_runner
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
+            this.HasOption<int>("port=", "Specify port to listen on", v => { _port = v; });
             this.HasOption("include=", "Include only specified assemblies, fixtures, tests or categories by uniquename",
-                           v => { PlatformResult.Includes.Add(v); });
+                           v => _includes.Add(v));
             this.HasOption("exclude=", "Exclude specified assemblies, fixtures, tests or categories by uniquename",
-                           v => { PlatformResult.Excludes.Add(v); });
+                           v => _excludes.Add(v));
             HasAdditionalArguments(1, " configFile");
         }
 
-
-     
         public static string AssemblyDirectory
         {
             get
@@ -65,9 +67,16 @@ namespace pclunit_runner
             }
         }
 
+        private static int GetUnusedPort()
+        {
+            var listener = new TcpListener(IPAddress.Any, 0);
+            listener.Start();
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            return port;
+        }
 
         private IDictionary<string, Satellite> _satellites;
-
 
         private bool _noerrorcode;
         private bool _showsats;
@@ -79,16 +88,41 @@ namespace pclunit_runner
             return path;
         }
 
-
         public override int Run(string[] remainingArguments)
         {
-            var satpath = Path.Combine(AssemblyDirectory, "satellites.yml");
+            var satpath = Path.Combine(AssemblyDirectory, "platforms.yml");
 
+            var foundError = false;
 
-            using (var input = new StringReader(File.ReadAllText(satpath)))
+            if (File.Exists(satpath))
             {
-                var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
-                _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Id, v => v);
+                using (var input = new StringReader(File.ReadAllText(satpath)))
+                {
+                    var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
+                    _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Id, v => v);
+                    foreach (var satellite in _satellites)
+                    {
+                        satellite.Value.Path = Path.Combine(Path.GetDirectoryName(satpath),
+                                                            PlatformFixPath(satellite.Value.Path));
+                    }
+                }
+            }
+            else //if no platforms.yml included, use a nested directory of exes.
+            {
+                _satellites = new Dictionary<string, Satellite>();
+                var exeDir = Path.Combine(AssemblyDirectory, "platforms");
+                var exes = Directory.GetFiles(exeDir, "*.exe");
+                foreach (var exe in exes)
+                {
+                    var sat = new Satellite {Id = Path.GetFileName(exe), Path = Path.Combine(exeDir, exe)};
+                    _satellites.Add(sat.Id, sat);
+                }
+            }
+
+            if (!_satellites.Any())
+            {
+                Console.WriteLine("Platform Runners not found!");
+                Environment.Exit(1);
             }
 
             string sharedpath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -100,28 +134,30 @@ namespace pclunit_runner
 
                 var fullConfigPath = Path.GetDirectoryName(Path.GetFullPath(configPath));
 
+                _port = _port ?? GetUnusedPort();
+
                 // This will *ONLY* bind to localhost, if you want to bind to all addresses
                 // use http://*:8080 to bind to all addresses. 
                 // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx for more info
-                string url = "http://localhost:8989";
-                if (Util.IsMono)
-                {
-                    url = "http://127.0.0.1:8989";
-                }
-
+                string url = string.Format("http://localhost:{0}", _port);
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
-
+               
                 using (WebApp.Start<Startup>(url))
                 using (Reshare.Start(url,sharedpath))
                 {
-
                     Console.WriteLine("Server running on {0}", url);
 
+                    var results = PlatformResults.Instance;
+
+                    results.Includes.AddRange(_includes);
+                    results.Excludes.AddRange(_excludes);
+
+                    var assemblies = setting.Config.Assemblies.ToDictionary(Path.GetFileName, v => v);
 
                     var threadList = new List<Thread>();
                     
-                        lock (PlatformResult.WaitingForPlatforms)
+                        lock (results.WaitingForPlatforms)
                         {
                             //lock is not be necessary but underscores that fact
                             //that the WaitingForPlatforms needs to be complete before the end of 
@@ -129,31 +165,27 @@ namespace pclunit_runner
                             foreach (var set in setting.Config.Platforms)
                             {
                                 var sat = _satellites[set.Id];
-
                                 var pgr = Path.Combine(Path.GetDirectoryName(satpath), PlatformFixPath(sat.Path));
-
                                 var progexists = File.Exists(pgr);
-
-                                PlatformResult.WaitingForPlatforms.Add(set.Id);
-
+                                results.WaitingForPlatforms.Add(set.Id);
 
                                 Func<string, string> expandPath =
                                     it => string.Format("\"{0}\"", Path.Combine(fullConfigPath, it));
 
-                                var asmpaths = setting.Config.Assemblies
+                                var currentAssemblies = CurrentAssemblies(assemblies, set);
+
+                                var asmpaths = currentAssemblies
+                                                      .Values
                                                       .Select(expandPath)
-                                                      .Concat(
-                                                          (set.Assemblies ?? Enumerable.Empty<string>()).Select(
-                                                              expandPath))
                                                       .Aggregate(String.Empty,
                                                                  (seed, item) => string.Format("{0} {1}", seed, item));
 
+                                var processArgs = String.Format("sat {4} {0} {1} {2} {3}",
+                                    sat.Id, url, sharedpath, asmpaths, !_showsats ? "hidden" : "show");
                                 var process = new Process()
                                                   {
                                                       StartInfo =
-                                                              new ProcessStartInfo(pgr,
-                                                                               String.Format("sat {4} {0} {1} {2} {3}", sat.Id,
-                                                                                             url, sharedpath, asmpaths, !_showsats ? "hidden": "show"))
+                                                              new ProcessStartInfo(pgr, processArgs)
                                                               {
                                                                   CreateNoWindow = !_showsats,
                                                                   UseShellExecute = _showsats,
@@ -169,7 +201,7 @@ namespace pclunit_runner
                                                                           process.Start();
                                                                           process.WaitForExit();
                                                                       }
-                                                                      PlatformResult.Exited(sat.Id);
+                                                                      results.Exited(sat.Id);
                                                                   }
                                                               }));
 
@@ -184,22 +216,39 @@ namespace pclunit_runner
                         {
                             thread.Join();
                         }
+
+                        WriteResults.ToFiles(results.File, _outputs);
+                        PrintResults.PrintEnd(results);
+                        foundError = (results.Errors.Any() || results.Failures.Any());
                 }
             }
 
-            WriteResults.ToFiles(PlatformResult.File, _outputs);
-            
-            PrintResults.PrintEnd(PlatformResult.File);
-           
             try
             {         
                 //Try Delete Temp shared path
                 Directory.Delete(sharedpath);
             }catch{}
-
-            if (!_noerrorcode && (PlatformResult.Errors.Any() || PlatformResult.Failures.Any()))
+           
+            if (!_noerrorcode && foundError)
                 return 1;
             return 0;
+        }
+
+        private static Dictionary<string, string> CurrentAssemblies(Dictionary<string, string> assemblies, Platform set)
+        {
+            var currentAssemblies = new Dictionary<string, string>(assemblies);
+
+            var satAssemblies =
+                (set.Assemblies ?? Enumerable.Empty<string>()).ToDictionary(Path.GetFileName, v => v);
+
+            foreach (var satAssem in satAssemblies)
+            {
+                if (currentAssemblies.ContainsKey(satAssem.Key))
+                    currentAssemblies[satAssem.Key] = satAssem.Value;
+                else
+                    currentAssemblies.Add(satAssem.Key, satAssem.Value);
+            }
+            return currentAssemblies;
         }
     }
 
@@ -212,9 +261,6 @@ namespace pclunit_runner
             var config = new HubConfiguration {EnableCrossDomain = true, EnableDetailedErrors = true};
             // This will map out to http://localhost:8989/signalr by default
             app.MapHubs(config);
-
-
-         
         }
     }
 }
