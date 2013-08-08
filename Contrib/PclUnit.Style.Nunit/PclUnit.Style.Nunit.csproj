@@ -14,7 +14,9 @@
     <TargetFrameworkProfile>Profile136</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-  </PropertyGroup>  
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(OldPCL)' != '' ">
     <TargetFrameworkProfile>Profile1</TargetFrameworkProfile>
   </PropertyGroup>
@@ -38,11 +40,11 @@
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
     <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
+      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\PclUnit.Constraints\PclUnit.Constraints.csproj">
-      <Project>{7251d9b8-dd2a-4dca-a568-c53772081ce5}</Project>
+      <Project>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</Project>
       <Name>PclUnit.Constraints</Name>
     </ProjectReference>
   </ItemGroup>
