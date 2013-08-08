@@ -30,8 +30,9 @@ namespace ConventionTestProcessor
 
         public static void PrintOutResult(Result result)
         {
-            TeamCity.WriteLine("##teamcity[testStarted name='{0}__{1}' captureStandardOutput='true']", result.Test.Name,
-                               result.Platform);
+            TeamCity.WriteLine("##teamcity[testStarted name='{0}__{1}' captureStandardOutput='true']", 
+                                TeamCity.Encode(result.Test.Name),
+                                TeamCity.Encode(result.Platform));
 
             TeamCity.DontWrite(result.Test.Fixture.Assembly.Name + ".");
             TeamCity.DontWrite(result.Test.Fixture.Name + ".");
@@ -47,8 +48,9 @@ namespace ConventionTestProcessor
             {
                 Unknown.Add(result);
 
-                TeamCity.WriteLine("##teamcity[testIgnored name='{0}' message='Result type not specified']",
-                                   result.Test.Name);
+                TeamCity.WriteLine("##teamcity[testIgnored name='{0}__{1}' message='Result type not specified']",
+                                      TeamCity.Encode(result.Test.Name),
+                                      TeamCity.Encode(result.Platform));
                 Console.WriteLine("???? Unknown Output ????");
             }
             else if (match.Value)
@@ -61,15 +63,17 @@ namespace ConventionTestProcessor
                 Invalid.Add(result);
 
                 TeamCity.WriteLine(
-                    "##teamcity[testFailed name='{0}' message='Does not match expected result' details='did not expect {1}']",
-                    result.Test.Name, result.Kind);
+                    "##teamcity[testFailed name='{0}_{1}' message='Does not match expected result' details='did not expect {2}']",
+                    TeamCity.Encode(result.Test.Name), TeamCity.Encode(result.Platform), result.Kind);
 
                 Console.WriteLine("!!!! Invalid Output !!!!");
             }
             TeamCity.DontWriteLine(String.Empty);
             TeamCity.DontWriteLine("*************************");
-         
-            TeamCity.WriteLine("##teamcity[testFinished name='{0}__{1}' duration='{2}']", result.Test.Name, result.Platform,
+
+            TeamCity.WriteLine("##teamcity[testFinished name='{0}__{1}' duration='{2}']", 
+                               TeamCity.Encode(result.Test.Name), 
+                               TeamCity.Encode(result.Platform),
                                (result.EndTime - result.StartTime).TotalMilliseconds);
         }
 

@@ -24,7 +24,7 @@ namespace ConventionTestProcessor
 
             public void Dispose()
             {
-                TeamCity.WriteLine("##teamcity[testSuiteFinished name='{0}']", _name);
+                TeamCity.WriteLine("##teamcity[testSuiteFinished name='{0}']", Encode(_name));
             }
         }
 
@@ -37,8 +37,19 @@ namespace ConventionTestProcessor
 
         public static IDisposable WriteSuite(string name)
         {
-            WriteLine("##teamcity[testSuiteStarted name='{0}']", name);
+            WriteLine("##teamcity[testSuiteStarted name='{0}']", Encode(name));
             return  new EndSuite(name);
+        }
+
+        public static string Encode(string value)
+        {
+            value = value.Replace("|", "||");
+            value = value.Replace("'", "|'");
+            value = value.Replace("\n", "|n");
+            value = value.Replace("\r", "|r");
+            value = value.Replace("[", "|[");
+            value = value.Replace("]", "|]");
+            return value;
         }
 
 

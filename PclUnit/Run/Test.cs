@@ -123,27 +123,36 @@ namespace PclUnit.Run
             var state = (State) stateInfo;
             var startTime = DateTime.Now;
 
-         
 
 
-            var fixture = _init(_type, _constructorArgs.Parameters);
-
-            var helper = fixture as IAssertionHelper ?? new DummyHelper();
-            helper.Assert = new Assert();
-            helper.Log = new Log();
-            Result returnVal =null;
-            using (fixture as IDisposable)
+            IAssertionHelper helper = new DummyHelper()
+                                          {
+                                              Assert = new Assert(),
+                                              Log = new Log()
+                                          };
+            
+            Result returnVal = null;
+            try
             {
-                try
+                var fixture = _init(_type, _constructorArgs.Parameters);
+                var helpertemp = fixture as IAssertionHelper;
+                if (helpertemp != null)
                 {
-
+                    helpertemp.Assert = helper.Assert;
+                    helpertemp.Log = helper.Log;
+                    helper = helpertemp;
+                }
+                
+                using (fixture as IDisposable)
+                {
                     if (_constructorArgs.Disposed)
                     {
                         throw new InvalidOperationException("Type ParameterSet Disposed Regenerated Tests to rerun");
                     }
                     if (_methodArgs.Disposed)
                     {
-                        throw new InvalidOperationException("Method ParameterSet Disposed Regenerated Tests to rerun");
+                        throw new InvalidOperationException(
+                            "Method ParameterSet Disposed Regenerated Tests to rerun");
                     }
 
                     var result = _invoke(_method, fixture, _methodArgs.Parameters);
@@ -169,48 +178,51 @@ namespace PclUnit.Run
                         returnVal = new Result(state.Platform, ResultKind.Success, startTime, DateTime.Now, helper);
                     }
                 }
-                    //Reflection wraps exceptions with target exceptions
-                catch (Exception ex)
-                {
 
-                    if (ex is TargetInvocationException)
-                    {
-                        ex = ex.InnerException ?? ex;
-                    }
-
-                    if (ex is AssertionException)
-                    {
-                        helper.Log.WriteLine(ex.Message);
-                        helper.Log.WriteLine(ex.StackTrace);
-
-                        returnVal = new Result(state.Platform, ResultKind.Fail, startTime, DateTime.Now, helper);
-
-                    }
-                    else if (ex is IgnoreException)
-                    {
-                        helper.Log.Write(ex.Message);
-                        returnVal = new Result(state.Platform, ResultKind.Ignore, startTime, DateTime.Now, helper);
-                    }
-                    else
-                    {
-
-
-                        helper.Log.Write("{0}: ", ex.GetType().Name);
-                        helper.Log.WriteLine(ex.Message);
-                        helper.Log.WriteLine(ex.StackTrace);
-
-
-                        returnVal = new Result(state.Platform, ResultKind.Error, startTime, DateTime.Now, helper);
-                    }
-                }
-                finally
-                {
-                    state.Result = returnVal;
-                    state.Event.Set();
-                }
-                
-              
+                //Reflection wraps exceptions with target exceptions
             }
+            catch
+                (Exception ex)
+            {
+
+                if (ex is TargetInvocationException)
+                {
+                    ex = ex.InnerException ?? ex;
+                }
+
+                if (ex is AssertionException)
+                {
+                    helper.Log.WriteLine(ex.Message);
+                    helper.Log.WriteLine(ex.StackTrace);
+
+                    returnVal = new Result(state.Platform, ResultKind.Fail, startTime, DateTime.Now, helper);
+
+                }
+                else if (ex is IgnoreException)
+                {
+                    helper.Log.Write(ex.Message);
+                    returnVal = new Result(state.Platform, ResultKind.Ignore, startTime, DateTime.Now, helper);
+                }
+                else
+                {
+
+
+                    helper.Log.Write("{0}: ", ex.GetType().Name);
+                    helper.Log.WriteLine(ex.Message);
+                    helper.Log.WriteLine(ex.StackTrace);
+
+
+                    returnVal = new Result(state.Platform, ResultKind.Error, startTime, DateTime.Now, helper);
+                }
+            }
+            finally
+            {
+                state.Result = returnVal;
+                state.Event.Set();
+            }
+
+
+        
         }
     }
 }

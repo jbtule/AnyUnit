@@ -109,6 +109,18 @@ namespace pclunit_runner
             }
         }
 
+
+        public static string TeamCityEncode(this string value)
+        {
+            value = value.Replace("|", "||");
+            value = value.Replace("'", "|'");
+            value = value.Replace("\n", "|n");
+            value = value.Replace("\r", "|r");
+            value = value.Replace("[", "|[");
+            value = value.Replace("]", "|]");
+            return value;
+        }
+
         public static void PrintResult(IDictionary<string, PlatformResult> dict)
         {
             if (dict.All(it => it.Value.Result != null))
@@ -117,7 +129,9 @@ namespace pclunit_runner
                 if (TeamCity)
                 {
                     Console.WriteLine("##teamcity[testStarted name='{2}.{1}.{0}' captureStandardOutput='true']",
-                                      result.Test.Name, result.Test.Fixture.Name, result.Test.Fixture.Assembly.Name);
+                                      result.Test.Name.TeamCityEncode(), 
+                                      result.Test.Fixture.Name.TeamCityEncode(),
+                                      result.Test.Fixture.Assembly.Name.TeamCityEncode());
                 }
                 else
                 {
@@ -140,11 +154,17 @@ namespace pclunit_runner
                             case ResultKind.Fail:
                             case ResultKind.Error:
                                 Console.WriteLine(
-                                    "##teamcity[testFailed name='{2}.{1}.{0}' message='See log or details']", result.Test.Name, result.Test.Fixture.Name, result.Test.Fixture.Assembly.Name);
+                                    "##teamcity[testFailed name='{2}.{1}.{0}' message='See log or details']",
+                                      result.Test.Name.TeamCityEncode(),
+                                      result.Test.Fixture.Name.TeamCityEncode(),
+                                      result.Test.Fixture.Assembly.Name.TeamCityEncode());
                                 break;
                             case ResultKind.Ignore:
                                 Console.WriteLine(
-                                    "##teamcity[testIgnored name='{2}.{1}.{0}' message='See log or details']", result.Test.Name, result.Test.Fixture.Name, result.Test.Fixture.Assembly.Name);
+                                    "##teamcity[testIgnored name='{2}.{1}.{0}' message='See log or details']",
+                                      result.Test.Name.TeamCityEncode(),
+                                      result.Test.Fixture.Name.TeamCityEncode(),
+                                      result.Test.Fixture.Assembly.Name.TeamCityEncode());
                                 break;
                         }
 
@@ -170,9 +190,9 @@ namespace pclunit_runner
                 if (TeamCity)
                 {
                     Console.WriteLine("##teamcity[testFinished name='{2}.{1}.{0}' duration='{3}']",
-                        result.Test.Name,
-                        result.Test.Fixture.Name,
-                        result.Test.Fixture.Assembly.Name,
+                         result.Test.Name.TeamCityEncode(), 
+                         result.Test.Fixture.Name.TeamCityEncode(),
+                         result.Test.Fixture.Assembly.Name.TeamCityEncode(),
                         (result.EndTime - result.StartTime).TotalMilliseconds);
                 }
                 else
