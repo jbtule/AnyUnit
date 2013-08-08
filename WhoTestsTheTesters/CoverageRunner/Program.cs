@@ -22,7 +22,7 @@ namespace CoverageRunner
                                Assembly.GetAssembly(typeof (BasicTests.Basic)),
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
                                Assembly.GetAssembly(typeof (XunitTests.Basic)),
-
+                               Assembly.GetAssembly(typeof (NunitTests.Basic)),
                            
                            };
 

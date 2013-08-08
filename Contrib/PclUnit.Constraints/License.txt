@@ -1,3 +1,9 @@
+This is an altered version of Nunit Constraints for PclUnit
+
+Copyright © 2013 Pcl Unit Contributors
+
+Original Portions
+
 Copyright © 2002-2012 Charlie Poole
 Copyright © 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov
 Copyright © 2000-2002 Philip A. Craig

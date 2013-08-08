@@ -89,10 +89,10 @@ namespace PclUnit.Util
         {
             return type.GetCustomAttributes(typeof(TAttr), false)
                        .OfType<TAttr>()
-                       .SingleOrDefault()
+                       .FirstOrDefault()
                    ?? type.GetCustomAttributes(typeof(TAttr), true)
                           .OfType<TAttr>()
-                          .SingleOrDefault();
+                          .FirstOrDefault();
         }
 
         public static TR Maybe<T, TR>(this T target, Func<T, TR> func, Func<TR> defaultValue =null)

@@ -144,7 +144,7 @@ namespace pclunit_runner
                 Directory.CreateDirectory(sharedpath);
                
                 using (WebApp.Start<Startup>(url))
-                using (Reshare.Start(url,sharedpath))
+                using (Reshare.Start(url, sharedpath))
                 {
                     Console.WriteLine("Server running on {0}", url);
 
