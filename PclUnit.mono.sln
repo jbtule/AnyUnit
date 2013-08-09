@@ -5,21 +5,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit", "PclUnit\PclUnit.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WhoTestsTheTesters", "WhoTestsTheTesters", "{6ECDD5E9-7354-4153-89F6-0AE99785F648}"
 	ProjectSection(SolutionItems) = preProject
-		WhoTestsTheTesters\RunTests.yml = WhoTestsTheTesters\RunTests.yml
-		WhoTestsTheTesters\RunTests.mono.yml = WhoTestsTheTesters\RunTests.mono.yml
+		WhoTestsTheTesters\RunTests.yml = WhoTestsTheTesters\Tests\RunTests.yml
+		WhoTestsTheTesters\RunTests.mono.yml = WhoTestsTheTesters\Tests\RunTests.mono.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoughRunner", "WhoTestsTheTesters\RoughRunner\RoughRunner.csproj", "{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\Tests\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\Tests\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConventionTestProcessor", "WhoTestsTheTesters\ConventionTestProcessor\ConventionTestProcessor.csproj", "{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XunitTests", "WhoTestsTheTesters\Style\XunitTests\XunitTests.csproj", "{E63677AE-4E0B-4983-9C30-9E5506F56D28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XunitTests", "WhoTestsTheTesters\Tests\Style\XunitTests\XunitTests.csproj", "{E63677AE-4E0B-4983-9C30-9E5506F56D28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NunitTests", "WhoTestsTheTesters\Style\NunitTests\NunitTests.csproj", "{BA124F39-825D-49F1-B272-C3347E046800}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NunitTests", "WhoTestsTheTesters\Tests\Style\NunitTests\NunitTests.csproj", "{BA124F39-825D-49F1-B272-C3347E046800}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CB47488D-6ECE-4697-90C2-3BDA8488F00C}"
 	ProjectSection(SolutionItems) = preProject

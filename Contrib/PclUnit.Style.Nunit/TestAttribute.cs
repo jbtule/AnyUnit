@@ -84,6 +84,39 @@ namespace PclUnit.Style.Nunit
             return list;
         }
 
+
+        private class SetUpTearDown:IDisposable
+        {
+            private readonly object _target;
+
+            public SetUpTearDown(object target)
+            {
+                _target = target;
+            }
+
+
+            public MethodInfo SetUpMethod { get; set; }
+            public MethodInfo TearDownMethod { get; set; }
+
+            public void SetUp()
+            {
+                if (SetUpMethod != null)
+                {
+                    SetUpMethod.Invoke(_target, null);
+                }
+
+            }
+
+
+            public void Dispose()
+            {
+                if (TearDownMethod != null)
+                {
+                    TearDownMethod.Invoke(_target, null);
+                }
+            }
+        }
+
         public override TestInvoker TestInvoke
         {
             get
@@ -100,17 +133,17 @@ namespace PclUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
-                               var setup = GetMethodForAttribute(target, typeof (SetUpAttribute));
-                               if(setup!=null)
-                                   setup.Invoke(target, null);
+                               using (var setUpTearDown = new SetUpTearDown(target)
+                                          {
+                                              SetUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute)),
+                                              TearDownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute))
+                                          })
+                               {
+                                   setUpTearDown.SetUp();
 
-                               var result = base.TestInvoke(method,target,args);
+                                   return base.TestInvoke(method, target, args);
+                               }
 
-                               var teardown = GetMethodForAttribute(target, typeof(TearDownAttribute));
-                               if (teardown != null)
-                                   teardown.Invoke(target, null);
-
-                               return result;
                            };
             }
         }

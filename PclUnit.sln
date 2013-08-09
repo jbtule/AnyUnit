@@ -5,14 +5,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit", "PclUnit\PclUnit.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WhoTestsTheTesters", "WhoTestsTheTesters", "{6ECDD5E9-7354-4153-89F6-0AE99785F648}"
 	ProjectSection(SolutionItems) = preProject
-		WhoTestsTheTesters\RunTests.yml = WhoTestsTheTesters\RunTests.yml
+		WhoTestsTheTesters\Readme.md = WhoTestsTheTesters\Readme.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoughRunner", "WhoTestsTheTesters\RoughRunner\RoughRunner.csproj", "{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "WhoTestsTheTesters\Tests\BasicTests\BasicTests.csproj", "{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintsTests", "WhoTestsTheTesters\Tests\ConstraintsTests\ConstraintsTests.csproj", "{360DD182-DFD4-479E-B001-042413D2DE02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CB47488D-6ECE-4697-90C2-3BDA8488F00C}"
 	ProjectSection(SolutionItems) = preProject
@@ -41,6 +41,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contrib", "Contrib", "{83006684-DA66-48B5-940C-9DE54271B193}"
+	ProjectSection(SolutionItems) = preProject
+		Contrib\Readme.md = Contrib\Readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.Constraints", "Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj", "{7251D9B8-DD2A-4DCA-A568-C53772081CE5}"
 EndProject
@@ -49,7 +52,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConventionTestProcessor", "
 		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877} = {D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightTests", "WhoTestsTheTesters\SilverlightTests\SilverlightTests.csproj", "{C5E3D1D1-568D-4AD2-9E99-2D1418D0EB65}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverlightTests", "WhoTestsTheTesters\Tests\SilverlightTests\SilverlightTests.csproj", "{C5E3D1D1-568D-4AD2-9E99-2D1418D0EB65}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net-40-x64-full", "Runner\Platforms\net\net40\net-40-x64-full.csproj", "{E4901E9B-CB20-4377-AF40-11D151A37591}"
 EndProject
@@ -75,15 +78,37 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoverageRunner", "WhoTestsT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.Style.Xunit", "Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj", "{57504543-DC1D-4A8D-8E70-4464C296512C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XunitTests", "WhoTestsTheTesters\Style\XunitTests\XunitTests.csproj", "{E63677AE-4E0B-4983-9C30-9E5506F56D28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XunitTests", "WhoTestsTheTesters\Tests\Style\XunitTests\XunitTests.csproj", "{E63677AE-4E0B-4983-9C30-9E5506F56D28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pclunit-runner.net40", "Runner\pclunit-runner.net40\pclunit-runner.net40.csproj", "{F0BA1340-F95D-49B5-8065-E9EB12FB40CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.Style.Nunit", "Contrib\PclUnit.Style.Nunit\PclUnit.Style.Nunit.csproj", "{DBD9FD82-E254-43B4-9D69-C398ACEFB45B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{563D681B-1803-45A5-B724-196C93B1F80A}"
+	ProjectSection(SolutionItems) = preProject
+		WhoTestsTheTesters\Tests\Readme.md = WhoTestsTheTesters\Tests\Readme.md
+		WhoTestsTheTesters\Tests\RunTests.codebetterci.yml = WhoTestsTheTesters\Tests\RunTests.codebetterci.yml
+		WhoTestsTheTesters\Tests\RunTests.Mono.Manually.sh = WhoTestsTheTesters\Tests\RunTests.Mono.Manually.sh
+		WhoTestsTheTesters\Tests\RunTests.mono.yml = WhoTestsTheTesters\Tests\RunTests.mono.yml
+		WhoTestsTheTesters\Tests\RunTests.yml = WhoTestsTheTesters\Tests\RunTests.yml
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NunitTests", "WhoTestsTheTesters\Style\NunitTests\NunitTests.csproj", "{BA124F39-825D-49F1-B272-C3347E046800}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NunitTests", "WhoTestsTheTesters\Tests\Style\NunitTests\NunitTests.csproj", "{BA124F39-825D-49F1-B272-C3347E046800}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAll", "WhoTestsTheTesters\TestAll\TestAll.csproj", "{A32277EE-8107-4A76-B769-6C3ACF56A4F3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2} = {5AFB0620-F75F-45D6-B287-F1A2F1337DB2}
+		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877} = {D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{454C4562-4E67-4015-8C81-C3C562E21CCC}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		Changes.md = Changes.md
+		Contributors.md = Contributors.md
+		License.txt = License.txt
+		Readme.md = Readme.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -175,15 +200,25 @@ Global
 		{BA124F39-825D-49F1-B272-C3347E046800}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA124F39-825D-49F1-B272-C3347E046800}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA124F39-825D-49F1-B272-C3347E046800}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A32277EE-8107-4A76-B769-6C3ACF56A4F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A32277EE-8107-4A76-B769-6C3ACF56A4F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A32277EE-8107-4A76-B769-6C3ACF56A4F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A32277EE-8107-4A76-B769-6C3ACF56A4F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E64E577E-2F1D-48F9-935A-FABE93E3FBAA} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{563D681B-1803-45A5-B724-196C93B1F80A} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
 		{5AFB0620-F75F-45D6-B287-F1A2F1337DB2} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
 		{CC51B277-1B75-433D-99B4-F4EA2EC3A4B8} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
-		{563D681B-1803-45A5-B724-196C93B1F80A} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{A32277EE-8107-4A76-B769-6C3ACF56A4F3} = {6ECDD5E9-7354-4153-89F6-0AE99785F648}
+		{360DD182-DFD4-479E-B001-042413D2DE02} = {563D681B-1803-45A5-B724-196C93B1F80A}
+		{C5E3D1D1-568D-4AD2-9E99-2D1418D0EB65} = {563D681B-1803-45A5-B724-196C93B1F80A}
+		{E63677AE-4E0B-4983-9C30-9E5506F56D28} = {563D681B-1803-45A5-B724-196C93B1F80A}
+		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0} = {563D681B-1803-45A5-B724-196C93B1F80A}
+		{BA124F39-825D-49F1-B272-C3347E046800} = {563D681B-1803-45A5-B724-196C93B1F80A}
 		{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
 		{3C9D2B11-AAA6-460F-9234-DAD48C16B2A6} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
 		{F0BA1340-F95D-49B5-8065-E9EB12FB40CA} = {D499D912-5D0C-4EB5-B90E-B418E9A9D609}
@@ -197,11 +232,6 @@ Global
 		{7251D9B8-DD2A-4DCA-A568-C53772081CE5} = {83006684-DA66-48B5-940C-9DE54271B193}
 		{57504543-DC1D-4A8D-8E70-4464C296512C} = {83006684-DA66-48B5-940C-9DE54271B193}
 		{DBD9FD82-E254-43B4-9D69-C398ACEFB45B} = {83006684-DA66-48B5-940C-9DE54271B193}
-		{07944FC5-DEBB-478F-A464-AD62CA4DD7A0} = {563D681B-1803-45A5-B724-196C93B1F80A}
-		{C5E3D1D1-568D-4AD2-9E99-2D1418D0EB65} = {563D681B-1803-45A5-B724-196C93B1F80A}
-		{E63677AE-4E0B-4983-9C30-9E5506F56D28} = {563D681B-1803-45A5-B724-196C93B1F80A}
-		{360DD182-DFD4-479E-B001-042413D2DE02} = {563D681B-1803-45A5-B724-196C93B1F80A}
-		{BA124F39-825D-49F1-B272-C3347E046800} = {563D681B-1803-45A5-B724-196C93B1F80A}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Runner\pclunit-runner\pclunit-runner.csproj

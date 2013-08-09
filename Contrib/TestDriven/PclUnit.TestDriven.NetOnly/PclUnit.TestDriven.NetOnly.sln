@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.TestDriven.NetOnly", "PclUnit.TestDriven.NetOnly\PclUnit.TestDriven.NetOnly.csproj", "{A504BBEC-8012-461D-9A4B-6AB7713DC938}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit", "..\..\..\PclUnit\PclUnit.csproj", "{999019D5-60C5-4CE6-A070-28B197C44D2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTests", "BasicTests\BasicTests.csproj", "{85B99864-19EB-44ED-8C23-C471E731F3F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A504BBEC-8012-461D-9A4B-6AB7713DC938}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A504BBEC-8012-461D-9A4B-6AB7713DC938}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A504BBEC-8012-461D-9A4B-6AB7713DC938}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A504BBEC-8012-461D-9A4B-6AB7713DC938}.Release|Any CPU.Build.0 = Release|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{999019D5-60C5-4CE6-A070-28B197C44D2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85B99864-19EB-44ED-8C23-C471E731F3F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85B99864-19EB-44ED-8C23-C471E731F3F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85B99864-19EB-44ED-8C23-C471E731F3F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85B99864-19EB-44ED-8C23-C471E731F3F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

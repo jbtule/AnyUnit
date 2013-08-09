@@ -1,1 +1,1 @@
-Jay Tuley <jay+code@tuley.name> @jbtule
+Original Author: Jay Tuley <jay+code@tuley.name> @jbtule

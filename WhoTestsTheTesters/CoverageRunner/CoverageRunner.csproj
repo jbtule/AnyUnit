@@ -66,11 +66,11 @@
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\BasicTests\BasicTests.csproj">
+    <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj">
       <Project>{07944fc5-debb-478f-a464-ad62ca4dd7a0}</Project>
       <Name>BasicTests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ConstraintsTests\ConstraintsTests.csproj">
+    <ProjectReference Include="..\Tests\ConstraintsTests\ConstraintsTests.csproj">
       <Project>{360dd182-dfd4-479e-b001-042413d2de02}</Project>
       <Name>ConstraintsTests</Name>
     </ProjectReference>
@@ -78,11 +78,11 @@
       <Project>{5afb0620-f75f-45d6-b287-f1a2f1337db2}</Project>
       <Name>ConventionTestProcessor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Style\NunitTests\NunitTests.csproj">
+    <ProjectReference Include="..\Tests\Style\NunitTests\NunitTests.csproj">
       <Project>{ba124f39-825d-49f1-b272-c3347e046800}</Project>
       <Name>NunitTests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Style\XunitTests\XunitTests.csproj">
+    <ProjectReference Include="..\Tests\Style\XunitTests\XunitTests.csproj">
       <Project>{e63677ae-4e0b-4983-9c30-9e5506f56d28}</Project>
       <Name>XunitTests</Name>
     </ProjectReference>

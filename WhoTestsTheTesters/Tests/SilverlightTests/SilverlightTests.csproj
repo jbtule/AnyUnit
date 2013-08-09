@@ -61,7 +61,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\PclUnit\PclUnit.csproj">
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
       <Name>PclUnit</Name>
     </ProjectReference>

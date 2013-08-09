@@ -5,6 +5,7 @@ config:
     - BasicTests\bin\Debug\BasicTests.dll
     - ConstraintsTests\bin\Debug\ConstraintsTests.dll
     - Style\XunitTests\bin\Debug\XunitTests.dll
+    - Style\NunitTests\bin\Debug\NunitTests.dll
   platforms:
     - id: net40-x86
     - id: net40-x64 

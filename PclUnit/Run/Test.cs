@@ -35,6 +35,11 @@ namespace PclUnit.Run
         private readonly MethodInfo _method;
         private readonly ParameterSet _methodArgs;
 
+        public MethodInfo Method
+        {
+            get { return _method; }
+        }
+
         public Test(Fixture fixture, ParameterSet constructorArgs, TestHarness harness, ParameterSet methodArgs)
         {
             Category = harness.Category;

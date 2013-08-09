@@ -11,4 +11,4 @@ before_install:
   - sudo installer -pkg "MonoFramework-MDK-${MONO_VER}.macos10.xamarin.x86.pkg" -target /
 script:
   - xbuild PclUnit.mono.sln
-  - WhoTestsTheTesters/RunTests.Mono.Manually.sh
+  - WhoTestsTheTesters/Tests/RunTests.Mono.Manually.sh

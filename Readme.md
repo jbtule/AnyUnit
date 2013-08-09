@@ -9,6 +9,28 @@ Write Once, Test Everywhere
 
 See [Pcl Unit Design and Philosophy][Design].
 
+####Layout
+ - **Contrib**: Basic Extensions on Assertion and Test Discovery ported from other Frameworks
+   **PclUnit**: Core Assertion, Discovery and Runner library
+ - **Runner**: Aggregating runner and platform specfic runners
+   **WhoTestsTheTesters**: Code to test Tests
+
+####Status
+Alpha Version
+  - Design wise can still fluctuate, but functional and needs more coverage and platforms
+  - PclUnit, Core Libraries and Basic Test Runner -Win & Mono
+  - pclunit-runner, Aggregating Test Runner -Win only
+      - net40 x86 & x64 platform runners - Win & Mono
+      - net45 x86, x64 platform runners - Win & Mono
+      - sl50 x86, x64 platform runners - Win Only
+  - PclUnit.Constraints, (port of Nunit Constraints)
+  - PclUnit.Style.Xunit, (port of xUnit test attributes, discovery & assertions)
+  - PclUnit.Style.Nunit, (port of NUnit test attributes, discover)
+
+[travis-ci]:https://travis-ci.org/
+[Design]:http://github.com/jbtule/PclUnit/wiki/Design
+[pcl]:http://msdn.microsoft.com/en-us/library/gg597391.aspx
+
 | Status | Provider |
 | --- | --- |
 | [![Build Status][WinImg]][WinLink] | Windows CI Provided By [CodeBetter][] and [JetBrains][] |
@@ -21,14 +43,3 @@ See [Pcl Unit Design and Philosophy][Design].
 [CodeBetter]:http://codebetter.com/
 [MonoImg]:https://travis-ci.org/jbtule/PclUnit.png?branch=master
 [MonoLink]:https://travis-ci.org/jbtule/PclUnit
-
-####Status
-Alpha Version
-  - PclUnit, Core Libraries and Basic Test Runner -Win & Mono
-  - pclunit-runner, Aggregating Test Runner (net40 x86,x64) (net45 x86, x64) (sl50 x86, x64) -Win
-  - PclUnit.Constraints, (port of Nunit Constraints)
-  - PclUnit.Style.Xunit, (port of xunit test attributes & assertions)
-
-[travis-ci]:https://travis-ci.org/
-[Design]:http://github.com/jbtule/PclUnit/wiki/Design
-[pcl]:http://msdn.microsoft.com/en-us/library/gg597391.aspx
