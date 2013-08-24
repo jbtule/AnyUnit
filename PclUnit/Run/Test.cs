@@ -101,7 +101,7 @@ namespace PclUnit.Run
             var state = new State(platform);
             var startTime = DateTime.Now;
             ThreadPool.QueueUserWorkItem(RunHelper, state);
-            Result result =null;
+            Result result;
             if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))
             {
                 ParameterSetRelease();
@@ -123,6 +123,8 @@ namespace PclUnit.Run
             _methodArgs.Release();
         }
 
+        
+
         private void RunHelper(Object stateInfo)
         {
             var state = (State) stateInfo;
@@ -136,10 +138,12 @@ namespace PclUnit.Run
                                               Log = new Log()
                                           };
             
-            Result returnVal = null;
+            object fixture = null;
+            var exceptions = new TestCycleExceptions();
             try
             {
-                var fixture = _init(_type, _constructorArgs.Parameters);
+
+                fixture = _init(_type, _constructorArgs.Parameters);
                 var helpertemp = fixture as IAssertionHelper;
                 if (helpertemp != null)
                 {
@@ -147,19 +151,19 @@ namespace PclUnit.Run
                     helpertemp.Log = helper.Log;
                     helper = helpertemp;
                 }
-                
-                using (fixture as IDisposable)
-                {
-                    if (_constructorArgs.Disposed)
-                    {
-                        throw new InvalidOperationException("Type ParameterSet Disposed Regenerated Tests to rerun");
-                    }
-                    if (_methodArgs.Disposed)
-                    {
-                        throw new InvalidOperationException(
-                            "Method ParameterSet Disposed Regenerated Tests to rerun");
-                    }
 
+                if (_constructorArgs.Disposed)
+                {
+                    throw new InvalidOperationException("Type ParameterSet Disposed Regenerated Tests to rerun");
+                }
+                if (_methodArgs.Disposed)
+                {
+                    throw new InvalidOperationException(
+                        "Method ParameterSet Disposed Regenerated Tests to rerun");
+                }
+
+                try
+                {
                     var result = _invoke(_method, fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
@@ -173,61 +177,35 @@ namespace PclUnit.Run
                     {
                         helper.Assert.Fail("Test returned false.");
                     }
-
-                    if (!(helper is DummyHelper) && !Assert._globalStyleUsed && helper.Assert.AssertCount == 0)
-                    {
-                        returnVal = new Result(state.Platform, ResultKind.NoError, startTime, DateTime.Now, helper);
-                    }
-                    else
-                    {
-                        returnVal = new Result(state.Platform, ResultKind.Success, startTime, DateTime.Now, helper);
-                    }
                 }
-
-                //Reflection wraps exceptions with target exceptions
+                catch (Exception ex)
+                {
+                     exceptions.Add(TestCycle.Test, ex);
+                }
             }
-            catch
-                (Exception ex)
+            catch (Exception ex)
             {
-
-                if (ex is TargetInvocationException)
-                {
-                    ex = ex.InnerException ?? ex;
-                }
-
-                if (ex is AssertionException)
-                {
-                    helper.Log.WriteLine(ex.Message);
-                    helper.Log.WriteLine(ex.StackTrace);
-
-                    returnVal = new Result(state.Platform, ResultKind.Fail, startTime, DateTime.Now, helper);
-
-                }
-                else if (ex is IgnoreException)
-                {
-                    helper.Log.Write(ex.Message);
-                    returnVal = new Result(state.Platform, ResultKind.Ignore, startTime, DateTime.Now, helper);
-                }
-                else
-                {
-
-
-                    helper.Log.Write("{0}: ", ex.GetType().Name);
-                    helper.Log.WriteLine(ex.Message);
-                    helper.Log.WriteLine(ex.StackTrace);
-
-
-                    returnVal = new Result(state.Platform, ResultKind.Error, startTime, DateTime.Now, helper);
-                }
+                exceptions.Add(TestCycle.Setup, ex);
             }
             finally
             {
-                state.Result = returnVal;
+                try
+                {
+                    var disposable = fixture as IDisposable;
+                    if (disposable != null)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(TestCycle.Teardown, ex);
+                }
+                exceptions.WriteOutExceptions(helper);
+                state.Result = new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);
                 state.Event.Set();
             }
-
-
-        
+           
         }
     }
 }

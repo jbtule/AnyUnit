@@ -63,6 +63,7 @@
     <Compile Include="Run\Runner.cs" />
     <Compile Include="Run\Test.cs" />
     <Compile Include="Run\Meta\TestMeta.cs" />
+    <Compile Include="Run\TestCycleException.cs" />
     <Compile Include="Run\TestFilter.cs" />
     <Compile Include="Run\TestHarness.cs" />
     <Compile Include="TestAttribute.cs" />

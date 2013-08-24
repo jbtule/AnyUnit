@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using PclUnit.Run;
 
 namespace PclUnit.Style.Nunit
 {
@@ -85,37 +86,7 @@ namespace PclUnit.Style.Nunit
         }
 
 
-        private class SetUpTearDown:IDisposable
-        {
-            private readonly object _target;
-
-            public SetUpTearDown(object target)
-            {
-                _target = target;
-            }
-
-
-            public MethodInfo SetUpMethod { get; set; }
-            public MethodInfo TearDownMethod { get; set; }
-
-            public void SetUp()
-            {
-                if (SetUpMethod != null)
-                {
-                    SetUpMethod.Invoke(_target, null);
-                }
-
-            }
-
-
-            public void Dispose()
-            {
-                if (TearDownMethod != null)
-                {
-                    TearDownMethod.Invoke(_target, null);
-                }
-            }
-        }
+  
 
         public override TestInvoker TestInvoke
         {
@@ -133,17 +104,45 @@ namespace PclUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
-                               using (var setUpTearDown = new SetUpTearDown(target)
-                                          {
-                                              SetUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute)),
-                                              TearDownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute))
-                                          })
+                               var setUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute));
+                               var teardownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute));
+                               var exceptions = new Lazy<TestCycleExceptions>(() => new TestCycleExceptions());
+                               try //TryCatch Setup Errors
                                {
-                                   setUpTearDown.SetUp();
-
-                                   return base.TestInvoke(method, target, args);
+                                   if (setUpMethod != null)
+                                       setUpMethod.Invoke(target, null);
+                                   try //TryCatch Test Errors
+                                   {
+                                       return base.TestInvoke(method, target, args);
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                       exceptions.Value.Add(TestCycle.Test, ex);
+                                   }
                                }
+                               catch (Exception ex)
+                               {
+                                  exceptions.Value.Add(TestCycle.Setup, ex);
+                               }
+                               finally
+                               {
+                                   try //TryCatch Teardown Errors
+                                   {
+                                       if (teardownMethod != null)
+                                           teardownMethod.Invoke(target, null);
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                       exceptions.Value.Add(TestCycle.Teardown, ex);
+                                   }
 
+                                   //If any errors occur throw them to next level
+                                   if (exceptions.IsValueCreated)
+                                   {
+                                       throw exceptions.Value;
+                                   }
+                               }
+                               throw new Exception("This point should never be reached");
                            };
             }
         }

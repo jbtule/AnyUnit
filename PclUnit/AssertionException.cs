@@ -21,7 +21,7 @@ using System.Text;
 
 namespace PclUnit
 {
-    public class AssertionException:Exception
+    public class AssertionException : ResultException
     {
         public readonly List<string> ExcludeFromStackTrace = new List<string>();
 
@@ -66,7 +66,7 @@ namespace PclUnit
     }
 
 
-    public class IgnoreException : Exception
+    public class IgnoreException : ResultException
     {
         public IgnoreException()
         {
@@ -80,6 +80,26 @@ namespace PclUnit
         }
 
         public IgnoreException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+
+        }
+    }
+
+    public class ResultException: Exception
+    {
+          public ResultException()
+        {
+
+        }
+
+        public ResultException(string message)
+            : base(message)
+        {
+
+        }
+
+        public ResultException(string message, Exception innerException)
             : base(message, innerException)
         {
 

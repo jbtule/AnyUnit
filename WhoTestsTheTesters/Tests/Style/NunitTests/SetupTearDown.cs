@@ -45,7 +45,7 @@ namespace NunitTests
          [Test]
         public void Test_Error()
         {
-            Assert.Fail();
+            Assert.Okay();
         }
     }
 
@@ -64,29 +64,6 @@ namespace NunitTests
         public void LalaTearDown()
         {
             throw new NotImplementedException("Teardown Error");
-        }
-    }
-
-    [TestFixture, Description("Ensure Teardown is called even when setup errors")]
-    public class TearDown2 : AssertionHelper
-    {
-        [SetUp]
-        public void LalaSetup()
-        {
-            throw new NotImplementedException("Setup Error");
-        }
-
-
-        [Test]
-        public void Test_Fail()
-        {
-            Assert.Okay();
-        }
-
-        [TearDown]
-        public void LalaTearDown()
-        {
-            Assert.Fail();
         }
     }
 

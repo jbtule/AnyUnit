@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="TestDriven.Framework">
       <HintPath>..\..\..\..\..\..\..\..\..\..\Program Files (x86)\TestDriven.NET 3\TestDriven.Framework.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -36,6 +36,8 @@ namespace RoughRunner
                            {
                                Assembly.GetAssembly(typeof (BasicTests.Basic)),
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
+                                Assembly.GetAssembly(typeof (XunitTests.Basic)),
+                               Assembly.GetAssembly(typeof (NunitTests.Basic)),
                            };
 
             var runner = Runner.Create(id, asms);
