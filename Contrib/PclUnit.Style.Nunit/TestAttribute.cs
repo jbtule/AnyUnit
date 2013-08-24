@@ -106,7 +106,8 @@ namespace PclUnit.Style.Nunit
 
                                var setUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute));
                                var teardownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute));
-                               var exceptions = new Lazy<TestCycleExceptions>(() => new TestCycleExceptions());
+                               TestCycleExceptions te = null;
+                               Func<TestCycleExceptions> exceptions = () => te ?? (te = new TestCycleExceptions());
                                try //TryCatch Setup Errors
                                {
                                    if (setUpMethod != null)
@@ -117,12 +118,12 @@ namespace PclUnit.Style.Nunit
                                    }
                                    catch (Exception ex)
                                    {
-                                       exceptions.Value.Add(TestCycle.Test, ex);
+                                       exceptions().Add(TestCycle.Test, ex);
                                    }
                                }
                                catch (Exception ex)
                                {
-                                  exceptions.Value.Add(TestCycle.Setup, ex);
+                                  exceptions().Add(TestCycle.Setup, ex);
                                }
                                finally
                                {
@@ -133,13 +134,13 @@ namespace PclUnit.Style.Nunit
                                    }
                                    catch (Exception ex)
                                    {
-                                       exceptions.Value.Add(TestCycle.Teardown, ex);
+                                       exceptions().Add(TestCycle.Teardown, ex);
                                    }
 
                                    //If any errors occur throw them to next level
-                                   if (exceptions.IsValueCreated)
+                                   if (te != null)
                                    {
-                                       throw exceptions.Value;
+                                       throw exceptions();
                                    }
                                }
                                throw new Exception("This point should never be reached");
