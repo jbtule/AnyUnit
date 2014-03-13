@@ -75,7 +75,7 @@ namespace PclUnit.Run
         public string ToListJson()
         {
              return String.Format("{{Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
-                                 Platform, Kind, AssertCount, Output.EscapeJson(), 
+                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(), 
                                  StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt")
                                  );
         }
@@ -83,7 +83,7 @@ namespace PclUnit.Run
         public string ToItemJson()
         {
             return String.Format("{{Test:{6}, Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
-                                 Platform, Kind, AssertCount, Output.EscapeJson(), 
+                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(), 
                                  StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"),
                                  Test.ToItemJson()
                                  );

@@ -51,6 +51,10 @@
       <Project>{7251d9b8-dd2a-4dca-a568-c53772081ce5}</Project>
       <Name>PclUnit.Constraints</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Contrib\PclUnit.Style.FsUnit\PclUnit.Style.FsUnit.fsproj">
+      <Project>{44c176a6-c439-4617-b880-f2f4e55f54f1}</Project>
+      <Name>PclUnit.Style.FsUnit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Contrib\PclUnit.Style.Nunit\PclUnit.Style.Nunit.csproj">
       <Project>{dbd9fd82-e254-43b4-9d69-c398acefb45b}</Project>
       <Name>PclUnit.Style.Nunit</Name>
@@ -74,6 +78,10 @@
     <ProjectReference Include="..\ConventionTestProcessor\ConventionTestProcessor.csproj">
       <Project>{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}</Project>
       <Name>ConventionTestProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\Style\FsUnitTests\FsUnitTests.fsproj">
+      <Project>{c5dfe8ac-6b2d-462d-af0a-086a13f6eaf7}</Project>
+      <Name>FsUnitTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\Style\NunitTests\NunitTests.csproj">
       <Project>{ba124f39-825d-49f1-b272-c3347e046800}</Project>

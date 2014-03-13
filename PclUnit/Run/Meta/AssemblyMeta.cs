@@ -43,8 +43,8 @@ namespace PclUnit.Run
 
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Fixtures:[{2}]}}", 
-                                 Name, UniqueName,  
+            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Fixtures:[{2}]}}",
+                                 Name.EscapeJson(), UniqueName.EscapeJson(),  
                                  String.Join(",", Fixtures.Select(it=>it.ToListJson()).ToArray())
                 );
         }
@@ -52,7 +52,7 @@ namespace PclUnit.Run
         public string ToItemJson()
         {
             return String.Format("{{UniqueName:\"{1}\",  Name:\"{0}\"}}",
-                                 Name, UniqueName);
+                                 Name.EscapeJson(), UniqueName.EscapeJson());
 
         }
 

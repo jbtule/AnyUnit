@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using PclUnit.Util;
 
 namespace PclUnit.Run.Attributes
 {
@@ -25,7 +26,7 @@ namespace PclUnit.Run.Attributes
     {
         public virtual FixtureInitializer FixtureInit
         {
-            get { return Activator.CreateInstance; }
+            get { return (type, args) =>  type.IsStatic() ? null :  Activator.CreateInstance(type,args); }
         }
         public virtual FixtureParameterSetProducer ParameterSets { get { return ParameterSet.GetDefaultParameterSet; } }
 

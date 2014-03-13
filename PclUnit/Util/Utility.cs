@@ -42,8 +42,16 @@ namespace PclUnit.Util
 
     public static class Utility
     {
+
+        public static bool IsStatic(this Type type)
+        {
+            return type.IsAbstract && type.IsSealed;
+        }
+
         public static string EscapeJson(this string json)
         {
+            if (json == null)
+                return json;
             json = json.Replace(@"\", @"\\"); 
             json = json.Replace(@"/", @"\/");
             json = json.Replace("\"", "\\\"");

@@ -6,6 +6,7 @@ config:
     - ConstraintsTests\bin\Debug\ConstraintsTests.dll
     - Style\XunitTests\bin\Debug\XunitTests.dll 
     - Style\NunitTests\bin\Debug\NunitTests.dll
+    - Style\FsUnitTests\bin\Debug\FsUnitTests.dll
   platforms:
     - id: net40-x86
     - id: net40-x64 

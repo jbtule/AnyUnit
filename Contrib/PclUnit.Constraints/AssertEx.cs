@@ -23,13 +23,13 @@ namespace PclUnit.Constraints
 {
     public static class AssertEx
     {
-        public static readonly string[] ExcludeFromStack;
+        public static readonly IList<string> ExcludeFromStack;
 
         static AssertEx()
         {
             var thisType = typeof (AssertEx);
 
-            ExcludeFromStack = new[] { string.Format("at {0}.", thisType.FullName)};
+            ExcludeFromStack = new List<string> { string.Format("at {0}.", thisType.FullName)};
         }
 
         public static void That<T>(this IAssert assert, ref T actual, IResolveConstraint expression, string message = null)

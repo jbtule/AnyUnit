@@ -60,7 +60,7 @@ namespace PclUnit.Run
         public string ToListJson()
         {
             return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}, Results:[{5}]}}",
-                                 Name, UniqueName, Description, Category.ToListJson(),
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(),
                                  Timeout.MaybeStruct(m => m.ToString(), () => "null"), 
                                  string.Join(",",Results.Select(it => it.ToListJson()).ToArray()));
         }
@@ -68,7 +68,7 @@ namespace PclUnit.Run
         public string ToItemJson()
         {
             return String.Format("{{Fixture:{4}, Timeout:{5}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\", }}",
-                                 Name, UniqueName, Description, Category.ToListJson(), Fixture.ToItemJson(),Timeout);
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Fixture.ToItemJson(),Timeout);
 
         }
 

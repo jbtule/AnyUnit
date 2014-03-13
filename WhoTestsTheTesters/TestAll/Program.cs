@@ -26,6 +26,8 @@ namespace TestAll
             var pclrunner = Path.Combine(pclrunnerDir, "pclunit-runner.exe");
             var testOutput = Path.Combine(pclrunnerDir, "TestAll.json");
 
+            File.Delete(testOutput);
+
             var runnerArgs = String.Format("runConfig --noerror -o \"{0}\" \"{1}\"", testOutput, runTestsConfig);
             var runner = new Process()
                              {

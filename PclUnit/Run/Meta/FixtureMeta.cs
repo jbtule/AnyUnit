@@ -53,14 +53,14 @@ namespace PclUnit.Run
         public string ToListJson()
         {
             return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Tests:[{4}]}}",
-                                 Name, UniqueName, Description, Category.ToListJson(), String.Join(",", Tests.Select(it => it.ToListJson()).ToArray())
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), String.Join(",", Tests.Select(it => it.ToListJson()).ToArray())
                 );
         }
 
         public string ToItemJson()
         {
             return String.Format("{{Assembly:{4}, Category:{3}, Description:\"{2}\", UniqueName:\"{1}\", Name:\"{0}\",}}",
-                                 Name, UniqueName, Description, Category.ToListJson(), Assembly.ToItemJson()
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Assembly.ToItemJson()
                 );
 
         }

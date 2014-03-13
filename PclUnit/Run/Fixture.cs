@@ -42,7 +42,7 @@ namespace PclUnit.Run
 
         public virtual IEnumerable<TestHarness> GetHarnesses()
         {
-            return Type.GetMethods(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance)
+            return Type.GetMethods(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Static)
                 .Select(m => new TestHarness(m.GetTopMostCustomAttribute<TestAttributeBase>(), m))
                 .Where(th => th.Attribute != null);
         } 
