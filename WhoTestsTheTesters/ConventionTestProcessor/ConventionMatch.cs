@@ -30,12 +30,12 @@ namespace ConventionTestProcessor
 
         public static void PrintOutResult(Result result)
         {
-            TeamCity.WriteLine("##teamcity[testStarted name='{0}__{1}' captureStandardOutput='true']", 
-                                TeamCity.Encode(result.Test.Name),
-                                TeamCity.Encode(result.Platform));
+            CIResultOutput.WriteLine("##teamcity[testStarted name='{0}__{1}' captureStandardOutput='true']", 
+                                CIResultOutput.Encode(result.Test.Name),
+                                CIResultOutput.Encode(result.Platform));
 
-            TeamCity.DontWrite(result.Test.Fixture.Assembly.Name + ".");
-            TeamCity.DontWrite(result.Test.Fixture.Name + ".");
+            CIResultOutput.DontWrite(result.Test.Fixture.Assembly.Name + ".");
+            CIResultOutput.DontWrite(result.Test.Fixture.Name + ".");
             Console.Write(result.Test.Name);
             Console.WriteLine("[{0}]", result.Platform);
             Console.Write(result.Kind);
@@ -48,32 +48,34 @@ namespace ConventionTestProcessor
             {
                 Unknown.Add(result);
 
-                TeamCity.WriteLine("##teamcity[testIgnored name='{0}__{1}' message='Result type not specified']",
-                                      TeamCity.Encode(result.Test.Name),
-                                      TeamCity.Encode(result.Platform));
+                CIResultOutput.WriteLine("##teamcity[testIgnored name='{0}__{1}' message='Result type not specified']",
+                                      CIResultOutput.Encode(result.Test.Name),
+                                      CIResultOutput.Encode(result.Platform));
+                CIResultOutput.PostMatchResult(result, ResultKind.NoError);
                 Console.WriteLine("???? Unknown Output ????");
             }
             else if (match.Value)
             {
                 Correct.Add(result);
+                CIResultOutput.PostMatchResult(result, ResultKind.Success);
                 Console.WriteLine("++++ Correct Output ++++");
             }
             else
             {
                 Invalid.Add(result);
 
-                TeamCity.WriteLine(
+                CIResultOutput.WriteLine(
                     "##teamcity[testFailed name='{0}_{1}' message='Does not match expected result' details='did not expect {2}']",
-                    TeamCity.Encode(result.Test.Name), TeamCity.Encode(result.Platform), result.Kind);
-
+                    CIResultOutput.Encode(result.Test.Name), CIResultOutput.Encode(result.Platform), result.Kind);
+                CIResultOutput.PostMatchResult(result, ResultKind.Fail);
                 Console.WriteLine("!!!! Invalid Output !!!!");
             }
-            TeamCity.DontWriteLine(String.Empty);
-            TeamCity.DontWriteLine("*************************");
+            CIResultOutput.DontWriteLine(String.Empty);
+            CIResultOutput.DontWriteLine("*************************");
 
-            TeamCity.WriteLine("##teamcity[testFinished name='{0}__{1}' duration='{2}']", 
-                               TeamCity.Encode(result.Test.Name), 
-                               TeamCity.Encode(result.Platform),
+            CIResultOutput.WriteLine("##teamcity[testFinished name='{0}__{1}' duration='{2}']", 
+                               CIResultOutput.Encode(result.Test.Name), 
+                               CIResultOutput.Encode(result.Platform),
                                (result.EndTime - result.StartTime).TotalMilliseconds);
         }
 

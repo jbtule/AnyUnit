@@ -33,10 +33,10 @@ namespace ConventionTestProcessor
 
                 foreach (var asm in results.Assemblies)
                 {
-                    using (TeamCity.WriteSuite(asm.Name))
+                    using (CIResultOutput.WriteSuite(asm.Name))
                         foreach (var fix in asm.Fixtures)
                         {
-                            using (TeamCity.WriteSuite(fix.Name))
+                            using (CIResultOutput.WriteSuite(fix.Name))
                                 foreach (var test in fix.Tests)
                                 {
                                     foreach (var result in test.Results)

@@ -46,10 +46,10 @@ namespace RoughRunner
 
             foreach (var asm in runner.Assemblies)
             {
-                using (TeamCity.WriteSuite(asm.Name))
+                using (CIResultOutput.WriteSuite(asm.Name))
                     foreach (var fix in asm.Fixtures)
                     {
-                        using (TeamCity.WriteSuite(fix.Name))
+                        using (CIResultOutput.WriteSuite(fix.Name))
                             foreach (Test test in fix.Tests)
                             {
                                 var result = test.Run(id);

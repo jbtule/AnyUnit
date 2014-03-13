@@ -12,7 +12,7 @@ namespace CoverageRunner
         static int Main(string[] args)
         {
 
-            ConventionTestProcessor.TeamCity.Disable = true;
+            ConventionTestProcessor.CIResultOutput.Disable = true;
 
             var id = "net40-converage";
 

@@ -15,18 +15,57 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using PclUnit.Run;
-
+using PclUnit.Util;
 namespace pclunit_runner
 {
     public static class PrintResults
     {
         public static bool TeamCity;
+        public static bool AppVeyor;
+
+        private static Uri _appVeyorBaseUri = null;
+        private static void PostToAppVeyor(string json)
+        {
+            try
+            {
+                if (_appVeyorBaseUri == null)
+                {
+                    _appVeyorBaseUri = new Uri(Environment.GetEnvironmentVariable("APPVEYOR_API_URL"));
+                }
+
+                var url = new Uri(_appVeyorBaseUri, "api/tests");
+                Byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+                var request = WebRequest.Create(url);
+                request.Method = "POST";
+                request.ContentLength = byteArray.Length;
+                request.ContentType = @"application/json";
+
+                using (Stream dataStream = request.GetRequestStream())
+                {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                }
+                
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    //Don't care
+                }
+            }
+            catch 
+            {
+                //Don't care
+            }
+        }
+
 
         public static void PrintStart()
         {
+           
             if (TeamCity)
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", "all");
@@ -123,6 +162,19 @@ namespace pclunit_runner
 
         public static void PrintResult(IDictionary<string, PlatformResult> dict)
         {
+
+            if (AppVeyor)
+            {
+                foreach (var result in dict.Values.Select(it=>it.Result).Where(it=>it !=null))
+                {
+
+                    PostTestResultToAppveyor(result);
+                }
+
+
+            }
+
+
             if (dict.All(it => it.Value.Result != null))
             {
                 var result = dict.Select(it => it.Value.Result).First();
@@ -222,6 +274,56 @@ namespace pclunit_runner
                     Console.WriteLine(String.Empty);
                 }
             }
+        }
+
+        private static void PostTestResultToAppveyor(Result result)
+        {
+            var fullName = string.Format("{0}.{1}.{2}", result.Test.Name, result.Test.Fixture.Name,
+                                         result.Test.Fixture.Assembly.Name);
+            var testFramework = string.Format("PclUnit[{0}]", result.Platform);
+
+
+            string outcome = null;
+            switch (result.Kind)
+            {
+                case ResultKind.Success:
+                    outcome = "Passed";
+                    break;
+                case ResultKind.Fail:
+                    outcome = "Failed";
+                    break;
+                case ResultKind.Error:
+                    outcome = "NotRunnable";
+                    break;
+                case ResultKind.Ignore:
+                    outcome = "Ignored";
+                    break;
+                case ResultKind.NoError:
+                    outcome = "Inconclusive";
+                    break;
+            }
+
+
+            var json = string.Format(@"{{
+                                        'testName': '{0}',
+                                        'testFramework': '{1}',
+                                        'fileName': '{2}',
+                                        'outcome': '{3}',
+                                        'durationMilliseconds': '{4}',
+                                        'ErrorMessage': '',
+                                        'ErrorStackTrace': '',
+                                        'StdOut': '{5}',
+                                        'StdErr': ''  
+                                    }}",
+                                     fullName.EscapeJson(),
+                                     testFramework.EscapeJson(),
+                                     result.Test.Fixture.Assembly.Name.EscapeJson(),
+                                     outcome.EscapeJson(),
+                                     (result.EndTime - result.StartTime).Milliseconds,
+                                     result.Output.EscapeJson()
+                );
+
+            PostToAppVeyor(json);
         }
     }
 }

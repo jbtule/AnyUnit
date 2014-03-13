@@ -48,6 +48,8 @@ namespace pclunit_runner
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
+            this.HasOption("appveyor", "Post results to Appveyor.", v => { PrintResults.AppVeyor = true; });
+
             this.HasOption<int>("port=", "Specify port to listen on", v => { _port = v; });
             this.HasOption("include=", "Include only specified assemblies, fixtures, tests or categories by uniquename",
                            v => _includes.Add(v));
@@ -159,7 +161,7 @@ namespace pclunit_runner
                     
                         lock (results.WaitingForPlatforms)
                         {
-                            //lock is not be necessary but underscores that fact
+                            //lock is not necessary but underscores that fact
                             //that the WaitingForPlatforms needs to be complete before the end of 
                             //this block.
                             foreach (var set in setting.Config.Platforms)

@@ -43,7 +43,7 @@ namespace pclunit_runner
             _listener = new HttpListener();
             var prefix = _url + "/reshare/";
             _listener.Prefixes.Add(prefix);
-            Console.WriteLine("Listening too:" + prefix);
+            Console.WriteLine("Listening for assets:" + prefix);
 
         }
 
