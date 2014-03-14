@@ -15,7 +15,9 @@ See [Pcl Unit Design and Philosophy][Design].
  - **Runner**: Aggregating runner and platform specfic runners
    **WhoTestsTheTesters**: Code to test Tests
 
-####Status
+####Status 
+Windows: [![Build Status][WinImg]][WinLink] Mono: [![Build Status][MonoImg]][MonoLink] 
+
 Alpha Version
   - Design wise can still fluctuate, but functional and needs more coverage and platforms
   - PclUnit, Core Libraries and Basic Test Runner -Win & Mono
@@ -31,14 +33,9 @@ Alpha Version
 [Design]:http://github.com/jbtule/PclUnit/wiki/Design
 [pcl]:http://msdn.microsoft.com/en-us/library/gg597391.aspx
 
-| Status | Provider |
-| --- | --- |
-| [![Build Status][WinImg]][WinLink] | Windows CI Provided By [CodeBetter][] and [JetBrains][] |
-| [![Build Status][MonoImg]][MonoLink] | Mono CI Provided by [travis-ci][] |
 
-
-[WinImg]:http://teamcity.codebetter.com/app/rest/builds/buildType:(id:bt1048)/statusIcon?updatecache=1
-[WinLink]:http://teamcity.codebetter.com/viewLog.html?buildTypeId=bt1048&buildId=lastFinished&guest=1
+[WinImg]:https://ci.appveyor.com/api/projects/status/g9mq7u8hu4k29ewf/branch/master
+[WinLink]:https://ci.appveyor.com/project/jbtule/pclunit
 [JetBrains]:http://www.jetbrains.com/
 [CodeBetter]:http://codebetter.com/
 [MonoImg]:https://travis-ci.org/jbtule/PclUnit.png?branch=master
