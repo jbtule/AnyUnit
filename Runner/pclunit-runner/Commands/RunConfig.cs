@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Threading;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
+using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;
 using YamlDotNet.RepresentationModel.Serialization;
@@ -259,10 +260,8 @@ namespace pclunit_runner
     {
         public void Configuration(IAppBuilder app)
         {
-            // Turn cross domain on 
-            var config = new HubConfiguration {EnableCrossDomain = true, EnableDetailedErrors = true};
-            // This will map out to http://localhost:8989/signalr by default
-            app.MapHubs(config);
+            app.UseCors(CorsOptions.AllowAll);
+            app.MapSignalR();
         }
     }
 }
