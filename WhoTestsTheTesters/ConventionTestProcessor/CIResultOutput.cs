@@ -56,10 +56,8 @@ namespace ConventionTestProcessor
 
         private static void PostTestResultToAppveyor(Result result, ResultKind match)
         {
-            var fullName = string.Format("{0}.{1}.{2}", result.Test.Name, result.Test.Fixture.Name,
-                                         result.Test.Fixture.Assembly.Name);
-            var testFramework = string.Format("PclUnit[{0}]", result.Platform);
-
+            var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
+                                         result.Test.Fixture.Assembly.Name, result.Platform);
 
             string outcome = null;
             switch (match)
@@ -91,10 +89,10 @@ namespace ConventionTestProcessor
                                         'ErrorMessage': '',
                                         'ErrorStackTrace': '',
                                         'StdOut': '{5}',
-                                        'StdErr': ''  
+                                        'StdErr': ''
                                     }}",
                                      fullName.EscapeJson(),
-                                     testFramework.EscapeJson(),
+                                     "PclUnit",
                                      result.Test.Fixture.Assembly.Name.EscapeJson(),
                                      outcome.EscapeJson(),
                                      (result.EndTime - result.StartTime).Milliseconds,

@@ -1,12 +1,12 @@
-﻿// 
+﻿//
 //  Copyright 2013 PclUnit Contributors
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,13 +50,13 @@ namespace pclunit_runner
                 {
                     dataStream.Write(byteArray, 0, byteArray.Length);
                 }
-                
+
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
                     //Don't care
                 }
             }
-            catch 
+            catch
             {
                 //Don't care
             }
@@ -65,7 +65,7 @@ namespace pclunit_runner
 
         public static void PrintStart()
         {
-           
+
             if (TeamCity)
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", "all");
@@ -119,8 +119,8 @@ namespace pclunit_runner
                 {
                     Console.Write("  {0,-15}{1,6}/{2}" ,
                         result.Key,
-                        result.Count(), 
-                        totalCount.ContainsKey(result.Key) 
+                        result.Count(),
+                        totalCount.ContainsKey(result.Key)
                             ? totalCount[result.Key]
                             : 0
                         );
@@ -141,7 +141,7 @@ namespace pclunit_runner
                     Console.Write("  {0,-15}{1,6}",
                          result.Key,
                          result.Count()
-                         ); 
+                         );
                     Console.WriteLine();
                 }
                 Console.WriteLine();
@@ -181,7 +181,7 @@ namespace pclunit_runner
                 if (TeamCity)
                 {
                     Console.WriteLine("##teamcity[testStarted name='{2}.{1}.{0}' captureStandardOutput='true']",
-                                      result.Test.Name.TeamCityEncode(), 
+                                      result.Test.Name.TeamCityEncode(),
                                       result.Test.Fixture.Name.TeamCityEncode(),
                                       result.Test.Fixture.Assembly.Name.TeamCityEncode());
                 }
@@ -242,7 +242,7 @@ namespace pclunit_runner
                 if (TeamCity)
                 {
                     Console.WriteLine("##teamcity[testFinished name='{2}.{1}.{0}' duration='{3}']",
-                         result.Test.Name.TeamCityEncode(), 
+                         result.Test.Name.TeamCityEncode(),
                          result.Test.Fixture.Name.TeamCityEncode(),
                          result.Test.Fixture.Assembly.Name.TeamCityEncode(),
                         (result.EndTime - result.StartTime).TotalMilliseconds);
@@ -278,9 +278,8 @@ namespace pclunit_runner
 
         private static void PostTestResultToAppveyor(Result result)
         {
-            var fullName = string.Format("{0}.{1}.{2}", result.Test.Name, result.Test.Fixture.Name,
-                                         result.Test.Fixture.Assembly.Name);
-            var testFramework = string.Format("PclUnit[{0}]", result.Platform);
+            var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
+                                     result.Test.Fixture.Assembly.Name, result.Platform);
 
 
             string outcome = null;
@@ -313,10 +312,10 @@ namespace pclunit_runner
                                         'ErrorMessage': '',
                                         'ErrorStackTrace': '',
                                         'StdOut': '{5}',
-                                        'StdErr': ''  
+                                        'StdErr': ''
                                     }}",
                                      fullName.EscapeJson(),
-                                     testFramework.EscapeJson(),
+                                     "PclUnit",
                                      result.Test.Fixture.Assembly.Name.EscapeJson(),
                                      outcome.EscapeJson(),
                                      (result.EndTime - result.StartTime).Milliseconds,
