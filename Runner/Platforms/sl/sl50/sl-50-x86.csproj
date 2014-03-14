@@ -82,6 +82,7 @@
   <ItemGroup>
     <EmbeddedResource Include="xap\sl-50-xap.xap" />
   </ItemGroup>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
@@ -89,7 +90,6 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
