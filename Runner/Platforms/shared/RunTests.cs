@@ -18,9 +18,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.AspNet.SignalR.Client;
-using Microsoft.AspNet.SignalR.Client.Hubs;
 using PclUnit.Run;
+using System.Text;
+using System.Net;
+using System.IO;
 
 namespace SatelliteRunner.Shared
 {
@@ -53,8 +54,61 @@ namespace SatelliteRunner.Shared
             return file;
         }
 
+		public static bool PostHttp(string baseUri, string api, string json){
+	
+			var url = baseUri + api;
+			var byteArray = Encoding.UTF8.GetBytes(json);
 
+			var request = WebRequest.Create(url);
+			request.Method = "POST";
+			request.ContentLength = byteArray.Length;
+			request.ContentType = @"application/json";
 
+			using (Stream dataStream = request.GetRequestStream())
+			{
+				dataStream.Write(byteArray, 0, byteArray.Length);
+			}
+
+			using (var response = (HttpWebResponse)request.GetResponse())
+			{
+				return response.StatusCode == HttpStatusCode.OK;
+			}
+		}
+
+		public static string GetHttp(string baseUri, string api){
+
+			var url = baseUri + api;
+
+			var request = WebRequest.Create(url);
+			Console.WriteLine (url);
+			request.Method = "GET";
+			request.ContentType = "text/plain";
+			using (var response = (HttpWebResponse)request.GetResponse())
+			using (var reader = new StreamReader(response.GetResponseStream()))
+			{
+				var text=reader.ReadToEnd();
+				if (response.StatusCode != HttpStatusCode.OK){
+					Console.Write (text);
+					throw new Exception ("500 Error");
+				}
+				return text;
+			}
+		}
+
+		public static bool IsReadySetupFilter(string check, TestFilter filter){
+			var reader = new StringReader(check);
+			while (reader.Peek () != -1) {
+				var line = reader.ReadLine ();
+				if(line.StartsWith("++READY++")){
+					return true;
+				}else if(line.StartsWith("++INCLUDE++")){
+					filter.Includes.Add (line.Replace ("++INCLUDE++", String.Empty));
+				}else if(line.StartsWith("++EXCLUDE++")){
+					filter.Excludes.Add (line.Replace ("++EXCLUDE++", String.Empty));
+				}
+			}
+			return false;
+		}
 
         public void Run(string id, string url, string[] dlls)
         {
@@ -73,14 +127,9 @@ namespace SatelliteRunner.Shared
             }
             Console.WriteLine("==========================");
 
-            var hubConnection = new HubConnection(url);
-            var serverHub = hubConnection.CreateHubProxy("PclUnitHub");
-            Console.WriteLine("waiting..");
-            hubConnection.Start().Wait();
-            Console.WriteLine("Connecting..");
-
-            serverHub.Invoke("Connect", id).Wait();
-
+            Console.Write("Connecting..");
+			var connect = GetHttp (url, @"/api/connect/" + id);
+			Console.WriteLine(connect);
             Console.WriteLine("Loading dlls..");
 
 #if SILVERLIGHT
@@ -95,35 +144,28 @@ namespace SatelliteRunner.Shared
             var runner = Runner.Create(id, am);
 
 
-            bool run = false;
-            TestFilter receivedFilter = null;
+			TestFilter receivedFilter = new TestFilter();
 
-            serverHub.On<TestFilter>("TestsAreReady", filter =>
-                                                      {
-                                                          receivedFilter = filter;
-                                                          run = true;
-                                                      });
+			Console.WriteLine("Sending Tests...");
+		
+			PostHttp (url, @"/api/send_tests", runner.ToListJson ());
 
-            Console.WriteLine("Sending Tests...");
-
-            serverHub.Invoke("List", runner.ToListJson()).Wait();
-
-            while (true)
-            {
-                Thread.Sleep(50);
-                if (run)
-                    break;
-            }
+			while (true) {
+				var check = GetHttp (url, @"/api/check_tests");
+				var run = IsReadySetupFilter(check, receivedFilter);
+				if (!run)
+					Thread.Sleep (1000);
+				else
+					break;
+			} 
 
             Console.WriteLine("Running Tests...");
 
             runner.RunAll(result => {
-                                serverHub.Invoke("SendResult",result.ToItemJson()).Wait();
+				PostHttp(url, @"/api/send_result", result.ToItemJson());
                           }, receivedFilter);
 
             Console.WriteLine("Quiting...");
-
-
 
         }
 

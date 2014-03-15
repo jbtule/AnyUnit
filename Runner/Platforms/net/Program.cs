@@ -22,8 +22,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using ManyConsole;
-using Microsoft.AspNet.SignalR.Client;
-using Microsoft.AspNet.SignalR.Client.Hubs;
+
 using SatelliteRunner.Shared;
 
 

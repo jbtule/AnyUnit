@@ -23,11 +23,10 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using ManyConsole;
-using Microsoft.AspNet.SignalR;
-using Microsoft.Owin.Hosting;
-using Owin;
-using YamlDotNet.RepresentationModel.Serialization;
-using YamlDotNet.RepresentationModel.Serialization.NamingConventions;
+using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+using Nancy.Hosting.Self;
 
 namespace pclunit_runner
 {
@@ -138,16 +137,13 @@ namespace pclunit_runner
 
                 _port = _port ?? GetUnusedPort();
 
-                // This will *ONLY* bind to localhost, if you want to bind to all addresses
-                // use http://*:8080 to bind to all addresses. 
-                // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx for more info
                 string url = string.Format("http://localhost:{0}", _port);
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
                
-                using (WebApp.Start<Startup>(url))
-                using (Reshare.Start(url, sharedpath))
+				using (var host = new NancyHost(new Uri(url),new CustomBootstrapper(sharedpath)))
                 {
+					host.Start();
                     Console.WriteLine("Server running on {0}", url);
 
                     var results = PlatformResults.Instance;
@@ -172,7 +168,7 @@ namespace pclunit_runner
                                 results.WaitingForPlatforms.Add(set.Id);
 
                                 Func<string, string> expandPath =
-                                    it => string.Format("\"{0}\"", Path.Combine(fullConfigPath, it));
+								it => string.Format("\"{0}\"", Path.Combine(fullConfigPath, PlatformFixPath(it)));
 
                                 var currentAssemblies = CurrentAssemblies(assemblies, set);
 
@@ -253,13 +249,5 @@ namespace pclunit_runner
             return currentAssemblies;
         }
     }
-
-
-    internal class Startup
-    {
-        public void Configuration(IAppBuilder app)
-        {
-            app.MapSignalR();
-        }
-    }
+		
 }
