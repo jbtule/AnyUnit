@@ -24,7 +24,6 @@ using System.Reflection;
 using System.Threading;
 using ManyConsole;
 using Microsoft.AspNet.SignalR;
-using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;
 using YamlDotNet.RepresentationModel.Serialization;
@@ -260,7 +259,6 @@ namespace pclunit_runner
     {
         public void Configuration(IAppBuilder app)
         {
-            app.UseCors(CorsOptions.AllowAll);
             app.MapSignalR();
         }
     }
