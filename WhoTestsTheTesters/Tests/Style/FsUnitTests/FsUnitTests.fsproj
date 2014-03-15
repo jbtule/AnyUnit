@@ -33,29 +33,30 @@
     <DocumentationFile>bin\Release\FsUnitTests.XML</DocumentationFile>
   </PropertyGroup>
   <Choose>
-  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll')">
-  <ItemGroup>
-    <Reference Include="FSharp.Core">
-      <Name>FSharp.Core</Name>
-      <AssemblyName>FSharp.Core.dll</AssemblyName>
-      <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  </When>
-  <Otherwise>
-   <ItemGroup>
-    <Reference Include="FSharp.Core">
-      <Name>FSharp.Core</Name>
-      <AssemblyName>FSharp.Core.dll</AssemblyName>
-      <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  </Otherwise>
-</Choose>
+    <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <Name>FSharp.Core</Name>
+          <AssemblyName>FSharp.Core.dll</AssemblyName>
+          <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <Name>FSharp.Core</Name>
+          <AssemblyName>FSharp.Core.dll</AssemblyName>
+          <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <Compile Include="BasicTests.fs" />
     <None Include="Script.fsx" />
     <Compile Include="LightBulbTest.fs" />
+    <Compile Include="BowlingTest.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj">
@@ -68,6 +69,11 @@
       <Project>{44c176a6-c439-4617-b880-f2f4e55f54f1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj">
+      <Name>PclUnit.Style.Xunit</Name>
+      <Project>{57504543-dc1d-4a8d-8e70-4464c296512c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
       <Name>PclUnit</Name>
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
@@ -78,23 +84,23 @@
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
   <Choose>
-  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
-    <PropertyGroup>
+    <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
+      <PropertyGroup>
         <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
       </PropertyGroup>
- </When>
- <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
-    <PropertyGroup>
-      <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
-    </PropertyGroup>
-</When>
- <Otherwise>
-    <PropertyGroup>
+    </When>
+    <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
+      <PropertyGroup>
+        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
         <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
       </PropertyGroup>
- </Otherwise>
-</Choose>
-<Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+    </Otherwise>
+  </Choose>
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

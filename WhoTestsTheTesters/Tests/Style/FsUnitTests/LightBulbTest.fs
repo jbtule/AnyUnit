@@ -1,4 +1,5 @@
-﻿namespace FsUnitTests
+﻿//Tests adapted from FSUnit examples https://github.com/fsharp/FsUnit
+namespace FsUnitTests
 
 open PclUnit
 open PclUnit.Style.FsUnit

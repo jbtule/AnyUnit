@@ -75,6 +75,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sl-50-xap", "Runner\Platforms\sl\sl50-xap\sl-50-xap.csproj", "{4A2B5777-B565-49A6-ACE7-ED3FCAB12FA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoverageRunner", "WhoTestsTheTesters\CoverageRunner\CoverageRunner.csproj", "{CC51B277-1B75-433D-99B4-F4EA2EC3A4B8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{44C176A6-C439-4617-B880-F2F4E55F54F1} = {44C176A6-C439-4617-B880-F2F4E55F54F1}
+		{C5DFE8AC-6B2D-462D-AF0A-086A13F6EAF7} = {C5DFE8AC-6B2D-462D-AF0A-086A13F6EAF7}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PclUnit.Style.Xunit", "Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj", "{57504543-DC1D-4A8D-8E70-4464C296512C}"
 EndProject

@@ -1,4 +1,5 @@
-﻿namespace FsUnitTests
+﻿//Tests adapted from FSUnit examples https://github.com/fsharp/FsUnit
+namespace FsUnitTests
 
 open PclUnit
 open PclUnit.Style.FsUnit
@@ -6,6 +7,52 @@ open PclUnit.Style.FsUnit
 [<TestFixture>]
 type BasicTests () =
     inherit AssertionHelper ()
+
+    [<Test>]
+    member this.``One object equals or does not equal another _Success`` ()=
+        1 |> this.should equal 1
+        1 |> this.should not' (equal 2)
+
+    [<Test>]
+    member this.``One object equals another _Fail`` ()=
+        1 |> this.should equal 2
+    
+    [<Test>]
+    member this.``One object does not equals another _Fail`` ()=
+         1 |> this.should not' (equal 1)
+
+    [<Test>]
+    member this.``One numeric object equals or does not equal another, with a specified tolerance: _Success`` ()=
+        10.1 |> this.should (equalWithin 0.1) 10.11
+        10.1 |> this.should not' ((equalWithin 0.001) 10.11)
+
+    [<Test>]
+    member this.``A string does or does not start with or end with a specified substring: _Success`` ()=
+        "ships" |> this.should startWith "sh"
+        "ships" |> this.should not' (startWith "ss")
+        "ships" |> this.should endWith "ps"
+        "ships" |> this.should not' (endWith "ss")
+
+    [<Test>]
+    member this.``A List, Seq, or Array instance contains or does not contain a value _Success`` ()=
+        [1] |> this.should contain 1
+        [] |> this.should not' (contain 1)
+
+    [<Test>]
+    member this.``An Array instance has a certain length _Success `` () =
+        seq { 1..4 } |> System.Linq.Enumerable.ToArray |> this.should haveLength 4
+
+    [<Test>]
+    member this.``A Collection instance has a certain count _Success`` () =
+        ResizeArray([|1;2;3;4|]) |> this.should haveCount 4
+
+    [<Test>]
+    member this.``A function should throw a certain type of exception: _Success`` ()=
+        (fun () -> failwith "BOOM!" |> ignore) |> this.should throw typeof<System.Exception>
+
+    [<Test>]
+    member this.``A function should throw a certain type of exception: _Fail`` ()=
+        (fun () -> failwith "BOOM!" |> ignore) |> this.should throw typeof<System.NotImplementedException>
 
     [<Test>]
     member this.TestTrue_Success () =
@@ -91,24 +138,24 @@ type BasicTests () =
 
     [<Test>]
     member this.TestEmpty_Success () =
-        [] |> this.should be Empty // NUnit only
+        [] |> this.should be Empty 
 
     [<Test>]
     member this.TestNotEmpty_Success () =
-        [1] |> this.should not' (be Empty) // NUnit only
+        [1] |> this.should not' (be Empty) 
 
     [<Test>]
     member this.TestInstanceOf_Success () =
-        "test" |> this.should be instanceOfType<string> // Currently, NUnit only and requires version 1.0.1.0+
+        "test" |> this.should be instanceOfType<string> 
 
     [<Test>]
     member this.TestNotInstanceOf_Success () =
-        "test" |> this.should not' (be instanceOfType<int>) // Currently, NUnit only and requires version 1.0.1.0+
+        "test" |> this.should not' (be instanceOfType<int>) 
    
     [<Test>]
     member this.TestNan_Success () =
-        2.0 |> this.should not' (be NaN) // Currently, NUnit only and requires version 1.0.1.0+
+        2.0 |> this.should not' (be NaN) 
 
     [<Test>]
     member this.TestUnique_Success () =
-        [1;2;3] |> this.should be unique // Currently, NUnit only and requires version 1.0.1.0+
+        [1;2;3] |> this.should be unique
