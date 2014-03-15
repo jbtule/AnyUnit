@@ -12,6 +12,9 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
     <Name>FsUnitTests</Name>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <FSharpBad Condition=" '$(FSharpBad)' == '' ">false</FSharpBad>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,26 +35,35 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\FsUnitTests.XML</DocumentationFile>
   </PropertyGroup>
-  <Choose>
-    <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll')">
-      <ItemGroup>
-        <Reference Include="FSharp.Core">
-          <Name>FSharp.Core</Name>
-          <AssemblyName>FSharp.Core.dll</AssemblyName>
-          <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <Reference Include="FSharp.Core">
-          <Name>FSharp.Core</Name>
-          <AssemblyName>FSharp.Core.dll</AssemblyName>
-          <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+<Choose>
+<When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll')">
+<ItemGroup>
+  <Reference Include="FSharp.Core">
+    <Name>FSharp.Core</Name>
+    <AssemblyName>FSharp.Core.dll</AssemblyName>
+    <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
+  </Reference>
+</ItemGroup>
+</When>
+<When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll')">
+ <ItemGroup>
+  <Reference Include="FSharp.Core">
+    <Name>FSharp.Core</Name>
+    <AssemblyName>FSharp.Core.dll</AssemblyName>
+    <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
+  </Reference>
+</ItemGroup>
+</When>
+<Otherwise>
+ <ItemGroup>
+<Reference Include="FSharp.Core">
+  <Name>FSharp.Core</Name>
+  <AssemblyName>FSharp.Core.dll</AssemblyName>
+  <HintPath>..\..\..\..\packages\FSharp.Core.Open.FS30.3.1.1.5\lib\portable-net45+sl5+win8\FSharp.Core.dll</HintPath>
+</Reference>
+  </ItemGroup>
+</Otherwise>
+</Choose>
   <ItemGroup>
     <Compile Include="BasicTests.fs" />
     <None Include="Script.fsx" />
@@ -84,6 +96,11 @@
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
   <Choose>
+  <When Condition=" $(FSharpBad) == true " >
+   <PropertyGroup>
+    <FSharpTargetsPath>$(SolutionDir)\.fsharpbad\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
+   </PropertyGroup>
+  </When>
     <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
       <PropertyGroup>
         <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
@@ -100,7 +117,9 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
+
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

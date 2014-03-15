@@ -12,6 +12,9 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
     <Name>PclUnit.Style.FsUnit</Name>
+    <FSharpBad Condition=" '$(FSharpBad)' == '' ">false</FSharpBad>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,7 +45,7 @@
     </Reference>
   </ItemGroup>
   </When>
-  <Otherwise>
+  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll')">
    <ItemGroup>
     <Reference Include="FSharp.Core">
       <Name>FSharp.Core</Name>
@@ -50,7 +53,16 @@
       <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
-  </Otherwise>
+  </When>
+ <Otherwise>
+   <ItemGroup>
+  <Reference Include="FSharp.Core">
+    <Name>FSharp.Core</Name>
+    <AssemblyName>FSharp.Core.dll</AssemblyName>
+    <HintPath>..\..\packages\FSharp.Core.Open.FS30.3.1.1.5\lib\portable-net45+sl5+win8\FSharp.Core.dll</HintPath>
+  </Reference>
+    </ItemGroup>
+ </Otherwise>
 </Choose>
   <ItemGroup>
     <Compile Include="FsUnit.fs" />
@@ -73,6 +85,11 @@
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
   <Choose>
+  <When Condition=" $(FSharpBad) == true " >
+<PropertyGroup>
+    <FSharpTargetsPath>$(SolutionDir)\.fsharpbad\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
+  </PropertyGroup>
+  </When>
   <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
     <PropertyGroup>
         <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
@@ -89,7 +106,9 @@
       </PropertyGroup>
  </Otherwise>
 </Choose>
-<Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+<Import Project="$(FSharpTargetsPath)" />
+<Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
+
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
