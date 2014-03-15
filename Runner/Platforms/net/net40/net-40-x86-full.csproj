@@ -41,10 +41,6 @@
     <Reference Include="ManyConsole">
       <HintPath>..\..\..\..\packages\ManyConsole.0.4.2.16\lib\ManyConsole.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.AspNet.SignalR.Client.2.0.0\lib\net40\Microsoft.AspNet.SignalR.Client.dll</HintPath>
-    </Reference>
     <Reference Include="NDesk.Options">
       <HintPath>..\..\..\..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
