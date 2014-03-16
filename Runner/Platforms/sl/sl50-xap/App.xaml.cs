@@ -80,14 +80,38 @@ namespace sl_50_xap
             }
         }
 
+        private static string ErrorMessage(string acc,Exception e)
+        {
+            acc += Environment.NewLine;
+            acc += e.GetType().ToString()+ Environment.NewLine;
+            acc += e.Message + Environment.NewLine;
+            acc += e.StackTrace + Environment.NewLine;
+            var agg = e as AggregateException;
+            if (agg != null)
+            {
+                int i = 1;
+                foreach (var e2 in agg.InnerExceptions)
+                {
+                    acc += (i++).ToString()+ Environment.NewLine;
+                    acc = ErrorMessage(acc,e2);
+                }
+            }else
+              if (e.InnerException != null)
+              {
+                  return ErrorMessage(acc, e.InnerException);
+              }
+            return acc;
+        }
+
         private void ReportErrorToDOM(ApplicationUnhandledExceptionEventArgs e)
         {
             try
             {
                 System.Windows.Browser.HtmlPage.Window.Eval("window.document.title = 'ERROR';");
-                string errorMsg = e.ExceptionObject.Message + e.ExceptionObject.StackTrace;
+
+                string errorMsg = ErrorMessage(String.Empty,e.ExceptionObject);
                 errorMsg = errorMsg.Replace('"', '\'').Replace("\r\n", @"\n");
-                System.Windows.Browser.HtmlPage.Window.Eval("throw new Error(\"Unhandled Error in Silverlight Application " + errorMsg + "\");");
+                System.Windows.Browser.HtmlPage.Window.Eval("throw new Error(\"Unhandled Error in Silverlight Application: " + errorMsg + "\");");
             }
             catch (Exception)
             {
