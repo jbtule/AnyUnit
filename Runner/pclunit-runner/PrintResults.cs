@@ -80,7 +80,7 @@ namespace pclunit_runner
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", "all");
             }
-			else if(Verbose)
+			else
             {
                 Console.WriteLine("Starting Tests");
             }
