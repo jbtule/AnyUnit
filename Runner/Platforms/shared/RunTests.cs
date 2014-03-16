@@ -66,28 +66,27 @@ namespace SatelliteRunner.Shared
 
 			var resetEvent = new ManualResetEvent(false);
 
-			IAsyncResult asyncReq = null;
+			Stream requestStream = null;
 			request.BeginGetRequestStream (a=>{
-				asyncReq =a;
+				requestStream = request.EndGetRequestStream (a);
 				resetEvent.Set();
 			}, null);
 				
-
 			if (!resetEvent.WaitOne (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
 
-			using (var dataStream = request.EndGetRequestStream (asyncReq))
+			using (requestStream)
 			{
-				dataStream.Write(byteArray, 0, byteArray.Length);
+				requestStream.Write(byteArray, 0, byteArray.Length);
 			}
 
 			resetEvent.Reset ();
 
-			IAsyncResult asyncResp = null;
+			HttpWebResponse response= null;
 			request.BeginGetResponse (a=>{
-				asyncResp =a;
+				response =(HttpWebResponse)request.EndGetResponse (a);
 				resetEvent.Set();
 			}, null);
 
@@ -96,7 +95,7 @@ namespace SatelliteRunner.Shared
 				throw new Exception ("The request timed out");
 			}
 
-			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResp))
+			using (response)
 			{
 				return response.StatusCode == HttpStatusCode.OK;
 			}
@@ -113,19 +112,18 @@ namespace SatelliteRunner.Shared
 
 			var resetEvent = new ManualResetEvent(false);
 
-			IAsyncResult asyncResult = null;
+			HttpWebResponse response= null;
 			request.BeginGetResponse (a=>{
-				asyncResult = a;
+				response =(HttpWebResponse)request.EndGetResponse (a);
 				resetEvent.Set();
 			}, null);
 
-		
 			if (!resetEvent.WaitOne (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
-		
-			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResult))
+
+			using (response)
 			using (var reader = new StreamReader(response.GetResponseStream()))
 			{
 				var text=reader.ReadToEnd();
