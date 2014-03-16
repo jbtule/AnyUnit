@@ -110,7 +110,6 @@ namespace SatelliteRunner.Shared
 
 			var request = WebRequest.Create(url);
 			request.Method = "GET";
-			request.ContentType = "text/plain";
 
 			var text = string.Empty;
 			var webTask = Task.Factory.FromAsync<WebResponse> 
