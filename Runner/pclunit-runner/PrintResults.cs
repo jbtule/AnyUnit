@@ -174,20 +174,17 @@ namespace pclunit_runner
         public static void PrintResult(IDictionary<string, PlatformResult> dict)
         {
 
-            if (AppVeyor)
-            {
-                foreach (var result in dict.Values.Select(it=>it.Result).Where(it=>it !=null))
-                {
-
-                    PostTestResultToAppveyor(result);
-                }
-
-
-            }
 
 
             if (dict.All(it => it.Value.Result != null))
             {
+
+
+				if (AppVeyor)
+				{
+					PostTestResultToAppveyor(dict);
+				}
+
                 var result = dict.Select(it => it.Value.Result).First();
                 if (TeamCity)
                 {
@@ -318,14 +315,51 @@ namespace pclunit_runner
             }
         }
 
-        private static void PostTestResultToAppveyor(Result result)
+		private static void PostTestResultToAppveyor(IDictionary<string, PlatformResult> dict)
         {
-            var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
-                                     result.Test.Fixture.Assembly.Name, result.Platform);
+        
+			var tempResult = ResultKind.NoError;
+			var tempPlatform = Enumerable.Empty<string>();
+			if (dict.Any(it => it.Value.Result.Kind == ResultKind.Fail))
+			{
+				if (dict.All (it => it.Value.Result.Kind == ResultKind.Fail))
+					tempPlatform = new[]{ "All" };
+				else
+					tempPlatform =  dict.Where (it => it.Value.Result.Kind == ResultKind.Fail).Select(it=>it.Value.Platform);
+			}
+			else if (dict.Any(it => it.Value.Result.Kind == ResultKind.Error))
+			{
+				if (dict.All (it => it.Value.Result.Kind == ResultKind.Error))
+					tempPlatform = new[]{ "All" };
+				else
+					tempPlatform =  dict.Where (it => it.Value.Result.Kind == ResultKind.Error).Select(it=>it.Value.Platform);
+
+			}
+			else if (dict.Any(it => it.Value.Result.Kind == ResultKind.Ignore))
+			{
+				if (dict.All (it => it.Value.Result.Kind == ResultKind.Ignore))
+					tempPlatform = new[]{ "All" };
+				else
+					tempPlatform =  dict.Where (it => it.Value.Result.Kind == ResultKind.Ignore).Select(it=>it.Value.Platform);
+			}
+			else if (dict.All(it => it.Value.Result.Kind == ResultKind.Success))
+			{
+				if (dict.All (it => it.Value.Result.Kind == ResultKind.Success))
+					tempPlatform = new[]{ "All" };
+				else
+					tempPlatform =  dict.Where (it => it.Value.Result.Kind == ResultKind.Success).Select(it=>it.Value.Platform);
+			}
+			else
+			{
+				if (dict.All (it => it.Value.Result.Kind == ResultKind.NoError))
+					tempPlatform = new[]{ "All" };
+				else
+					tempPlatform =  dict.Where (it => it.Value.Result.Kind == ResultKind.NoError).Select(it=>it.Value.Platform);
+			}
 
 
             string outcome = null;
-            switch (result.Kind)
+			switch (tempResult)
             {
                 case ResultKind.Success:
                     outcome = "Passed";
@@ -343,6 +377,11 @@ namespace pclunit_runner
                     outcome = "Inconclusive";
                     break;
             }
+
+			var result = dict.Values.Select (it=>it.Result).First();
+
+			var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
+				result.Test.Fixture.Assembly.Name, tempResult);
 
 
             var json = string.Format(@"{{

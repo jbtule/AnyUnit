@@ -39,7 +39,7 @@ namespace ConventionTestProcessor
                 request.ContentLength = byteArray.Length;
                 request.ContentType = @"application/json";
 
-				Task.Factory.FromAsync<Stream> 
+				var reqTask =Task.Factory.FromAsync<Stream> 
 					(request.BeginGetRequestStream, request.EndGetRequestStream, null)
 					.ContinueWith ( task => {
 						using (var requestStream  = task.Result)
@@ -51,6 +51,8 @@ namespace ConventionTestProcessor
 							return response.StatusCode;
 						}
 					});
+				reqTask.Wait();
+
             }
             catch
             {
