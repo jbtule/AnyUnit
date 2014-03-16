@@ -64,21 +64,37 @@ namespace SatelliteRunner.Shared
 			request.ContentLength = byteArray.Length;
 			request.ContentType = @"application/json";
 
-			var asyncReq = request.BeginGetRequestStream (null, null);
-			if (!asyncReq.IsCompleted && !asyncReq.AsyncWaitHandle.WaitOne (10000)) {
-				request.Abort ();
-				throw new Exception ("The request timed out");
+			var reqRun = false;
+			var asyncReq = request.BeginGetRequestStream (a=>{
+				reqRun =true;
+			}, null);
+				
+			var reqStart = DateTime.Now;
+			while (!reqRun) {
+				if ((DateTime.Now - reqStart).Seconds > 10) {
+					request.Abort ();
+					throw new Exception ("The request timed out");
+				}
+				Thread.Sleep (10);
 			}
 
 			using (var dataStream = request.EndGetRequestStream (asyncReq))
 			{
 				dataStream.Write(byteArray, 0, byteArray.Length);
 			}
+			var responseRun = false;
+			var asyncResp = request.BeginGetResponse (a=>{
+				responseRun =true;
+			}, null);
 
-			var asyncResp = request.BeginGetResponse (null, null);
-			if (!asyncResp.IsCompleted && !asyncResp.AsyncWaitHandle.WaitOne (10000)) {
-				request.Abort ();
-				throw new Exception ("The request timed out");
+			//Wait for async finished
+			var responseStart = DateTime.Now;
+			while (!responseRun) {
+				if ((DateTime.Now - responseStart).Seconds > 10) {
+					request.Abort ();
+					throw new Exception ("The request timed out");
+				}
+				Thread.Sleep (10);
 			}
 
 			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResp))
@@ -94,13 +110,21 @@ namespace SatelliteRunner.Shared
 			var request = WebRequest.Create(url);
 			request.Method = "GET";
 			request.ContentType = "text/plain";
+			bool run = false;
 
-			var asyncResult = request.BeginGetResponse (null, null);
-			if (!asyncResult.IsCompleted && !asyncResult.AsyncWaitHandle.WaitOne ()) {
-				request.Abort ();
-				throw new Exception ("The request timed out");
+			var asyncResult = request.BeginGetResponse (a=>{
+				run =true;
+			}, null);
+
+			//Wait for async finished
+			var start = DateTime.Now;
+			while (!run) {
+				if ((DateTime.Now - start).Seconds > 10) {
+					request.Abort ();
+					throw new Exception ("The request timed out");
+				}
+				Thread.Sleep (10);
 			}
-
 			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResult))
 			using (var reader = new StreamReader(response.GetResponseStream()))
 			{
