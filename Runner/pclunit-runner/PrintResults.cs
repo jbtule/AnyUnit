@@ -21,10 +21,17 @@ using System.Net;
 using System.Text;
 using PclUnit.Run;
 using PclUnit.Util;
+using System.Threading.Tasks;
+
 namespace pclunit_runner
 {
     public static class PrintResults
     {
+		public static bool Verbose {
+			get;
+			set;
+		}
+
         public static bool TeamCity;
         public static bool AppVeyor;
 
@@ -33,28 +40,31 @@ namespace pclunit_runner
         {
             try
             {
-                if (_appVeyorBaseUri == null)
-                {
-                    _appVeyorBaseUri = new Uri(Environment.GetEnvironmentVariable("APPVEYOR_API_URL"));
-                }
+				if (_appVeyorBaseUri == null)
+				{
+					_appVeyorBaseUri = new Uri(Environment.GetEnvironmentVariable("APPVEYOR_API_URL"));
+				}
 
-                var url = new Uri(_appVeyorBaseUri, "api/tests");
-                Byte[] byteArray = Encoding.UTF8.GetBytes(json);
+				var url = new Uri(_appVeyorBaseUri, "api/tests");
+				Byte[] byteArray = Encoding.UTF8.GetBytes(json);
 
-                var request = WebRequest.Create(url);
-                request.Method = "POST";
-                request.ContentLength = byteArray.Length;
-                request.ContentType = @"application/json";
+				var request = WebRequest.Create(url);
+				request.Method = "POST";
+				request.ContentLength = byteArray.Length;
+				request.ContentType = @"application/json";
 
-                using (Stream dataStream = request.GetRequestStream())
-                {
-                    dataStream.Write(byteArray, 0, byteArray.Length);
-                }
+				Task.Factory.FromAsync<Stream> 
+				(request.BeginGetRequestStream, request.EndGetRequestStream, null)
+					.ContinueWith ( task => {
+						using (var requestStream  = task.Result)
+						{
+							requestStream.Write(byteArray, 0, byteArray.Length);
+						}
 
-                using (var response = (HttpWebResponse)request.GetResponse())
-                {
-                    //Don't care
-                }
+						using(var response = (HttpWebResponse)request.GetResponse()){
+							return response.StatusCode;
+						}
+					});
             }
             catch
             {
@@ -70,7 +80,7 @@ namespace pclunit_runner
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", "all");
             }
-            else
+			else if(Verbose)
             {
                 Console.WriteLine("Starting Tests");
             }
@@ -86,7 +96,7 @@ namespace pclunit_runner
             }
             else
             {
-
+				Console.WriteLine();
                 PrintCount(results.Errors, "Errors:");
                 PrintCount(results.Failures, "Failures:");
                 PrintCount(results.Ignores, "Ignores:");
@@ -185,20 +195,23 @@ namespace pclunit_runner
                                       result.Test.Fixture.Name.TeamCityEncode(),
                                       result.Test.Fixture.Assembly.Name.TeamCityEncode());
                 }
-                else
+				else if(Verbose)
                 {
                     Console.Write(result.Test.Fixture.Assembly.Name + ".");
                     Console.Write(result.Test.Fixture.Name + ".");
                 }
-                Console.WriteLine(result.Test.Name);
+				if (TeamCity || Verbose) {
+					Console.WriteLine (result.Test.Name);
+				}
                 foreach (var grpResult in dict.GroupBy(it => it.Value.Result.Kind))
                 {
-                    Console.Write("{0}:", grpResult.Key);
-                    foreach (var keyValuePair in grpResult)
-                    {
-                        Console.Write(" ");
-                        Console.Write(keyValuePair.Value.Platform);
-                    }
+					if (Verbose || TeamCity) {
+						Console.Write ("{0}:", grpResult.Key);
+						foreach (var keyValuePair in grpResult) {
+							Console.Write (" ");
+							Console.Write (keyValuePair.Value.Platform);
+						}
+					}
                     if (TeamCity)
                     {
                         switch (grpResult.Key)
@@ -221,23 +234,27 @@ namespace pclunit_runner
                         }
 
                     }
-                    Console.WriteLine();
+					if (Verbose || TeamCity) {
+						Console.WriteLine ();
+					}
                 }
-                var span = new TimeSpan();
-                foreach (var r in dict.Select(it => it.Value.Result))
-                {
-                    span += (r.EndTime - r.StartTime);
-                }
-                Console.WriteLine("avg time:{0}", new TimeSpan(span.Ticks / dict.Count));
+				if (Verbose || TeamCity) {
+					var span = new TimeSpan ();
+					foreach (var r in dict.Select(it => it.Value.Result)) {
+						span += (r.EndTime - r.StartTime);
+					}
+					Console.WriteLine ("avg time:{0}", new TimeSpan (span.Ticks / dict.Count));
+				}
 
+				if (Verbose || TeamCity) {
 
-                foreach (var lup in dict.ToLookup(it => it.Value.Result.Output))
-                {
-                    var name = String.Join(",", lup.Select(it => it.Value.Platform));
+					foreach (var lup in dict.ToLookup(it => it.Value.Result.Output)) {
+						var name = String.Join (",", lup.Select (it => it.Value.Platform));
 
-                    Console.WriteLine("{0}:", name);
-                    Console.WriteLine(lup.Key);
-                }
+						Console.WriteLine ("{0}:", name);
+						Console.WriteLine (lup.Key);
+					}
+				}
 
                 if (TeamCity)
                 {
@@ -247,31 +264,55 @@ namespace pclunit_runner
                          result.Test.Fixture.Assembly.Name.TeamCityEncode(),
                         (result.EndTime - result.StartTime).TotalMilliseconds);
                 }
-                else
+				else
                 {
 
                     if (dict.Any(it => it.Value.Result.Kind == ResultKind.Fail))
                     {
-                        Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!");
+						if (Verbose)
+							Console.WriteLine ("!!!!!!!!!!!!!!!!!!!!!!!!!");
+						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Fail))
+							Console.Write("! ");
+						else
+							Console.Write ("!{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Fail).Count ());
                     }
                     else if (dict.Any(it => it.Value.Result.Kind == ResultKind.Error))
                     {
-                        Console.WriteLine("EEEEEEEEEEEEEEEEEEEEEEEEE");
+						if (Verbose)
+                        	Console.WriteLine("EEEEEEEEEEEEEEEEEEEEEEEEE");
+						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Error))
+							Console.Write("E ");
+						else
+							Console.Write ("E{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Error).Count ());
+
                     }
                     else if (dict.Any(it => it.Value.Result.Kind == ResultKind.Ignore))
                     {
-                        Console.WriteLine("?????????????????????????");
+						if (Verbose)
+                        	Console.WriteLine("?????????????????????????");
+						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Ignore))
+							Console.Write("? ");
+						else
+							Console.Write ("?{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Ignore).Count ());
                     }
                     else if (dict.All(it => it.Value.Result.Kind == ResultKind.Success))
                     {
-                        Console.WriteLine("-------------------------");
+						if (Verbose)
+                        	Console.WriteLine("-------------------------");
+						else
+							Console.Write(". ");
                     }
                     else
                     {
-                        Console.WriteLine(".........................");
+						if (Verbose)
+							Console.WriteLine (".........................");
+						else if (dict.All (it => it.Value.Result.Kind == ResultKind.NoError))
+							Console.Write ("_ ");
+						else
+							Console.Write ("_{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.NoError).Count ());
                     }
-
-                    Console.WriteLine(String.Empty);
+					if (Verbose)
+                    	Console.WriteLine(String.Empty);
                 }
             }
         }

@@ -47,6 +47,7 @@ namespace pclunit_runner
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
             this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
+			this.HasOption("v|verbose", "Verbose output", v => {PrintResults.Verbose = true;});
             this.HasOption("appveyor", "Post results to Appveyor.", v => { PrintResults.AppVeyor = true; });
 
             this.HasOption<int>("port=", "Specify port to listen on", v => { _port = v; });
@@ -187,7 +188,8 @@ namespace pclunit_runner
                                                               {
                                                                   CreateNoWindow = !_showsats,
                                                                   UseShellExecute = _showsats,
-                                                              }
+																  RedirectStandardOutput = !_showsats
+															  }
                                                   };
 
                                 threadList.Add(new Thread(() =>
