@@ -141,15 +141,15 @@ namespace pclunit_runner
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
                
-				using (var host = new NancyHost(new Uri(url),new CustomBootstrapper(sharedpath),new HostConfiguration{RewriteLocalhost = false}))
+				using (var host = new NancyHost(new HostConfiguration{RewriteLocalhost = false},new Uri(url)))
                 {
-					host.Start();
-                    Console.WriteLine("Server running on {0}", url);
-
                     var results = PlatformResults.Instance;
-
+					results.ResharePath = sharedpath;
                     results.Includes.AddRange(_includes);
                     results.Excludes.AddRange(_excludes);
+
+					host.Start();
+					Console.WriteLine("Server running on {0}", url);
 
                     var assemblies = setting.Config.Assemblies.ToDictionary(Path.GetFileName, v => v);
 

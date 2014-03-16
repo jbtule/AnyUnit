@@ -42,7 +42,7 @@ namespace pclunit_runner
             }
         }
 
-
+		public string ResharePath { get; set; }
         public readonly List<Result> NoErrors = new List<Result>();
         public readonly List<Result> Success = new List<Result>();
         public readonly List<Result> Failures = new List<Result>();

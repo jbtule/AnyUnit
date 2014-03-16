@@ -6,7 +6,7 @@ using Nancy.ModelBinding;
 using PclUnit.Run;
 using System.Linq;
 using System.Text;
-
+using System.IO;
 namespace pclunit_runner
 {
 
@@ -53,26 +53,21 @@ namespace pclunit_runner
 					return "++NOTREADY++";
 				}
 			};
-		}
-	}
+			Get ["/reshare/{file*}"] = _ => {
+				string path = _.file;
+				var fullPath = Path.GetFullPath(PlatformResults.Instance.ResharePath);
+				var fullFilePath = Path.GetFullPath(Path.Combine(fullPath, path));
 
-	public class CustomBootstrapper : DefaultNancyBootstrapper
-	{
-		string resharePath;
-
-	    public CustomBootstrapper(string resharePath){
-			this.resharePath = resharePath;
-
-		}
-
-		protected override void ConfigureConventions(NancyConventions conventions)
-		{
-			base.ConfigureConventions(conventions);
-
-            conventions.StaticContentsConventions.Add(
-				StaticContentConventionBuilder.AddDirectory("reshare", resharePath)
-			);
-
+				if(!fullFilePath.StartsWith(fullPath)){
+					return String.Format("Can't find file {0}" ,path);
+				}
+				var response = new Response();
+				response.ContentType = "application/octet-stream";
+				response.Contents = s => {
+					File.OpenRead(fullFilePath).CopyTo(s);
+				};
+				return response;
+			};
 		}
 	}
 }
