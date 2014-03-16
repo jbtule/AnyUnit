@@ -16,8 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.SignalR;
-using Microsoft.AspNet.SignalR.Hubs;
+
 using PclUnit.Run;
 
 namespace pclunit_runner
@@ -27,11 +26,11 @@ namespace pclunit_runner
     {
 
         private readonly static Lazy<PlatformResults> _instance 
-            = new Lazy<PlatformResults>(() => new PlatformResults(GlobalHost.ConnectionManager.GetHubContext<PclUnitHub>().Clients));
+		= new Lazy<PlatformResults>(() => new PlatformResults());
 
-        public PlatformResults(IHubConnectionContext clients)
+        public PlatformResults()
         {
-            Clients = clients;
+			Go = false;
             TestFilter = new Lazy<TestFilter>(()=> new TestFilter(Includes,Excludes)); 
         }
 
@@ -43,7 +42,7 @@ namespace pclunit_runner
             }
         }
 
-
+		public string ResharePath { get; set; }
         public readonly List<Result> NoErrors = new List<Result>();
         public readonly List<Result> Success = new List<Result>();
         public readonly List<Result> Failures = new List<Result>();
@@ -105,17 +104,15 @@ namespace pclunit_runner
             }
         }
 
-        private bool go = false;
+		public bool Go { get; protected set;}
         public void ReceivedTests(string id)
         {
             lock (WaitingForPlatforms)
             {
                 WaitingForPlatforms.Remove(id);
 
-                if (!WaitingForPlatforms.Any() && !go)
+				if (!WaitingForPlatforms.Any() && !Go)
                 {
-                
-
                     foreach (var expectedTest in ExpectedTests.ToDictionary(k=>k.Key,v=>v.Value))
                     {
                         var remove = !expectedTest.Value.All(pr => TestFilter.Value.ShouldRun(pr.MissingTest));
@@ -125,15 +122,9 @@ namespace pclunit_runner
                         }
                     }
                      
-                    go = true;
-                    if (Clients != null)
-                    {
-                        PrintResults.PrintStart();
-
-                        Clients.All.TestsAreReady(TestFilter.Value);
-                    }
+					PrintResults.PrintStart();
+					Go = true;
                 }
-
             }
         }
 
@@ -171,8 +162,6 @@ namespace pclunit_runner
         }
 
   
-        public IHubConnectionContext Clients { get; set; }
-
         public readonly IDictionary<string, IList<PlatformResult>> ExpectedTests =
             new Dictionary<string, IList<PlatformResult>>();
 

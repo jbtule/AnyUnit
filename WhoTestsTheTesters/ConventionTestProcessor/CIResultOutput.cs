@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using PclUnit.Run;
 using PclUnit.Util;
+using System.Threading.Tasks;
 
 namespace ConventionTestProcessor
 {
@@ -38,15 +39,20 @@ namespace ConventionTestProcessor
                 request.ContentLength = byteArray.Length;
                 request.ContentType = @"application/json";
 
-                using (Stream dataStream = request.GetRequestStream())
-                {
-                    dataStream.Write(byteArray, 0, byteArray.Length);
-                }
+				var reqTask =Task.Factory.FromAsync<Stream> 
+					(request.BeginGetRequestStream, request.EndGetRequestStream, null)
+					.ContinueWith ( task => {
+						using (var requestStream  = task.Result)
+						{
+							requestStream.Write(byteArray, 0, byteArray.Length);
+						}
 
-                using (var response = (HttpWebResponse)request.GetResponse())
-                {
-                    //Don't care
-                }
+						using(var response = (HttpWebResponse)request.GetResponse()){
+							return response.StatusCode;
+						}
+					});
+				reqTask.Wait();
+
             }
             catch
             {

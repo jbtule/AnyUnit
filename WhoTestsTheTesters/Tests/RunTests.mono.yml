@@ -8,7 +8,6 @@ config:
     - Style\XunitTests\bin\Debug\XunitTests.dll
     - Style\FsUnitTests\bin\Debug\FsUnitTests.dll
 
-
   platforms:
-    - id: net40-x86
     - id: net45-x86
+    - id: net40-x86

@@ -18,9 +18,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.AspNet.SignalR.Client;
-using Microsoft.AspNet.SignalR.Client.Hubs;
+using System.Threading.Tasks;
 using PclUnit.Run;
+using System.Text;
+using System.Net;
+using System.IO;
 
 namespace SatelliteRunner.Shared
 {
@@ -53,8 +55,99 @@ namespace SatelliteRunner.Shared
             return file;
         }
 
+		public string PostHttp(string baseUri, string api, string json){
+
+			var url = baseUri + api;
+			var byteArray = Encoding.UTF8.GetBytes(json);
+
+			var request = WebRequest.Create(url);
+			request.Method = "POST";
+			request.ContentLength = byteArray.Length;
+			request.ContentType = @"application/json";
+
+			var reqTask = Task.Factory.FromAsync<Stream> 
+				(request.BeginGetRequestStream, request.EndGetRequestStream, null)
+				.ContinueWith ( task => {
+					using (var requestStream  = task.Result)
+					{
+						requestStream.Write(byteArray, 0, byteArray.Length);
+					}
+
+					var webTask = Task.Factory.FromAsync<WebResponse> 
+						(request.BeginGetResponse, request.EndGetResponse, null)
+						.ContinueWith ( innerTask => {
+							using(var response = (HttpWebResponse)innerTask.Result)
+							using(var stream = response.GetResponseStream ())
+							using(var reader = new StreamReader(response.GetResponseStream()))
+							{
+								if (response.StatusCode != HttpStatusCode.OK){
+									throw new Exception ("500 Error");
+								}
+								return reader.ReadToEnd();
+							}
+						});
 
 
+					if (!webTask.Wait (10000)) {
+						request.Abort ();
+						throw new Exception ("The request timed out");
+					}
+
+
+					return webTask.Result;
+				});
+
+			if (!reqTask.Wait (10000)) {
+				request.Abort ();
+				throw new Exception ("The request timed out");
+			}
+			return reqTask.Result;
+		}
+
+		public string GetHttp(string baseUri, string api){
+
+			var url = baseUri + api;
+
+			var request = WebRequest.Create(url);
+			request.Method = "GET";
+
+			var text = string.Empty;
+			var webTask = Task.Factory.FromAsync<WebResponse> 
+				(request.BeginGetResponse, request.EndGetResponse, null)
+				.ContinueWith ( task => {
+					using(var response = (HttpWebResponse)task.Result)
+					using(var stream = response.GetResponseStream ())
+					using(var reader = new StreamReader(response.GetResponseStream()))
+					{
+					if (response.StatusCode != HttpStatusCode.OK){
+						throw new Exception ("500 Error");
+					}
+						text = reader.ReadToEnd();
+					}
+				});
+
+			if (!webTask.Wait (10000)) {
+				request.Abort ();
+				throw new Exception ("The request timed out");
+			}
+
+			return text;
+		}
+
+		public bool IsReadySetupFilter(string check, TestFilter filter){
+			var reader = new StringReader(check);
+			while (reader.Peek () != -1) {
+				var line = reader.ReadLine ();
+				if(line.StartsWith("++READY++")){
+					return true;
+				}else if(line.StartsWith("++INCLUDE++")){
+					filter.Includes.Add (line.Replace ("++INCLUDE++", String.Empty));
+				}else if(line.StartsWith("++EXCLUDE++")){
+					filter.Excludes.Add (line.Replace ("++EXCLUDE++", String.Empty));
+				}
+			}
+			return false;
+		}
 
         public void Run(string id, string url, string[] dlls)
         {
@@ -73,14 +166,9 @@ namespace SatelliteRunner.Shared
             }
             Console.WriteLine("==========================");
 
-            var hubConnection = new HubConnection(url);
-            var serverHub = hubConnection.CreateHubProxy("PclUnitHub");
-            Console.WriteLine("waiting..");
-            hubConnection.Start().Wait();
-            Console.WriteLine("Connecting..");
-
-            serverHub.Invoke("Connect", id).Wait();
-
+            Console.Write("Connecting..");
+			var connect = GetHttp (url, @"/api/connect/" + id);
+			Console.WriteLine(connect);
             Console.WriteLine("Loading dlls..");
 
 #if SILVERLIGHT
@@ -95,35 +183,28 @@ namespace SatelliteRunner.Shared
             var runner = Runner.Create(id, am);
 
 
-            bool run = false;
-            TestFilter receivedFilter = null;
+			TestFilter receivedFilter = new TestFilter();
 
-            serverHub.On<TestFilter>("TestsAreReady", filter =>
-                                                      {
-                                                          receivedFilter = filter;
-                                                          run = true;
-                                                      });
+			Console.WriteLine("Sending Tests...");
 
-            Console.WriteLine("Sending Tests...");
+			PostHttp (url, @"/api/send_tests", runner.ToListJson ());
 
-            serverHub.Invoke("List", runner.ToListJson()).Wait();
-
-            while (true)
-            {
-                Thread.Sleep(50);
-                if (run)
-                    break;
-            }
+			while (true) {
+				var check = GetHttp (url, @"/api/check_tests");
+				var run = IsReadySetupFilter(check, receivedFilter);
+				if (!run)
+					Thread.Sleep (1000);
+				else
+					break;
+			}
 
             Console.WriteLine("Running Tests...");
 
             runner.RunAll(result => {
-                                serverHub.Invoke("SendResult",result.ToItemJson()).Wait();
+				PostHttp(url, @"/api/send_result", result.ToItemJson());
                           }, receivedFilter);
 
             Console.WriteLine("Quiting...");
-
-
 
         }
 

@@ -38,7 +38,6 @@ namespace RoughRunner
                                Assembly.GetAssembly(typeof (ConstraintsTests.Basic)),
                                Assembly.GetAssembly(typeof (XunitTests.Basic)),
                                Assembly.GetAssembly(typeof (NunitTests.Basic)),
-                               Assembly.GetAssembly(typeof (FsUnitTests.BasicTests)),
 
                            };
 
