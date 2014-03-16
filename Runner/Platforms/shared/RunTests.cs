@@ -64,12 +64,24 @@ namespace SatelliteRunner.Shared
 			request.ContentLength = byteArray.Length;
 			request.ContentType = @"application/json";
 
-			using (Stream dataStream = request.GetRequestStream())
+			var asyncReq = request.BeginGetRequestStream (null, null);
+			if (!asyncReq.IsCompleted && !asyncReq.AsyncWaitHandle.WaitOne (10000)) {
+				request.Abort ();
+				throw new Exception ("The request timed out");
+			}
+
+			using (var dataStream = request.EndGetRequestStream (asyncReq))
 			{
 				dataStream.Write(byteArray, 0, byteArray.Length);
 			}
 
-			using (var response = (HttpWebResponse)request.GetResponse())
+			var asyncResp = request.BeginGetResponse (null, null);
+			if (!asyncResp.IsCompleted && !asyncResp.AsyncWaitHandle.WaitOne (10000)) {
+				request.Abort ();
+				throw new Exception ("The request timed out");
+			}
+
+			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResp))
 			{
 				return response.StatusCode == HttpStatusCode.OK;
 			}
@@ -83,7 +95,14 @@ namespace SatelliteRunner.Shared
 			Console.WriteLine (url);
 			request.Method = "GET";
 			request.ContentType = "text/plain";
-			using (var response = (HttpWebResponse)request.GetResponse())
+
+			var asyncResult = request.BeginGetResponse (null, null);
+			if (!asyncResult.IsCompleted && !asyncResult.AsyncWaitHandle.WaitOne ()) {
+				request.Abort ();
+				throw new Exception ("The request timed out");
+			}
+
+			using (var response = (HttpWebResponse)request.EndGetResponse (asyncResult))
 			using (var reader = new StreamReader(response.GetResponseStream()))
 			{
 				var text=reader.ReadToEnd();
