@@ -137,11 +137,11 @@ namespace pclunit_runner
 
                 _port = _port ?? GetUnusedPort();
 
-                string url = string.Format("http://localhost:{0}", _port);
+                string url = string.Format("http://localhost:{0}", _port); 
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
                
-				using (var host = new NancyHost(new Uri(url),new CustomBootstrapper(sharedpath)))
+				using (var host = new NancyHost(new Uri(url),new CustomBootstrapper(sharedpath),new HostConfiguration{RewriteLocalhost = false}))
                 {
 					host.Start();
                     Console.WriteLine("Server running on {0}", url);

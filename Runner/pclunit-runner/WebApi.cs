@@ -60,7 +60,7 @@ namespace pclunit_runner
 	{
 		string resharePath;
 
-		public CustomBootstrapper(string resharePath){
+	    public CustomBootstrapper(string resharePath){
 			this.resharePath = resharePath;
 
 		}
@@ -69,7 +69,7 @@ namespace pclunit_runner
 		{
 			base.ConfigureConventions(conventions);
 
-			conventions.StaticContentsConventions.Add(
+            conventions.StaticContentsConventions.Add(
 				StaticContentConventionBuilder.AddDirectory("reshare", resharePath)
 			);
 
