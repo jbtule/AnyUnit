@@ -75,7 +75,7 @@ namespace SatelliteRunner.Shared
 			}
 		}
 
-		public static string GetHttp(string baseUri, string api){
+		public string GetHttp(string baseUri, string api){
 
 			var url = baseUri + api;
 
@@ -95,7 +95,7 @@ namespace SatelliteRunner.Shared
 			}
 		}
 
-		public static bool IsReadySetupFilter(string check, TestFilter filter){
+		public bool IsReadySetupFilter(string check, TestFilter filter){
 			var reader = new StringReader(check);
 			while (reader.Peek () != -1) {
 				var line = reader.ReadLine ();
