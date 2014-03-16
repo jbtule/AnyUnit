@@ -64,13 +64,13 @@ namespace SatelliteRunner.Shared
 			request.ContentLength = byteArray.Length;
 			request.ContentType = @"application/json";
 
-			var reqRun = false;
-			var asyncReq = request.BeginGetRequestStream (a=>{
-				reqRun =true;
+			IAsyncResult asyncReq = null;
+			request.BeginGetRequestStream (a=>{
+				asyncReq =a;
 			}, null);
 				
 			var reqStart = DateTime.Now;
-			while (!reqRun) {
+			while (asyncReq == null) {
 				if ((DateTime.Now - reqStart).Seconds > 10) {
 					request.Abort ();
 					throw new Exception ("The request timed out");
@@ -82,14 +82,14 @@ namespace SatelliteRunner.Shared
 			{
 				dataStream.Write(byteArray, 0, byteArray.Length);
 			}
-			var responseRun = false;
-			var asyncResp = request.BeginGetResponse (a=>{
-				responseRun =true;
+			IAsyncResult asyncResp = null;
+			request.BeginGetResponse (a=>{
+				asyncResp =a;
 			}, null);
 
 			//Wait for async finished
 			var responseStart = DateTime.Now;
-			while (!responseRun) {
+			while (asyncResp == null) {
 				if ((DateTime.Now - responseStart).Seconds > 10) {
 					request.Abort ();
 					throw new Exception ("The request timed out");
@@ -110,15 +110,15 @@ namespace SatelliteRunner.Shared
 			var request = WebRequest.Create(url);
 			request.Method = "GET";
 			request.ContentType = "text/plain";
-			bool run = false;
 
-			var asyncResult = request.BeginGetResponse (a=>{
-				run =true;
+			IAsyncResult asyncResult = null;
+			request.BeginGetResponse (a=>{
+				asyncResult = a;
 			}, null);
 
 			//Wait for async finished
 			var start = DateTime.Now;
-			while (!run) {
+			while (asyncResult == null) {
 				if ((DateTime.Now - start).Seconds > 10) {
 					request.Abort ();
 					throw new Exception ("The request timed out");
