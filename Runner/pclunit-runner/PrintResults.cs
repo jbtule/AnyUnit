@@ -311,6 +311,7 @@ namespace pclunit_runner
                     }
 					if (Verbose)
                     	Console.WriteLine(String.Empty);
+					Console.Out.Flush ();
                 }
             }
         }
@@ -381,7 +382,7 @@ namespace pclunit_runner
 			var result = dict.Values.Select (it=>it.Result).First();
 
 			var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
-				result.Test.Fixture.Assembly.Name, tempResult);
+				result.Test.Fixture.Assembly.Name, tempPlatform);
 
 
             var json = string.Format(@"{{
