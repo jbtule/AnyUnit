@@ -72,34 +72,36 @@ namespace SatelliteRunner.Shared
 					{
 						requestStream.Write(byteArray, 0, byteArray.Length);
 					}
+
+					var webTask = Task.Factory.FromAsync<WebResponse> 
+						(request.BeginGetResponse, request.EndGetResponse, null)
+						.ContinueWith ( innerTask => {
+							using(var response = (HttpWebResponse)innerTask.Result)
+							using(var stream = response.GetResponseStream ())
+							using(var reader = new StreamReader(response.GetResponseStream()))
+							{
+								if (response.StatusCode != HttpStatusCode.OK){
+									throw new Exception ("500 Error");
+								}
+								return reader.ReadToEnd();
+							}
+						});
+
+
+					if (!webTask.Wait (10000)) {
+						request.Abort ();
+						throw new Exception ("The request timed out");
+					}
+
+
+					return webTask.Result;
 				});
 
 			if (!reqTask.Wait (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
-
-			var text = string.Empty;
-			var webTask = Task.Factory.FromAsync<WebResponse> 
-				(request.BeginGetResponse, request.EndGetResponse, null)
-				.ContinueWith ( task => {
-					using(var response = (HttpWebResponse)task.Result)
-					using(var stream = response.GetResponseStream ())
-					using(var reader = new StreamReader(response.GetResponseStream()))
-					{
-						if (response.StatusCode != HttpStatusCode.OK){
-							throw new Exception ("500 Error");
-						}
-						text = reader.ReadToEnd();
-					}
-				});
-
-			if (!webTask.Wait (10000)) {
-				request.Abort ();
-				throw new Exception ("The request timed out");
-			}
-
-			return text;
+			return reqTask.Result;
 		}
 
 		public string GetHttp(string baseUri, string api){
