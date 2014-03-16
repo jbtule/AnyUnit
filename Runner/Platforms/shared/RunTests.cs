@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using PclUnit.Run;
 using System.Text;
 using System.Net;
@@ -54,7 +55,7 @@ namespace SatelliteRunner.Shared
             return file;
         }
 
-		public static bool PostHttp(string baseUri, string api, string json){
+		public string PostHttp(string baseUri, string api, string json){
 
 			var url = baseUri + api;
 			var byteArray = Encoding.UTF8.GetBytes(json);
@@ -64,41 +65,41 @@ namespace SatelliteRunner.Shared
 			request.ContentLength = byteArray.Length;
 			request.ContentType = @"application/json";
 
-			var resetEvent = new ManualResetEvent(false);
+			var reqTask = Task.Factory.FromAsync<Stream> 
+				(request.BeginGetRequestStream, request.EndGetRequestStream, null)
+				.ContinueWith ( task => {
+					using (var requestStream  = task.Result)
+					{
+						requestStream.Write(byteArray, 0, byteArray.Length);
+					}
+				});
 
-			Stream requestStream = null;
-			request.BeginGetRequestStream (a=>{
-				requestStream = request.EndGetRequestStream (a);
-				resetEvent.Set();
-			}, null);
-				
-			if (!resetEvent.WaitOne (10000)) {
+			if (!reqTask.Wait (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
 
-			using (requestStream)
-			{
-				requestStream.Write(byteArray, 0, byteArray.Length);
-			}
+			var text = string.Empty;
+			var webTask = Task.Factory.FromAsync<WebResponse> 
+				(request.BeginGetResponse, request.EndGetResponse, null)
+				.ContinueWith ( task => {
+					using(var response = (HttpWebResponse)task.Result)
+					using(var stream = response.GetResponseStream ())
+					using(var reader = new StreamReader(response.GetResponseStream()))
+					{
+						if (response.StatusCode != HttpStatusCode.OK){
+							throw new Exception ("500 Error");
+						}
+						text = reader.ReadToEnd();
+					}
+				});
 
-			resetEvent.Reset ();
-
-			HttpWebResponse response= null;
-			request.BeginGetResponse (a=>{
-				response =(HttpWebResponse)request.EndGetResponse (a);
-				resetEvent.Set();
-			}, null);
-
-			if (!resetEvent.WaitOne (10000)) {
+			if (!webTask.Wait (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
 
-			using (response)
-			{
-				return response.StatusCode == HttpStatusCode.OK;
-			}
+			return text;
 		}
 
 		public string GetHttp(string baseUri, string api){
@@ -109,30 +110,27 @@ namespace SatelliteRunner.Shared
 			request.Method = "GET";
 			request.ContentType = "text/plain";
 
+			var text = string.Empty;
+			var webTask = Task.Factory.FromAsync<WebResponse> 
+				(request.BeginGetResponse, request.EndGetResponse, null)
+				.ContinueWith ( task => {
+					using(var response = (HttpWebResponse)task.Result)
+					using(var stream = response.GetResponseStream ())
+					using(var reader = new StreamReader(response.GetResponseStream()))
+					{
+					if (response.StatusCode != HttpStatusCode.OK){
+						throw new Exception ("500 Error");
+					}
+						text = reader.ReadToEnd();
+					}
+				});
 
-			var resetEvent = new ManualResetEvent(false);
-
-			HttpWebResponse response= null;
-			request.BeginGetResponse (a=>{
-				response =(HttpWebResponse)request.EndGetResponse (a);
-				resetEvent.Set();
-			}, null);
-
-			if (!resetEvent.WaitOne (10000)) {
+			if (!webTask.Wait (10000)) {
 				request.Abort ();
 				throw new Exception ("The request timed out");
 			}
 
-			using (response)
-			using (var reader = new StreamReader(response.GetResponseStream()))
-			{
-				var text=reader.ReadToEnd();
-				if (response.StatusCode != HttpStatusCode.OK){
-					Console.Write (text);
-					throw new Exception ("500 Error");
-				}
-				return text;
-			}
+			return text;
 		}
 
 		public bool IsReadySetupFilter(string check, TestFilter filter){
