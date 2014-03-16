@@ -18,16 +18,17 @@ See [Pcl Unit Design and Philosophy][Design].
 ####Status 
 Windows: [![Build Status][WinImg]][WinLink] Mono: [![Build Status][MonoImg]][MonoLink] 
 
-Alpha Version
+Beta Version
   - Design wise can still fluctuate, but functional and needs more coverage and platforms
   - PclUnit, Core Libraries and Basic Test Runner -Win & Mono
-  - pclunit-runner, Aggregating Test Runner -Win only
+  - pclunit-runner (alpha Version), Aggregating Test Runner Win & Mono
       - net40 x86 & x64 platform runners - Win & Mono
       - net45 x86, x64 platform runners - Win & Mono
       - sl50 x86, x64 platform runners - Win Only
   - PclUnit.Constraints, (port of Nunit Constraints)
   - PclUnit.Style.Xunit, (port of xUnit test attributes, discovery & assertions)
   - PclUnit.Style.Nunit, (port of NUnit test attributes, discover)
+  - PclUnit.Style.FSUnit, (port of FsUnit test assertions)
 
 [travis-ci]:https://travis-ci.org/
 [Design]:http://github.com/jbtule/PclUnit/wiki/Design
