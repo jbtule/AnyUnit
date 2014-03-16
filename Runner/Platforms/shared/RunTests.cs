@@ -55,7 +55,7 @@ namespace SatelliteRunner.Shared
         }
 
 		public static bool PostHttp(string baseUri, string api, string json){
-	
+
 			var url = baseUri + api;
 			var byteArray = Encoding.UTF8.GetBytes(json);
 
@@ -92,7 +92,6 @@ namespace SatelliteRunner.Shared
 			var url = baseUri + api;
 
 			var request = WebRequest.Create(url);
-			Console.WriteLine (url);
 			request.Method = "GET";
 			request.ContentType = "text/plain";
 
@@ -166,7 +165,7 @@ namespace SatelliteRunner.Shared
 			TestFilter receivedFilter = new TestFilter();
 
 			Console.WriteLine("Sending Tests...");
-		
+
 			PostHttp (url, @"/api/send_tests", runner.ToListJson ());
 
 			while (true) {
@@ -176,7 +175,7 @@ namespace SatelliteRunner.Shared
 					Thread.Sleep (1000);
 				else
 					break;
-			} 
+			}
 
             Console.WriteLine("Running Tests...");
 
