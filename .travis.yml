@@ -11,6 +11,7 @@ before_install:
   - sudo installer -pkg "MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg" -target /
 
 script:
-  - xbuild PclUnit.mono.sln /p:FSharpBad=true
+  - xbuild PclUnit.mono.sln
+  - xbuild WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj /p:FSharpBad=true
   - mono Runner/pclunit-runner/bin/Debug/pclunit-runner.exe runConfig --noerror WhoTestsTheTesters/Tests/RunTests.mono.yml -o testresults.json
   - mono WhoTestsTheTesters/ConventionTestProcessor/bin/Debug/ConventionTestProcessor.exe testresults.json
