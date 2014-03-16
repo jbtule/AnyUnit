@@ -11,9 +11,9 @@ See [Pcl Unit Design and Philosophy][Design].
 
 ####Layout
  - **Contrib**: Basic Extensions on Assertion and Test Discovery ported from other Frameworks
-   **PclUnit**: Core Assertion, Discovery and Runner library
+ - **PclUnit**: Core Assertion, Discovery and Runner library
  - **Runner**: Aggregating runner and platform specfic runners
-   **WhoTestsTheTesters**: Code to test Tests
+ - **WhoTestsTheTesters**: Code to test Tests
 
 ####Status 
 Windows: [![Build Status][WinImg]][WinLink] Mono: [![Build Status][MonoImg]][MonoLink] 
