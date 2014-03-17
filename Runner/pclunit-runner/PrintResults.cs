@@ -170,7 +170,7 @@ namespace pclunit_runner
             value = value.Replace("]", "|]");
             return value;
         }
-
+		private static int _resultCount = 0;
         public static void PrintResult(IDictionary<string, PlatformResult> dict)
         {
 
@@ -270,7 +270,7 @@ namespace pclunit_runner
 						if (Verbose)
 							Console.WriteLine ("!!!!!!!!!!!!!!!!!!!!!!!!!");
 						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Fail))
-							Console.Write("! ");
+							Console.Write("!  ");
 						else
 							Console.Write ("!{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Fail).Count ());
                     }
@@ -279,7 +279,7 @@ namespace pclunit_runner
 						if (Verbose)
                         	Console.WriteLine("EEEEEEEEEEEEEEEEEEEEEEEEE");
 						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Error))
-							Console.Write("E ");
+							Console.Write("E  ");
 						else
 							Console.Write ("E{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Error).Count ());
 
@@ -289,7 +289,7 @@ namespace pclunit_runner
 						if (Verbose)
                         	Console.WriteLine("?????????????????????????");
 						else if (dict.All(it => it.Value.Result.Kind == ResultKind.Ignore))
-							Console.Write("? ");
+							Console.Write("?  ");
 						else
 							Console.Write ("?{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.Ignore).Count ());
                     }
@@ -298,20 +298,21 @@ namespace pclunit_runner
 						if (Verbose)
                         	Console.WriteLine("-------------------------");
 						else
-							Console.Write(". ");
+							Console.Write(".  ");
                     }
                     else
                     {
 						if (Verbose)
 							Console.WriteLine (".........................");
 						else if (dict.All (it => it.Value.Result.Kind == ResultKind.NoError))
-							Console.Write ("_ ");
+							Console.Write ("_  ");
 						else
 							Console.Write ("_{0} ", dict.Where (it => it.Value.Result.Kind == ResultKind.NoError).Count ());
                     }
-					if (Verbose)
+					if (Verbose || ++_resultCount % 26 == 0 )
                     	Console.WriteLine(String.Empty);
-					Console.Out.Flush ();
+
+
                 }
             }
         }
