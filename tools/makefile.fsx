@@ -7,6 +7,7 @@ let projFiles =
   !! "./PclUnit/*.csproj" //PclUnit
     ++ "./Contrib/PclUnit.*/*.*proj" //Styles
     ++ "./Runner/pclunit-runner/*.csproj" //AggregateRunner
+    ++ "./Runner/Platforms/**/*-xap*.csproj" //environment first
     ++ "./Runner/Platforms/**/*.csproj" //platform runners
     -- if isMono then
           "./Runner/Platforms/sl/**/*.csproj" //sliverlight runners
