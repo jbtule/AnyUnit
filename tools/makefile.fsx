@@ -75,7 +75,7 @@ Target "Test" (fun () ->
                        info.FileName <- "./Runner/pclunit-runner/bin/Release/pclunit-runner.exe"
                        info.Arguments <- args) |> ignore
 
-    if not directExec (fun info ->
+    if not <| directExec (fun info ->
                        info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/ConventionTestProcessor.exe"
                        info.Arguments <- "test.json") then
        failwith "Tests Failed"
