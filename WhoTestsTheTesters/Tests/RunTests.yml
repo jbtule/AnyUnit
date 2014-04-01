@@ -2,11 +2,11 @@
 ---
 config:
   assemblies:
-    - BasicTests\bin\Debug\BasicTests.dll
-    - ConstraintsTests\bin\Debug\ConstraintsTests.dll
-    - Style\XunitTests\bin\Debug\XunitTests.dll 
-    - Style\NunitTests\bin\Debug\NunitTests.dll
-    - Style\FsUnitTests\bin\Debug\FsUnitTests.dll
+    - BasicTests\bin\Release\BasicTests.dll
+    - ConstraintsTests\bin\Release\ConstraintsTests.dll
+    - Style\XunitTests\bin\Release\XunitTests.dll 
+    - Style\NunitTests\bin\Release\NunitTests.dll
+    - Style\FsUnitTests\bin\Release\FsUnitTests.dll
   platforms:
     - id: net40-x86
     - id: net40-x64 
@@ -14,7 +14,7 @@ config:
     - id: net45-x64
     - id: sl50-x86
       assemblies:
-        - SilverlightTests\bin\Debug\SilverlightTests.dll
+        - SilverlightTests\bin\Release\SilverlightTests.dll
     - id: sl50-x64
       assemblies:
-        - SilverlightTests\bin\Debug\SilverlightTests.dll
+        - SilverlightTests\bin\Release\SilverlightTests.dll
