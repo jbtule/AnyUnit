@@ -2,11 +2,11 @@
 ---
 config:
   assemblies:
-    - BasicTests\bin\Debug\BasicTests.dll
-    - ConstraintsTests\bin\Debug\ConstraintsTests.dll
-    - Style\NunitTests\bin\Debug\NunitTests.dll
-    - Style\XunitTests\bin\Debug\XunitTests.dll
-    - Style\FsUnitTests\bin\Debug\FsUnitTests.dll
+    - BasicTests\bin\Release\BasicTests.dll
+    - ConstraintsTests\bin\Release\ConstraintsTests.dll
+    - Style\NunitTests\bin\Release\NunitTests.dll
+    - Style\XunitTests\bin\Release\XunitTests.dll
+    - Style\FsUnitTests\bin\Release\FsUnitTests.dll
 
   platforms:
     - id: net45-x86
