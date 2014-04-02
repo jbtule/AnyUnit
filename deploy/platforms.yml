@@ -1,5 +1,5 @@
 ﻿# Satellite runner locations
-- path: Platforms\net40-x86\net-40-x86-full.exe
+- path: Platforms\net-40-x86\net-40-x86-full.exe
   id: net40-x86
 
 - path: Platforms\net-40-x64\net-40-x64-full.exe
