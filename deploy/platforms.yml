@@ -1,0 +1,18 @@
+﻿# Satellite runner locations
+- path: Platforms\net40-x86\net-40-x86-full.exe
+  id: net40-x86
+
+- path: Platforms\net-40-x64\net-40-x64-full.exe
+  id: net40-x64
+
+- path: Platforms\net-45-x86\net-45-x86-full.exe
+  id: net45-x86
+
+- path: Platforms\net-45-x64\net-45-x64-full.exe
+  id: net45-x64
+
+- path: Platforms\sl-50-x86\sl-50-x86.exe
+  id: sl50-x86
+
+- path: Platforms\sl-50-x64\sl-50-x64.exe
+  id: sl50-x64

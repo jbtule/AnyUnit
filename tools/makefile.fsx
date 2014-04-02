@@ -1,5 +1,9 @@
 #I "packages/FAKE/tools"
+#I "packages/Octokit/lib/net45/"
+#I "packages/Microsoft.Net.Http/lib/net45/"
+#I "packages/Microsoft.Bcl.Immutable/lib/portable-net45+win8+wp8/"
 #r "FakeLib.dll"
+#r "Octokit.dll"
 
 open Fake
 
@@ -23,21 +27,24 @@ let projFiles =
 Target "Clean" (fun () ->
     trace " --- Cleaning stuff --- "
 
-    let buildMode = getBuildParamOrDefault "buildMode" "Release"
-    let setParams defaults =
-            { defaults with
-                Verbosity = Some(Quiet)
-                Targets = ["Clean"]
-                Properties =
-                    [
-                        "Optimize", "True"
-                        "DebugSymbols", "True"
-                        "Configuration", buildMode
-                        "FSharpBad", isMono.ToString()
-                    ]
-             }
-    projFiles
-      |> Seq.iter (build setParams)
+    ["./build"; "./deploy/build"]
+      |> Seq.iter CleanDir
+
+//    let buildMode = getBuildParamOrDefault "buildMode" "Release"
+//    let setParams defaults =
+//          { defaults with
+//                Verbosity = Some(Quiet)
+//                Targets = ["Clean"]
+//                Properties =
+//                    [
+//                        "Optimize", "True"
+//                        "DebugSymbols", "True"
+//                        "Configuration", buildMode
+//                        "FSharpBad", isMono.ToString()
+//                    ]
+//             }
+//    projFiles
+//      |> Seq.iter (build setParams)
 
 )
 
@@ -60,12 +67,11 @@ Target "Build" (fun () ->
     projFiles
       |> Seq.iter (build setParams)
 
+    "./deploy/platforms.yml" |> CopyFile "./build/tools/platforms.yml"
 )
 
 Target "Test" (fun () ->
     trace " --- Testing app --- "
-
-    "./Runner/pclunit-runner/platforms.release.yml" |> CopyFile "./Runner/pclunit-runner/bin/Release/platforms.yml"
 
     let args =
       sprintf
@@ -73,7 +79,7 @@ Target "Test" (fun () ->
         (if isMono then ".mono" else "")
 
     directExec (fun info ->
-                       info.FileName <- "./Runner/pclunit-runner/bin/Release/pclunit-runner.exe"
+                       info.FileName <- "./build/tools/pclunit-runner.exe"
                        info.Arguments <- args) |> ignore
 
     if not <| directExec (fun info ->
@@ -90,15 +96,25 @@ Target "RestorePackages" (fun () ->
       |> Seq.iter (RestorePackage id)
 )
 
-Target "Deploy" (fun () ->
+Target "Deploy:Build" (fun () ->
     trace " --- Deploying app --- "
+
+    let outputName = sprintf "./deploy/build/Binaries.%s.zip" (if isMono then "mono" else "win")
+    !! "./build/**/*"
+      |> Zip "./build/" outputName
+
+)
+
+Target "Deploy:Nuget" (fun () ->
+    trace " --- Deploying app --- "
+
 )
 
 "Clean"
   ==> "RestorePackages"
   ==> "Build"
   ==> "Test"
-  ==> "Deploy"
+  ==> "Deploy:Build"
 
 
-RunTargetOrDefault "Deploy"
+RunTargetOrDefault "Deploy:Build"

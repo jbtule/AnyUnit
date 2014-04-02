@@ -30,7 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\build\lib\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\PclUnit.Style.FsUnit.XML</DocumentationFile>
@@ -41,6 +41,7 @@
     <Reference Include="FSharp.Core">
       <Name>FSharp.Core</Name>
       <AssemblyName>FSharp.Core.dll</AssemblyName>
+    	<Private>False</Private>
       <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -50,6 +51,7 @@
     <Reference Include="FSharp.Core">
       <Name>FSharp.Core</Name>
       <AssemblyName>FSharp.Core.dll</AssemblyName>
+    	<Private>False</Private>
       <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -59,6 +61,7 @@
   <Reference Include="FSharp.Core">
     <Name>FSharp.Core</Name>
     <AssemblyName>FSharp.Core.dll</AssemblyName>
+    <Private>False</Private>
     <HintPath>..\..\packages\FSharp.Core.Open.FS30.3.1.1.5\lib\portable-net45+sl5+win8\FSharp.Core.dll</HintPath>
   </Reference>
     </ItemGroup>

@@ -71,6 +71,5 @@ let fakeExe = "tools/packages/FAKE/tools/FAKE.exe"
 
 downloadNugetTo nugetExe
 
-if doesNotExist fakeExe then
-    exec nugetExe ["install"; "fake"; "-OutputDirectory tools/packages"; "-ExcludeVersion"]
+exec nugetExe ["install"; "tools/packages.config"; "-OutputDirectory tools/packages"; "-ExcludeVersion"]
 exec fakeExe ("tools/makefile.fsx"::passedArgs)
