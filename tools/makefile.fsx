@@ -65,7 +65,7 @@ Target "Build" (fun () ->
 Target "Test" (fun () ->
     trace " --- Testing app --- "
 
-    CopyFile "./Runner/pclunit-runner/platforms.release.yml" "./Runner/pclunit-runner/bin/Release/platforms.yml"
+    "./Runner/pclunit-runner/platforms.release.yml" |> CopyFile "./Runner/pclunit-runner/bin/Release/platforms.yml"
 
     let args =
       sprintf
