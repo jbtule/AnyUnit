@@ -27,45 +27,64 @@ namespace pclunit_runner
 {
     public static class PrintResults
     {
-		public static bool Verbose {
-			get;
-			set;
-		}
+    		public static bool Verbose {
+    			get;
+    			set;
+    		}
 
-        public static bool TeamCity;
-        public static bool AppVeyor;
+        public static bool CI {
+          get;
+          set;
+        }
+
+        private static Lazy<bool> _teamcity =
+          new Lazy<bool>(()=>Environment.GetEnvironmentVariable("teamcity.version") != null);
+
+        public static bool TeamCity{
+          get{
+            return CI && _teamcity.Value;
+          }
+        }
+        private static Lazy<bool> _appVeyor =
+             new Lazy<bool>(()=>Environment.GetEnvironmentVariable("APPVEYOR_API_URL") != null);
+
+        public static bool AppVeyor{
+          get{
+            return CI && _teamcity.Value;
+          }
+        }
 
         private static Uri _appVeyorBaseUri = null;
         private static void PostToAppVeyor(string json)
         {
             try
             {
-				if (_appVeyorBaseUri == null)
-				{
-					_appVeyorBaseUri = new Uri(Environment.GetEnvironmentVariable("APPVEYOR_API_URL"));
-				}
+              if (_appVeyorBaseUri == null)
+              {
+                _appVeyorBaseUri = new Uri(Environment.GetEnvironmentVariable("APPVEYOR_API_URL"));
+              }
 
-				var url = new Uri(_appVeyorBaseUri, "api/tests");
-				Byte[] byteArray = Encoding.UTF8.GetBytes(json);
+              var url = new Uri(_appVeyorBaseUri, "api/tests");
+              Byte[] byteArray = Encoding.UTF8.GetBytes(json);
 
-				var request = WebRequest.Create(url);
-				request.Method = "POST";
-				request.ContentLength = byteArray.Length;
-				request.ContentType = @"application/json";
+              var request = WebRequest.Create(url);
+              request.Method = "POST";
+              request.ContentLength = byteArray.Length;
+              request.ContentType = @"application/json";
 
-				var reqTask= Task.Factory.FromAsync<Stream> 
-				(request.BeginGetRequestStream, request.EndGetRequestStream, null)
-					.ContinueWith ( task => {
-						using (var requestStream  = task.Result)
-						{
-							requestStream.Write(byteArray, 0, byteArray.Length);
-						}
+              var reqTask= Task.Factory.FromAsync<Stream>
+              (request.BeginGetRequestStream, request.EndGetRequestStream, null)
+                .ContinueWith ( task => {
+                  using (var requestStream  = task.Result)
+                  {
+                    requestStream.Write(byteArray, 0, byteArray.Length);
+                  }
 
-						using(var response = (HttpWebResponse)request.GetResponse()){
-							return response.StatusCode;
-						}
-					});
-				reqTask.Wait();
+                  using(var response = (HttpWebResponse)request.GetResponse()){
+                    return response.StatusCode;
+                  }
+                });
+                reqTask.Wait();
             }
             catch
             {
@@ -81,7 +100,7 @@ namespace pclunit_runner
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", "all");
             }
-			else
+            else
             {
                 Console.WriteLine("Starting Tests");
             }
@@ -97,7 +116,7 @@ namespace pclunit_runner
             }
             else
             {
-				Console.WriteLine();
+                Console.WriteLine();
                 PrintCount(results.Errors, "Errors:");
                 PrintCount(results.Failures, "Failures:");
                 PrintCount(results.Ignores, "Ignores:");
@@ -180,10 +199,10 @@ namespace pclunit_runner
             {
 
 
-				if (AppVeyor)
-				{
-					PostTestResultToAppveyor(dict);
-				}
+                if (AppVeyor)
+                {
+                	PostTestResultToAppveyor(dict);
+                }
 
                 var result = dict.Select(it => it.Value.Result).First();
                 if (TeamCity)
@@ -193,23 +212,23 @@ namespace pclunit_runner
                                       result.Test.Fixture.Name.TeamCityEncode(),
                                       result.Test.Fixture.Assembly.Name.TeamCityEncode());
                 }
-				else if(Verbose)
+                else if(Verbose)
                 {
                     Console.Write(result.Test.Fixture.Assembly.Name + ".");
                     Console.Write(result.Test.Fixture.Name + ".");
                 }
-				if (TeamCity || Verbose) {
-					Console.WriteLine (result.Test.Name);
-				}
+                if (TeamCity || Verbose) {
+                  Console.WriteLine (result.Test.Name);
+                }
                 foreach (var grpResult in dict.GroupBy(it => it.Value.Result.Kind))
                 {
-					if (Verbose || TeamCity) {
-						Console.Write ("{0}:", grpResult.Key);
-						foreach (var keyValuePair in grpResult) {
-							Console.Write (" ");
-							Console.Write (keyValuePair.Value.Platform);
-						}
-					}
+                  if (Verbose || TeamCity) {
+                    Console.Write ("{0}:", grpResult.Key);
+                    foreach (var keyValuePair in grpResult) {
+                      Console.Write (" ");
+                      Console.Write (keyValuePair.Value.Platform);
+                    }
+                  }
                     if (TeamCity)
                     {
                         switch (grpResult.Key)
@@ -232,19 +251,19 @@ namespace pclunit_runner
                         }
 
                     }
-					if (Verbose || TeamCity) {
-						Console.WriteLine ();
-					}
+                  if (Verbose || TeamCity) {
+                    Console.WriteLine ();
+                  }
                 }
-				if (Verbose || TeamCity) {
-					var span = new TimeSpan ();
-					foreach (var r in dict.Select(it => it.Value.Result)) {
-						span += (r.EndTime - r.StartTime);
-					}
-					Console.WriteLine ("avg time:{0}", new TimeSpan (span.Ticks / dict.Count));
-				}
+        if (Verbose || TeamCity) {
+          var span = new TimeSpan ();
+          foreach (var r in dict.Select(it => it.Value.Result)) {
+            span += (r.EndTime - r.StartTime);
+          }
+          Console.WriteLine ("avg time:{0}", new TimeSpan (span.Ticks / dict.Count));
+        }
 
-				if (Verbose || TeamCity) {
+        if (Verbose || TeamCity) {
 
 					foreach (var lup in dict.ToLookup(it => it.Value.Result.Output)) {
 						var name = String.Join (",", lup.Select (it => it.Value.Platform));
@@ -319,7 +338,7 @@ namespace pclunit_runner
 
 		private static void PostTestResultToAppveyor(IDictionary<string, PlatformResult> dict)
         {
-        
+
 			var tempResult = ResultKind.NoError;
 			var tempPlatform = Enumerable.Empty<string>();
 			if (dict.Any(it => it.Value.Result.Kind == ResultKind.Fail))
@@ -380,10 +399,10 @@ namespace pclunit_runner
                     break;
             }
 
-			var result = dict.Values.Select (it=>it.Result).First();
+        var result = dict.Values.Select (it=>it.Result).First();
 
-			var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
-				result.Test.Fixture.Assembly.Name, tempPlatform);
+        var fullName = string.Format("{0}.{1}.{2} [{3}]", result.Test.Name, result.Test.Fixture.Name,
+        result.Test.Fixture.Assembly.Name, tempPlatform);
 
 
             var json = string.Format(@"{{

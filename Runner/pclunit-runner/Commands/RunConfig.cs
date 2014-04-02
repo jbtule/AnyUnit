@@ -1,12 +1,12 @@
-﻿// 
+﻿//
 //  Copyright 2013 PclUnit Contributors
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,9 +46,8 @@ namespace pclunit_runner
            // this.HasOption("nunit-output=", "Results File Output in Nunit XML", v => _outputs.Add(WriteResults.NunitType, v));
             this.HasOption("noerror", "Only return error code if the test runner has error", v => { _noerrorcode = true; });
             this.HasOption("showsats", "Show windows for satellite processes", v => { _showsats = true; });
-            this.HasOption("teamcity", "Team City results to Std out.", v => { PrintResults.TeamCity = true; });
-			this.HasOption("v|verbose", "Verbose output", v => {PrintResults.Verbose = true;});
-            this.HasOption("appveyor", "Post results to Appveyor.", v => { PrintResults.AppVeyor = true; });
+			      this.HasOption("v|verbose", "Verbose output", v => {PrintResults.Verbose = true;});
+            this.HasOption("ci", "Post results in Teamcity or Appveyor way", v => { PrintResults.CI = true; });
 
             this.HasOption<int>("port=", "Specify port to listen on", v => { _port = v; });
             this.HasOption("include=", "Include only specified assemblies, fixtures, tests or categories by uniquename",
@@ -138,10 +137,10 @@ namespace pclunit_runner
 
                 _port = _port ?? GetUnusedPort();
 
-                string url = string.Format("http://localhost:{0}", _port); 
+                string url = string.Format("http://localhost:{0}", _port);
                 //Create Temp shared path
                 Directory.CreateDirectory(sharedpath);
-               
+
 				using (var host = new NancyHost(new HostConfiguration{RewriteLocalhost = false},new Uri(url)))
                 {
                     var results = PlatformResults.Instance;
@@ -155,11 +154,11 @@ namespace pclunit_runner
                     var assemblies = setting.Config.Assemblies.ToDictionary(Path.GetFileName, v => v);
 
                     var threadList = new List<Thread>();
-                    
+
                         lock (results.WaitingForPlatforms)
                         {
                             //lock is not necessary but underscores that fact
-                            //that the WaitingForPlatforms needs to be complete before the end of 
+                            //that the WaitingForPlatforms needs to be complete before the end of
                             //this block.
                             foreach (var set in setting.Config.Platforms)
                             {
@@ -224,11 +223,11 @@ namespace pclunit_runner
             }
 
             try
-            {         
+            {
                 //Try Delete Temp shared path
                 Directory.Delete(sharedpath);
             }catch{}
-           
+
             if (!_noerrorcode && foundError)
                 return 1;
             return 0;
@@ -251,5 +250,5 @@ namespace pclunit_runner
             return currentAssemblies;
         }
     }
-		
+
 }

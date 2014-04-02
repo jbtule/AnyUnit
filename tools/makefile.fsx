@@ -83,7 +83,12 @@ Target "Test" (fun () ->
 
 )
 
-Target "RestorePackages" RestorePackages
+Target "RestorePackages" (fun () ->
+    trace " --- Restore Packages --- "
+    !! "./**/packages.config"
+    -- "./tools/*"
+      |> Seq.iter (RestorePackage id)
+)
 
 Target "Deploy" (fun () ->
     trace " --- Deploying app --- "
