@@ -21,6 +21,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using ManyConsole;
 using YamlDotNet.RepresentationModel;
@@ -36,6 +37,8 @@ namespace pclunit_runner
     {
         private readonly List<string> _includes = new List<string>();
         private readonly List<string> _excludes = new List<string>();
+        private readonly List<string> _defines = new List<string>();
+
         private int? _port =null;
 
         public RunConfig()
@@ -54,6 +57,7 @@ namespace pclunit_runner
                            v => _includes.Add(v));
             this.HasOption("exclude=", "Exclude specified assemblies, fixtures, tests or categories by uniquename",
                            v => _excludes.Add(v));
+            this.HasOption("define=", "Define config substitutions", v => _defines.Add(v));
             HasAdditionalArguments(1, " configFile");
         }
 
@@ -89,6 +93,34 @@ namespace pclunit_runner
             return path;
         }
 
+
+
+        private string Substitute(string original)
+        {            
+            
+            var substitutions = _defines.Select(it => it.Split('=')).ToDictionary(k => k.First().ToLowerInvariant(), v => v.Last());
+
+            MatchEvaluator replace =
+                match => 
+                    {
+                        var capt = match.Captures.OfType<Capture>().First();
+                        var key = capt.Value.ToLowerInvariant();
+                        var env = Environment.GetEnvironmentVariable(key);
+                        if (substitutions.ContainsKey(key))
+                        {
+                            return substitutions[key];
+                        }
+                        if (env != null)
+                        {
+                            return env;
+                        }
+                        return String.Format("%{0}%", capt.Value);
+                    };
+
+
+            return Regex.Replace(original, "%([^%]+)%", replace);
+        }
+
         public override int Run(string[] remainingArguments)
         {
             var satpath = Path.Combine(AssemblyDirectory, "platforms.yml");
@@ -97,7 +129,8 @@ namespace pclunit_runner
 
             if (File.Exists(satpath))
             {
-                using (var input = new StringReader(File.ReadAllText(satpath)))
+                var inputText = Substitute(File.ReadAllText(satpath));
+                using (var input = new StringReader(inputText))
                 {
                     var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
                     _satellites = des.Deserialize<IList<Satellite>>(input).ToDictionary(k => k.Id, v => v);
@@ -111,7 +144,7 @@ namespace pclunit_runner
             else //if no platforms.yml included, use a nested directory of exes.
             {
                 _satellites = new Dictionary<string, Satellite>();
-                var exeDir = Path.Combine(AssemblyDirectory, "platforms");
+                var exeDir = Path.Combine(AssemblyDirectory, "Platforms");
                 var exes = Directory.GetFiles(exeDir, "*.exe");
                 foreach (var exe in exes)
                 {
@@ -128,7 +161,8 @@ namespace pclunit_runner
 
             string sharedpath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             string configPath = remainingArguments.First();
-            using (var input = new StringReader(File.ReadAllText(configPath)))
+            var inputText2 = Substitute(File.ReadAllText(configPath));
+            using (var input = new StringReader(inputText2))
             {
                 var des = new Deserializer(namingConvention: new CamelCaseNamingConvention());
                 var setting = des.Deserialize<YamlSettings>(input);
