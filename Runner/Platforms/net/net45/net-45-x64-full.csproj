@@ -80,6 +80,9 @@
       <Link>Commands\RunSatelliteCommand.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+<Compile Include="..\..\shared\VersionInfo.cs">
+  <Link>Properties\VersionInfo.cs</Link>
+</Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">

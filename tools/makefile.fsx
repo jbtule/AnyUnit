@@ -6,6 +6,7 @@
 #r "Octokit.dll"
 
 open Fake
+open Fake.AssemblyInfoFile
 
 let projFiles =
   !! "./PclUnit/*.csproj" //PclUnit
@@ -48,8 +49,57 @@ Target "Clean" (fun () ->
 
 )
 
+let version ver =
+  let trav = environVarOrNone "TRAVIS_BUILD_NUMBER"
+  let appVey = environVarOrNone "APPVEYOR_BUILD_NUMBER"
+
+  match trav, appVey with
+      | Some(x),_ -> ver + "0", ver + x + " (Travis-CI)"
+      | _,Some(x) -> ver + "0", ver + x + " (AppVeyor-CI)"
+      | _,_       -> ver + "0", ver + "0 (Built Locally)"
+
+
+
 Target "Build" (fun () ->
     trace " --- Building the app --- "
+
+    let ver,infoVer = version "1.0.5."
+    let runVer,runInfoVer = version "0.8.0."
+
+
+    let createVersionInfo (dir, ext, ver, infoVer) =
+      let outName = (dir + "VersionInfo." + ext)
+      match ext with
+        | "cs" ->
+          CreateCSharpAssemblyInfo outName
+            [
+             Attribute.Version ver
+             Attribute.FileVersion ver
+             Attribute.InformationalVersion infoVer
+            ]
+        | "fs" ->
+          CreateFSharpAssemblyInfo outName
+            [
+             Attribute.Version ver
+             Attribute.FileVersion ver
+             Attribute.InformationalVersion infoVer
+            ]
+        | ___ -> failwith (ext + " is not expected")
+
+    [
+      "./PclUnit/Properties/", "cs", ver, infoVer
+      "./Contrib/PclUnit.Constraints/Properties/", "cs", ver, infoVer
+      "./Contrib/PclUnit.Style.FsUnit/", "fs" ,ver, infoVer
+      "./Contrib/PclUnit.Style.Nunit/Properties", "cs", ver, infoVer
+      "./Contrib/PclUnit.Style.Xunit/Properties", "cs", ver, infoVer
+      "./Runner/pclunit-runner/Properties/", "cs", runVer, runInfoVer
+      "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
+
+    ] |> Seq.iter createVersionInfo
+
+
+
+
     let buildMode = getBuildParamOrDefault "buildMode" "Release"
     let setParams defaults =
             { defaults with

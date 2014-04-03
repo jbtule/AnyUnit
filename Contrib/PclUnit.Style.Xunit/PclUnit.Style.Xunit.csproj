@@ -84,6 +84,8 @@
     <Compile Include="UnlabeledFixtureAttribute.cs" />
     <Compile Include="IUseFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\VersionInfo.cs" />
+
     <Compile Include="Util\Guard.cs" />
     <Compile Include="XunitStyleAttribute.cs" />
   </ItemGroup>

@@ -68,6 +68,8 @@
  </Otherwise>
 </Choose>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="VersionInfo.fs" />
     <Compile Include="FsUnit.fs" />
     <Compile Include="AssertionHelper.fs" />
     <None Include="Script.fsx" />

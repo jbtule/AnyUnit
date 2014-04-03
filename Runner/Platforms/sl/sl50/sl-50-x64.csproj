@@ -67,6 +67,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\shared\VersionInfo.cs">
+      <Link>Properties\VersionInfo
+    </Compile>
     <Compile Include="Commands\RunAloneCommand.cs" />
     <Compile Include="Commands\RunSatelliteCommand.cs" />
     <Compile Include="Util.cs" />

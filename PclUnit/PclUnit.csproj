@@ -70,6 +70,8 @@
     <Compile Include="Run\Attributes\TestAttributeBase.cs" />
     <Compile Include="TestFixtureAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\VersionInfo.cs" />
+
     <Compile Include="Run\Attributes\TestFixtureAttributeBase.cs" />
     <Compile Include="TestFixtureDiscoveryAttribute.cs" />
     <Compile Include="Run\Attributes\TestFixtureDiscoveryAttributeBase.cs" />
