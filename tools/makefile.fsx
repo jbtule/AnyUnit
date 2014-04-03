@@ -58,12 +58,11 @@ let version ver =
       | _,Some(x) -> ver + "0", ver + x + " (AppVeyor-CI)"
       | _,_       -> ver + "0", ver + "0 (Built Locally)"
 
-
+let mainVer, mainInfoVer = version "1.0.5."
 
 Target "Build" (fun () ->
     trace " --- Building the app --- "
 
-    let ver,infoVer = version "1.0.5."
     let runVer,runInfoVer = version "0.8.0."
 
 
@@ -87,11 +86,11 @@ Target "Build" (fun () ->
         | ___ -> failwith (ext + " is not expected")
 
     [
-      "./PclUnit/Properties/", "cs", ver, infoVer
-      "./Contrib/PclUnit.Constraints/Properties/", "cs", ver, infoVer
-      "./Contrib/PclUnit.Style.FsUnit/", "fs" ,ver, infoVer
-      "./Contrib/PclUnit.Style.Nunit/Properties", "cs", ver, infoVer
-      "./Contrib/PclUnit.Style.Xunit/Properties", "cs", ver, infoVer
+      "./PclUnit/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/PclUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/PclUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
+      "./Contrib/PclUnit.Style.Nunit/Properties", "cs", mainVer, mainInfoVer
+      "./Contrib/PclUnit.Style.Xunit/Properties", "cs", mainVer, mainInfoVer
       "./Runner/pclunit-runner/Properties/", "cs", runVer, runInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
@@ -152,6 +151,11 @@ Target "Deploy:Build" (fun () ->
     let outputName = sprintf "./deploy/build/Binaries.%s.zip" (if isMono then "mono" else "win")
     !! "./build/**/*"
       |> Zip "./build/" outputName
+
+    if (Fake.Git.Information.getBranchName ".") = "stable" then
+      trace " On Stable deploying to git hub"
+    else
+      trace " Not on Stable "
 
 )
 
