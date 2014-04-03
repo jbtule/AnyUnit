@@ -125,7 +125,7 @@ Target "Test" (fun () ->
 
     let args =
       sprintf
-        "runConfig ./WhoTestsTheTesters/Tests/RunTests%s.yml -o test.json --noerror"
+        "runConfig ./WhoTestsTheTesters/Tests/RunTests%s.yml -o ./deploy/build/test-output.json --noerror"
         (if isMono then ".mono" else "")
 
     directExec (fun info ->
@@ -134,7 +134,7 @@ Target "Test" (fun () ->
 
     if not <| directExec (fun info ->
                        info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/ConventionTestProcessor.exe"
-                       info.Arguments <- "test.json") then
+                       info.Arguments <- "./deploy/build/test-output.json") then
        failwith "Tests Failed"
 
 )
