@@ -1,12 +1,12 @@
-// 
+//
 //  Copyright 2013 PclUnit Contributors
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -123,7 +123,7 @@ namespace PclUnit.Run
             _methodArgs.Release();
         }
 
-        
+
 
         private void RunHelper(Object stateInfo)
         {
@@ -137,9 +137,10 @@ namespace PclUnit.Run
                                               Assert = new Assert(),
                                               Log = new Log()
                                           };
-            
+
             object fixture = null;
             var exceptions = new TestCycleExceptions();
+            Result finalResult = null;
             try
             {
 
@@ -177,6 +178,12 @@ namespace PclUnit.Run
                     {
                         helper.Assert.Fail("Test returned false.");
                     }
+
+                    if (result is IReturnedResult)
+                    {
+                       finalResult = new Result(state.Platform,
+                                                  startTime, DateTime.Now, result as IReturnedResult);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -202,10 +209,10 @@ namespace PclUnit.Run
                     exceptions.Add(TestCycle.Teardown, ex);
                 }
                 exceptions.WriteOutExceptions(helper);
-                state.Result = new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);
+                state.Result = finalResult ?? new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);
                 state.Event.Set();
             }
-           
+
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿// 
+
+﻿//
 //  Copyright 2013 PclUnit Contributors
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +29,14 @@ namespace PclUnit.Run
         Error = 4,
     }
 
-    public class Result:IJsonSerialize
+    public interface IReturnedResult {
+
+        ResultKind Kind { get; set; }
+        int AssertCount { get; set; }
+        string Output { get; set; }
+    }
+
+    public class Result:IJsonSerialize,IReturnedResult
     {
 
         public static Result Error(string platform, string message, DateTime startTime, DateTime endTime)
@@ -43,10 +51,21 @@ namespace PclUnit.Run
 
             return new Result(platform, ResultKind.Error, startTime, endTime, dummy);
         }
-       
+
         public Result()
         {
-            
+
+        }
+
+        public Result(string platform, DateTime startTime, DateTime endTime, IReturnedResult returnedResult)
+        {
+
+            Platform = platform;
+            StartTime = startTime;
+            EndTime = endTime;
+            Kind = returnedResult.Kind;
+            AssertCount = returnedResult.AssertCount;
+            Output = returnedResult.Output;
         }
 
         public Result(string platform, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
@@ -75,7 +94,7 @@ namespace PclUnit.Run
         public string ToListJson()
         {
              return String.Format("{{Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
-                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(), 
+                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
                                  StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt")
                                  );
         }
@@ -83,7 +102,7 @@ namespace PclUnit.Run
         public string ToItemJson()
         {
             return String.Format("{{Test:{6}, Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
-                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(), 
+                                 Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
                                  StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"),
                                  Test.ToItemJson()
                                  );

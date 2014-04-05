@@ -1,12 +1,12 @@
-// 
+//
 //  Copyright 2013 PclUnit Contributors
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -98,21 +98,21 @@ namespace PclUnit.Run
             if (Test.OfType<IgnoreException>().Any())
                 return ResultKind.Ignore;
 
-            if(Setup.Any() 
+            if(Setup.Any()
                || Teardown.Any()
                || Test.Any(it => !(it is ResultException)))
                 return ResultKind.Error;
-                
+
             if(Test.OfType<AssertionException>().Any())
                 return ResultKind.Fail;
 
-            if (!(helper is DummyHelper) && !Assert._globalStyleUsed && helper.Assert.AssertCount == 0)
+            if (!Assert._globalStyleUsed && helper.Assert.AssertCount == 0)
             {
                 return ResultKind.NoError;
             }
 
             return ResultKind.Success;
-           
+
         }
 
         public void WriteOutExceptions(IAssertionHelper helper)
@@ -133,7 +133,7 @@ namespace PclUnit.Run
                 foreach (var exception in Test)
                 {
                     WriteOutFullExceptionHelper(helper, exception);
-                } 
+                }
                 helper.Log.WriteLine(String.Empty);
             }
 
@@ -145,7 +145,7 @@ namespace PclUnit.Run
                     helper.Log.Indent();
                     WriteOutFullExceptionHelper(helper, exception);
                     helper.Log.UnIndent();
-                } 
+                }
             }
         }
 

@@ -89,8 +89,8 @@ Target "Build" (fun () ->
       "./PclUnit/Properties/", "cs", mainVer, mainInfoVer
       "./Contrib/PclUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
       "./Contrib/PclUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Nunit/Properties", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Xunit/Properties", "cs", mainVer, mainInfoVer
+      "./Contrib/PclUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/PclUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
       "./Runner/pclunit-runner/Properties/", "cs", runVer, runInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
