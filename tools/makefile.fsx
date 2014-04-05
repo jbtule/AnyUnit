@@ -122,10 +122,12 @@ Target "Build" (fun () ->
 Target "Test" (fun () ->
     trace " --- Testing app --- "
 
+    let buildMode = getBuildParamOrDefault "buildMode" "Release"
+
     let args =
       sprintf
-        "runConfig ./WhoTestsTheTesters/Tests/RunTests%s.yml -o ./deploy/build/test-output.json --noerror"
-        (if isMono then ".mono" else "")
+        "runConfig ./WhoTestsTheTesters/Tests/RunTests%s.yml -o ./deploy/build/test-output.json --noerror -d Configuration=%s"
+        (if isMono then ".mono" else "") buildMode
 
     directExec (fun info ->
                        info.FileName <- "./build/tools/pclunit-runner.exe"

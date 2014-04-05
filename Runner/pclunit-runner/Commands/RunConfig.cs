@@ -57,7 +57,7 @@ namespace pclunit_runner
                            v => _includes.Add(v));
             this.HasOption("exclude=", "Exclude specified assemblies, fixtures, tests or categories by uniquename",
                            v => _excludes.Add(v));
-            this.HasOption("define=", "Define config substitutions", v => _defines.Add(v));
+            this.HasOption("d|define=", "Define config substitutions", v => _defines.Add(v));
             HasAdditionalArguments(1, " configFile");
         }
 
@@ -96,15 +96,15 @@ namespace pclunit_runner
 
 
         private string Substitute(string original)
-        {            
-            
+        {
+
             var substitutions = _defines.Select(it => it.Split('=')).ToDictionary(k => k.First().ToLowerInvariant(), v => v.Last());
 
             MatchEvaluator replace =
-                match => 
+                match =>
                     {
                         var capt = match.Captures.OfType<Capture>().First();
-                        var key = capt.Value.ToLowerInvariant();
+                        var key = match.Groups[1].Value.ToLowerInvariant();
                         var env = Environment.GetEnvironmentVariable(key);
                         if (substitutions.ContainsKey(key))
                         {
@@ -114,7 +114,7 @@ namespace pclunit_runner
                         {
                             return env;
                         }
-                        return String.Format("%{0}%", capt.Value);
+                        return capt.Value;
                     };
 
 
