@@ -58,7 +58,7 @@ let version ver =
       | _,Some(x) -> ver + "0", ver + x + " (AppVeyor-CI)"
       | _,_       -> ver + "0", ver + "0 (Built Locally)"
 
-let mainVer, mainInfoVer = version "1.0.5."
+let mainVer, mainInfoVer = version "1.0.6."
 
 Target "Build" (fun () ->
     trace " --- Building the app --- "

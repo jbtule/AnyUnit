@@ -164,7 +164,7 @@ namespace PclUnit.Run
 
                 try
                 {
-                    var result = _invoke(_method, fixture, _methodArgs.Parameters);
+                    var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
                     if (result as bool? ?? false)

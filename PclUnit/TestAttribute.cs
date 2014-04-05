@@ -24,8 +24,7 @@ namespace PclUnit
 {
     public delegate IEnumerable<ParameterSet> TestParameterSetProducer(MethodInfo method);
 
-    public delegate object TestInvoker(MethodInfo method, object target, object[] args);
-
+    public delegate object TestInvoker(IAssertionHelper assetHelper, MethodInfo method, object target, object[] args);
 
     public class TestAttribute : TestAttributeBase
     {

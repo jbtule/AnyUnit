@@ -19,13 +19,15 @@ using System.Reflection;
 
 namespace PclUnit.Run.Attributes
 {
+
+
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false,
                    Inherited = true)]
     public abstract class TestAttributeBase : Attribute
     {
         public virtual TestInvoker TestInvoke
         {
-            get { return (method, target, args) => method.Invoke(target, args); }
+            get { return (helper, method, target, args) => method.Invoke(target, args); }
         }
 
         public virtual TestParameterSetProducer ParameterSets 

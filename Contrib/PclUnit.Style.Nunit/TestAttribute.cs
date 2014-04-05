@@ -92,7 +92,7 @@ namespace PclUnit.Style.Nunit
         {
             get
             {
-                return (method, target, args) =>
+                return (helper, method, target, args) =>
                            {
 
                                var ignore =method.GetCustomAttributes(typeof (IgnoreAttribute), true)
@@ -114,7 +114,7 @@ namespace PclUnit.Style.Nunit
                                        setUpMethod.Invoke(target, null);
                                    try //TryCatch Test Errors
                                    {
-                                       return base.TestInvoke(method, target, args);
+                                       return base.TestInvoke(helper, method, target, args);
                                    }
                                    catch (Exception ex)
                                    {

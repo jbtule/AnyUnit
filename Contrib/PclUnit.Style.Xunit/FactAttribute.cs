@@ -20,13 +20,13 @@ namespace PclUnit.Style.Xunit
             get
             {
 
-                return (m, t, a) =>
+                return (h, m, t, a) =>
                            {
 
                                if (!String.IsNullOrEmpty(Skip))
                                    throw new IgnoreException(Skip);
 
-                               return base.TestInvoke(m,t,a);
+                               return base.TestInvoke(h,m,t,a);
                            };
             }
         }
