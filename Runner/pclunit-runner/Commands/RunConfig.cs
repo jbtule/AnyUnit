@@ -74,7 +74,7 @@ namespace pclunit_runner
 
         private static int GetUnusedPort()
         {
-            var listener = new TcpListener(IPAddress.Any, 0);
+            var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
             var port = ((IPEndPoint)listener.LocalEndpoint).Port;
             listener.Stop();

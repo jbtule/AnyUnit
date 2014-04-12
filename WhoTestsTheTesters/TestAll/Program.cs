@@ -28,7 +28,7 @@ namespace TestAll
 
             File.Delete(testOutput);
 
-            var runnerArgs = String.Format("runConfig --noerror -o \"{0}\" \"{1}\"", testOutput, runTestsConfig);
+            var runnerArgs = String.Format("runConfig -d Configuration=Debug --noerror -o \"{0}\" \"{1}\"", testOutput, runTestsConfig);
             var runner = new Process()
                              {
                                  StartInfo = new ProcessStartInfo(pclrunner, runnerArgs)
