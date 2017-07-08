@@ -43,9 +43,10 @@ namespace PclUnit.Util
     public static class Utility
     {
 
+
         public static bool IsStatic(this Type type)
         {
-            return type.IsAbstract && type.IsSealed;
+            return type.GetTypeInfo().IsAbstract && type.GetTypeInfo().IsSealed;
         }
 
         public static string EscapeJson(this string json)

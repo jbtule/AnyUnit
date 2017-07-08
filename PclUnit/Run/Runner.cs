@@ -30,7 +30,7 @@ namespace PclUnit.Run
             get
             {
                 return a => a.GetExportedTypes()
-                             .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
+                             .Select(t => new Fixture(t.GetTypeInfo().GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
                              .Where(f => f.Attribute != null);
             }
         }
@@ -96,7 +96,7 @@ namespace PclUnit.Run
 
                 runner.Assemblies.Add(assemblyMeta);
 
-                var generators = assembly.GetCustomAttributes(true)
+                var generators = assembly.GetCustomAttributes()
                                          .OfType<TestFixtureDiscoveryAttributeBase>().ToList();
                 generators.Add(new DefaultDiscovery());
                 foreach (var generator in generators)
