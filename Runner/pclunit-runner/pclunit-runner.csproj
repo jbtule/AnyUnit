@@ -1,84 +1,34 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{D7AA16C2-E92A-40E5-A9A1-CCA13EA6D877}</ProjectGuid>
+        <TargetFramework>net45</TargetFramework>
+
     <OutputType>Exe</OutputType>
     <RootNamespace>pclunitrunner</RootNamespace>
     <AssemblyName>pclunit-runner</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\build\tools\</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
+
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Nancy.Serialization.JsonNet, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Serialization.JsonNet.0.22.2\lib\net40\Nancy.Serialization.JsonNet.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.1\lib\net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="Nancy">
-      <HintPath>..\..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
-    </Reference>
-    <Reference Include="Nancy.Hosting.Self">
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.22.2\lib\net40\Nancy.Hosting.Self.dll</HintPath>
-    </Reference>
-    <Reference Include="YamlDotNet">
-      <HintPath>..\..\packages\YamlDotNet.3.1.0\lib\net35\YamlDotNet.dll</HintPath>
-    </Reference>
-    <Reference Include="NDesk.Options">
-      <HintPath>..\..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
-    </Reference>
-    <Reference Include="ManyConsole">
-      <HintPath>..\..\packages\ManyConsole.0.4.2.17\lib\ManyConsole.dll</HintPath>
-    </Reference>
+
+    <PackageReference Include="ManyConsole" Version="0.4.2.17" />
+    <PackageReference Include="Nancy" Version="0.22.2"/>
+    <PackageReference Include="Nancy.Hosting.Self" Version="0.22.2"/>
+    <PackageReference Include="Nancy.Serialization.JsonNet" Version="0.22.2"/>
+    <PackageReference Include="NDesk.Options" Version="0.2.1"/>
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.1"/>
+    <PackageReference Include="YamlDotNet" Version="3.1.0"/>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='netcore1.0'">
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\VersionInfo.cs" />
-    <Compile Include="WebApi.cs" />
-    <Compile Include="PlatformResult.cs" />
-    <Compile Include="PrintResults.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="WriteResults.cs" />
-    <Compile Include="Yml.cs" />
-    <Compile Include="Commands\RunConfig.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
+
   <ItemGroup>
     <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
-      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>PclUnit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -86,11 +36,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
+
 </Project>
