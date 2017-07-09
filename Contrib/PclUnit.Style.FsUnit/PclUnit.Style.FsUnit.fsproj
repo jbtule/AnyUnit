@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>PclUnit.Style.FsUnit</RootNamespace>
     <AssemblyName>PclUnit.Style.FsUnit</AssemblyName>
+    <TargetFSharpCoreVersion>2.3.5.1</TargetFSharpCoreVersion>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
     <Name>PclUnit.Style.FsUnit</Name>
@@ -35,28 +36,8 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\PclUnit.Style.FsUnit.XML</DocumentationFile>
   </PropertyGroup>
-  <Choose>
-  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll')">
-  <ItemGroup>
-    <Reference Include="FSharp.Core">
-      <Name>FSharp.Core</Name>
-      <AssemblyName>FSharp.Core.dll</AssemblyName>
-    	<Private>False</Private>
-      <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable\FSharp.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  </When>
-  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll')">
-   <ItemGroup>
-    <Reference Include="FSharp.Core">
-      <Name>FSharp.Core</Name>
-      <AssemblyName>FSharp.Core.dll</AssemblyName>
-    	<Private>False</Private>
-      <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0\FSharp.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  </When>
- <Otherwise>
+
+
    <ItemGroup>
   <Reference Include="FSharp.Core">
     <Name>FSharp.Core</Name>
@@ -65,8 +46,7 @@
     <HintPath>..\..\packages\FSharp.Core.4.0.0.1\lib\portable-net45+sl5+netcore45\FSharp.Core.dll</HintPath>
   </Reference>
     </ItemGroup>
- </Otherwise>
-</Choose>
+
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="VersionInfo.fs" />
@@ -89,29 +69,9 @@
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
-  <Choose>
-  <When Condition=" $(FSharpBad) == true " >
-<PropertyGroup>
-    <FSharpTargetsPath>$(SolutionDir)\.fsharpbad\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
-  </PropertyGroup>
-  </When>
-  <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
-    <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
- </When>
- <When Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets')">
-    <PropertyGroup>
-      <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
-    </PropertyGroup>
-</When>
- <Otherwise>
-    <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
- </Otherwise>
-</Choose>
-<Import Project="$(FSharpTargetsPath)" />
+
+
+ <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets" />
 <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
 
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
