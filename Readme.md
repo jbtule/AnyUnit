@@ -1,4 +1,4 @@
-### Pcl Unit
+### AnyUnit
 Write Once, Test Everywhere
 
 [Portable Class Libraries][pcl] allow you to code to a single dll that can run on multiple .net or .net like platforms.
@@ -9,13 +9,13 @@ Write Once, Test Everywhere
 
 See [Pcl Unit Design and Philosophy][Design].
 
-####Layout
+#### Layout
  - **Contrib**: Basic Extensions on Assertion and Test Discovery ported from other Frameworks
  - **PclUnit**: Core Assertion, Discovery and Runner library
  - **Runner**: Aggregating runner and platform specfic runners
  - **WhoTestsTheTesters**: Code to test Tests
 
-####Status 
+#### Status 
 Windows: [![Build Status][WinImg]][WinLink] Mono: [![Build Status][MonoImg]][MonoLink] 
 
 Beta Version
@@ -35,8 +35,8 @@ Beta Version
 [pcl]:http://msdn.microsoft.com/en-us/library/gg597391.aspx
 
 
-[WinImg]:https://ci.appveyor.com/api/projects/status/g9mq7u8hu4k29ewf/branch/master
-[WinLink]:https://ci.appveyor.com/project/jbtule/pclunit
+[WinImg]:https://ci.appveyor.com/api/projects/status/l8h3jw6c7d332y02?svg=true
+[WinLink]:https://ci.appveyor.com/project/jbtule/anyunit
 [JetBrains]:http://www.jetbrains.com/
 [CodeBetter]:http://codebetter.com/
 [MonoImg]:https://travis-ci.org/jbtule/PclUnit.png?branch=master
