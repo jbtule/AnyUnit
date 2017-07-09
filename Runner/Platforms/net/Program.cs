@@ -25,8 +25,13 @@ using ManyConsole;
 
 using SatelliteRunner.Shared;
 
-
+#if NET40
+namespace net40_runner
+#elif NET45
+namespace net45_runner
+#else
 namespace net_runner
+#endif
 {
     class Program
     {

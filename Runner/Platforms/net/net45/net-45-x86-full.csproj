@@ -7,7 +7,7 @@
     <ProjectGuid>{E2FF9461-B37A-4A65-9108-CE8ADCC04B0D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>net_40_x86_full</RootNamespace>
+    <RootNamespace>net45_runner</RootNamespace>
     <AssemblyName>net-45-x86-full</AssemblyName>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -39,6 +39,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

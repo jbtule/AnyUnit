@@ -7,7 +7,7 @@
     <ProjectGuid>{42EFA2D2-EAEA-499E-A38E-A3A5B5B722C9}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>net_runner</RootNamespace>
+    <RootNamespace>net45_runner</RootNamespace>
     <AssemblyName>net-45-x64-full</AssemblyName>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -39,6 +39,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ManyConsole">

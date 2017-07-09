@@ -7,7 +7,7 @@
     <ProjectGuid>{96409D0A-2D64-40D3-A932-A6A7927CE1EB}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>net_runner</RootNamespace>
+    <RootNamespace>net40_runner</RootNamespace>
     <AssemblyName>net-40-x86-full</AssemblyName>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
@@ -36,6 +36,9 @@
     <DefineConstants>TRACE;NET40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+    <PropertyGroup>
+    <DefineConstants>$(DefineConstants);NET40</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ManyConsole">

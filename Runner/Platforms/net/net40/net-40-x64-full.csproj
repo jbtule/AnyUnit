@@ -7,7 +7,7 @@
     <ProjectGuid>{E4901E9B-CB20-4377-AF40-11D151A37591}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>net_runner</RootNamespace>
+    <RootNamespace>net40_runner</RootNamespace>
     <AssemblyName>net-40-x64-full</AssemblyName>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
