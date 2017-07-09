@@ -86,9 +86,9 @@
     <EmbeddedResource Include="xap\sl-50-xap.xap" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

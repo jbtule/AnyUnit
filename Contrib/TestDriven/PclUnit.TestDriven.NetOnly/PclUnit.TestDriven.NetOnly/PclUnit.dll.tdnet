@@ -1,5 +1,0 @@
-﻿<TestRunner>
-	<FriendlyName>PclUnit {0}.{1}.{2}.{3}</FriendlyName>
-	<AssemblyPath>PclUnit.TestDriven.NetOnly.dll</AssemblyPath>
-	<TypeName>PclUnit.TestDriven.NetOnly.PclUnitRunner</TypeName>
-</TestRunner>

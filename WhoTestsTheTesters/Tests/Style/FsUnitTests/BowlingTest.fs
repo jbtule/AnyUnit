@@ -1,9 +1,9 @@
 ﻿//Test adapted from FSUnit examples https://github.com/fsharp/FsUnit
 module BowlingGame.``A game of bowling``
 
-open PclUnit
-open PclUnit.Style.Xunit
-open PclUnit.Style.FsUnit
+open AnyUnit
+open AnyUnit.Style.Xunit
+open AnyUnit.Style.FsUnit
 
 [<assembly: XunitStyle>] 
 do ()

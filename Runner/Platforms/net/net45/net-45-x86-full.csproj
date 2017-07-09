@@ -42,6 +42,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -88,9 +90,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -9,12 +9,12 @@ open Fake
 open Fake.AssemblyInfoFile
 
 let msbuild15ProjFiles =
-   !! "./PclUnit/*.csproj" //PclUnit
-   ++ "./Runner/pclunit-runner/*.csproj" //AggregateRunner
+   !! "./AnyUnit/*.csproj" //AnyUnit
+   ++ "./Runner/anyunit-runner/*.csproj" //AggregateRunner
 
 let projFiles =
     msbuild15ProjFiles
-    ++ "./Contrib/PclUnit.*/*.*proj" //Styles
+    ++ "./Contrib/AnyUnit.*/*.*proj" //Styles
     ++ "./Runner/Platforms/**/*-xap*.csproj" //environment first
     ++ "./Runner/Platforms/**/*.csproj" //platform runners
     -- if isMono then
@@ -89,10 +89,10 @@ Target "Build" (fun () ->
         | ___ -> failwith (ext + " is not expected")
 
     [
-      "./Contrib/PclUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/AnyUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/AnyUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
+      "./Contrib/AnyUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
+      "./Contrib/AnyUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
     ] |> Seq.iter createVersionInfo
@@ -117,7 +117,7 @@ Target "Build" (fun () ->
     projFiles
       |> Seq.iter (build setParams)
 
-    !! "./Runner/pclunit-runner/bin/Release/net451/*" |> CopyFiles "./build/tools/"
+    !! "./Runner/anyunit-runner/bin/Release/net451/*" |> CopyFiles "./build/tools/"
 
     "./deploy/platforms.yml" |> CopyFile "./build/tools/platforms.yml"
 )
@@ -133,7 +133,7 @@ Target "Test" (fun () ->
         (if isMono then ".mono" else "") buildMode
 
     directExec (fun info ->
-                       info.FileName <- "./build/tools/pclunit-runner.exe"
+                       info.FileName <- "./build/tools/anyunit-runner.exe"
                        info.Arguments <- args) |> ignore
 
     if not <| directExec (fun info ->

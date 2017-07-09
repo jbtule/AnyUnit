@@ -39,13 +39,13 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\..\..\Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj">
+    <ProjectReference Include="..\..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
       <Project>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</Project>
-      <Name>PclUnit.Constraints</Name>
+      <Name>AnyUnit.Constraints</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

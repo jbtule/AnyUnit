@@ -47,21 +47,21 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
       <Project>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</Project>
-      <Name>PclUnit.Constraints</Name>
+      <Name>AnyUnit.Constraints</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Style.Nunit\PclUnit.Style.Nunit.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj">
       <Project>{DBD9FD82-E254-43B4-9D69-C398ACEFB45B}</Project>
-      <Name>PclUnit.Style.Nunit</Name>
+      <Name>AnyUnit.Style.Nunit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
       <Project>{57504543-DC1D-4A8D-8E70-4464C296512C}</Project>
-      <Name>PclUnit.Style.Xunit</Name>
+      <Name>AnyUnit.Style.Xunit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj">
       <Project>{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}</Project>

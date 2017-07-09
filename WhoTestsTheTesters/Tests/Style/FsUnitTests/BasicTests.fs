@@ -1,8 +1,8 @@
 ﻿//Tests adapted from FSUnit examples https://github.com/fsharp/FsUnit
 namespace FsUnitTests
 
-open PclUnit
-open PclUnit.Style.FsUnit
+open AnyUnit
+open AnyUnit.Style.FsUnit
 
 [<TestFixture>]
 type BasicTests () =

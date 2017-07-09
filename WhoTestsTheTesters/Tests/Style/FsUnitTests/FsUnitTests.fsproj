@@ -52,23 +52,23 @@
     <Compile Include="BowlingTest.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj">
-      <Name>PclUnit.Constraints</Name>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
+      <Name>AnyUnit.Constraints</Name>
       <Project>{7251d9b8-dd2a-4dca-a568-c53772081ce5}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Contrib\PclUnit.Style.FsUnit\PclUnit.Style.FsUnit.fsproj">
-      <Name>PclUnit.Style.FsUnit</Name>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FsUnit\AnyUnit.Style.FsUnit.fsproj">
+      <Name>AnyUnit.Style.FsUnit</Name>
       <Project>{44c176a6-c439-4617-b880-f2f4e55f54f1}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj">
-      <Name>PclUnit.Style.Xunit</Name>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
+      <Name>AnyUnit.Style.Xunit</Name>
       <Project>{57504543-dc1d-4a8d-8e70-4464c296512c}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\PclUnit\PclUnit.csproj">
-      <Name>PclUnit</Name>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj">
+      <Name>AnyUnit</Name>
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
       <Private>True</Private>
     </ProjectReference>

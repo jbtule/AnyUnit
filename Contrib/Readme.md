@@ -1,14 +1,14 @@
 ## Contrib
 
-**PclUnit.Constraints**: Port of NUnit Constraint based Assertions
+**AnyUnit.Constraints**: Port of NUnit Constraint based Assertions
 
-    Portions Copyright © 2002-2012 Charlie Poole or Copyright © 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright © 2000-2002 Philip A. Craig`
+    Portions Copyright ï¿½ 2002-2012 Charlie Poole or Copyright ï¿½ 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright ï¿½ 2000-2002 Philip A. Craig`
 
-**PclUnit.Style.Nunit**: Port of NUnit Test Discovery Attributes,
+**AnyUnit.Style.Nunit**: Port of NUnit Test Discovery Attributes,
 
-    Portions Copyright © 2002-2012 Charlie Poole or Copyright © 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright © 2000-2002 Philip A. Craig`
+    Portions Copyright ï¿½ 2002-2012 Charlie Poole or Copyright ï¿½ 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright ï¿½ 2000-2002 Philip A. Craig`
 
-**PclUnit.Style.Xunit**: Port of xUnit Test Discovery Attributes and Assertions
+**AnyUnit.Style.Xunit**: Port of xUnit Test Discovery Attributes and Assertions
 
     Portions Copyright 2013 Outercurve Foundation
     

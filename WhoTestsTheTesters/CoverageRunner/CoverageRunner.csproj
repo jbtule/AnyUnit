@@ -53,25 +53,25 @@
    </Reference>
  </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Constraints\PclUnit.Constraints.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
       <Project>{7251d9b8-dd2a-4dca-a568-c53772081ce5}</Project>
-      <Name>PclUnit.Constraints</Name>
+      <Name>AnyUnit.Constraints</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Style.FsUnit\PclUnit.Style.FsUnit.fsproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.FsUnit\AnyUnit.Style.FsUnit.fsproj">
       <Project>{44c176a6-c439-4617-b880-f2f4e55f54f1}</Project>
-      <Name>PclUnit.Style.FsUnit</Name>
+      <Name>AnyUnit.Style.FsUnit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Style.Nunit\PclUnit.Style.Nunit.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj">
       <Project>{dbd9fd82-e254-43b4-9d69-c398acefb45b}</Project>
-      <Name>PclUnit.Style.Nunit</Name>
+      <Name>AnyUnit.Style.Nunit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\PclUnit.Style.Xunit\PclUnit.Style.Xunit.csproj">
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
       <Project>{57504543-dc1d-4a8d-8e70-4464c296512c}</Project>
-      <Name>PclUnit.Style.Xunit</Name>
+      <Name>AnyUnit.Style.Xunit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj">
       <Project>{07944fc5-debb-478f-a464-ad62ca4dd7a0}</Project>

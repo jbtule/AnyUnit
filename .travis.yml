@@ -4,7 +4,7 @@
 language: csharp
 os: osx
 
-solution: PclUnit.mono.sln
+solution: AnyUnit.mono.sln
 
 env:
   global:

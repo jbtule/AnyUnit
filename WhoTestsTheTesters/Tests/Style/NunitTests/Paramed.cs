@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using PclUnit.Style.Nunit;
+using AnyUnit.Style.Nunit;
 
 namespace NunitTests
 {
