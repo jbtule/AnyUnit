@@ -150,9 +150,10 @@ Target "RestorePackages" (fun () ->
       |> Seq.iter (RestorePackage id)
 
     
-    let restoreProj = RestoreMSSolutionPackages (fun p ->
-         { p with
-             Retries = 4 })
+    let restoreProj = fun args ->
+                   directExec (fun info ->
+                       info.FileName <- "msbuild"
+                       info.Arguments <- "/t:restore " + args) |> ignore
     
     msbuild15ProjFiles 
       |> Seq.iter restoreProj
