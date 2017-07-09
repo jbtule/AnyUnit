@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using ManyConsole;
+using ManyConsole.CommandLineUtils;
 
 namespace pclunit_runner
 {
