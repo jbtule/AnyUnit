@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45;portable40-net40+sl5+win8+wp8</TargetFrameworks>
+
+   <Authors />
+    <Copyright>Copyright 2013-2017 Jay Tuley</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>sn.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>False</DelaySign>
+    <Version>1.0.0-alpha</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wp8'">

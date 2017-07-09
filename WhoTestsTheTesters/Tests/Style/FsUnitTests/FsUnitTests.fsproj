@@ -59,7 +59,7 @@
 <Reference Include="FSharp.Core">
   <Name>FSharp.Core</Name>
   <AssemblyName>FSharp.Core.dll</AssemblyName>
-  <HintPath>..\..\..\..\packages\FSharp.Core.Open.FS30.3.1.1.5\lib\portable-net45+sl5+win8\FSharp.Core.dll</HintPath>
+  <HintPath>..\..\..\..\packages\FSharp.Core.4.1.17\lib\portable-net45+sl5+netcore45\FSharp.Core.dll</HintPath>
 </Reference>
   </ItemGroup>
 </Otherwise>
