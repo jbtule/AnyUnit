@@ -146,6 +146,7 @@ Target "Test" (fun () ->
 Target "RestorePackages" (fun () ->
     trace " --- Restore Packages --- "
     !! "./**/packages.config"
+    ++ "./**/packages.*.config"
     -- "./tools/*"
       |> Seq.iter (RestorePackage id)
 
