@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AnyUnit.Constraints.Pieces;
+using AnyUnit.Util;
+using System.Reflection;
 
 namespace AnyUnit.Constraints
 {
@@ -32,11 +34,11 @@ namespace AnyUnit.Constraints
             ExcludeFromStack = new List<string> { string.Format("at {0}.", thisType.FullName)};
         }
 
-        public static void That<T>(this IAssert assert, ref T actual, IResolveConstraint expression, string message = null)
+        public static void That<T>(this IAssert assert, T actual, IResolveConstraint expression, string message = null)
         {
             Constraint constraint = expression.Resolve();
 
-            if (constraint.Matches(ref actual))
+            if (constraint.Matches(actual))
             {
                 assert.Okay();
                 return;

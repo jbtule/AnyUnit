@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -61,7 +62,7 @@ namespace AnyUnit.Style.Xunit
                 {
                     //reflection set IUseFixture
                     var useType = t.GetInterfaces()
-                        .FirstOrDefault(it => it.IsGenericType && it.GetGenericTypeDefinition() == typeof(IUseFixture<>));
+                        .FirstOrDefault(it => it.GetTypeInfo().IsGenericType && it.GetGenericTypeDefinition() == typeof(IUseFixture<>));
 
                     if (useType != null)
                     {
@@ -79,7 +80,7 @@ namespace AnyUnit.Style.Xunit
 
         public override IList<string> GetCategories(Type type)
         {
-            return (type.GetCustomAttributes(typeof (TraitAttribute), true)
+            return (type.GetTypeInfo().GetCustomAttributes(typeof (TraitAttribute), true)
                         .OfType<TraitAttribute>()
                         .Where(trait => trait.Name == "Category")
                         .Select(trait => trait.Value)).ToList();
@@ -87,7 +88,7 @@ namespace AnyUnit.Style.Xunit
 
         public override string GetDescription(Type type)
         {
-            return (type.GetCustomAttributes(typeof(TraitAttribute), false)
+            return (type.GetTypeInfo().GetCustomAttributes(typeof(TraitAttribute), false)
                            .OfType<TraitAttribute>()
                            .Where(trait => trait.Name == "DisplayName")
                            .Select(trait => trait.Value)).FirstOrDefault() ?? String.Empty;

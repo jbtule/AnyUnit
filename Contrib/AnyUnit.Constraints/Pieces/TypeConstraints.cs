@@ -5,7 +5,9 @@
 // ****************************************************************
 
 using System;
+using System.Reflection;
 
+using AnyUnit.Util;
 namespace AnyUnit.Constraints.Pieces
 {
     /// <summary>
@@ -164,7 +166,7 @@ namespace AnyUnit.Constraints.Pieces
         public override bool Matches(object actual)
         {
             this.actual = actual;
-            return actual != null && actual.GetType().IsAssignableFrom(expectedType);
+            return actual != null && actual.GetType().GetTypeInfo().IsAssignableFrom(expectedType.GetTypeInfo());
         }
 
         /// <summary>
@@ -198,7 +200,7 @@ namespace AnyUnit.Constraints.Pieces
         public override bool Matches(object actual)
         {
             this.actual = actual;
-            return actual != null && expectedType.IsAssignableFrom(actual.GetType());
+            return actual != null && expectedType.GetTypeInfo().IsAssignableFrom(actual.GetType().GetTypeInfo());
         }
 
         /// <summary>

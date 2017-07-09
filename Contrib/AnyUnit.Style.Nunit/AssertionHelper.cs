@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using AnyUnit.Constraints.Pieces;
 using AnyUnit.Constraints;
+
 namespace AnyUnit.Style.Nunit
 {
     public class AssertionHelper:AnyUnit.AssertionHelper
@@ -98,9 +99,9 @@ namespace AnyUnit.Style.Nunit
         /// </summary>
         /// <param name="constraint">A Constraint to be applied</param>
         /// <param name="actual">The actual value to test</param>
-        public void Expect<T>(ref T actual, IResolveConstraint constraint)
+        public void Expect<T>(T actual, IResolveConstraint constraint)
         {
-            Assert.That(ref actual, constraint.Resolve(), null);
+            Assert.That(actual, constraint.Resolve(), null);
         }
 
         /// <summary>
@@ -110,9 +111,9 @@ namespace AnyUnit.Style.Nunit
         /// <param name="constraint">A Constraint to be applied</param>
         /// <param name="actual">The actual value to test</param>
         /// <param name="message">The message that will be displayed on failure</param>
-        public void Expect<T>(ref T actual, IResolveConstraint constraint, string message)
+        public void Expect<T>(T actual, IResolveConstraint constraint, string message)
         {
-            Assert.That(ref actual, constraint.Resolve(), message);
+            Assert.That(actual, constraint.Resolve(), message);
         }
 
         /// <summary>
@@ -123,9 +124,9 @@ namespace AnyUnit.Style.Nunit
         /// <param name="actual">The actual value to test</param>
         /// <param name="message">The message that will be displayed on failure</param>
         /// <param name="args">Arguments to be used in formatting the message</param>
-        public void Expect<T>(ref T actual, IResolveConstraint expression, string message, params object[] args)
+        public void Expect<T>(T actual, IResolveConstraint expression, string message, params object[] args)
         {
-            Assert.That(ref actual, expression, String.Format(message,args));
+            Assert.That(actual, expression, String.Format(message,args));
         }
 
         /// <summary>

@@ -1,48 +1,37 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="FSharp.NET.Sdk;Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>c5dfe8ac-6b2d-462d-af0a-086a13f6eaf7</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>FsUnitTests</RootNamespace>
-    <AssemblyName>FsUnitTests</AssemblyName>
-    <TargetFSharpCoreVersion>2.3.5.1</TargetFSharpCoreVersion>
-
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
-    <Name>FsUnitTests</Name>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\FsUnitTests.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\FsUnitTests.XML</DocumentationFile>
+    <TargetFrameworks>netstandard1.6;portable40-net45+sl5+win8</TargetFrameworks>
   </PropertyGroup>
 
- <ItemGroup>
-  <Reference Include="FSharp.Core">
-    <Name>FSharp.Core</Name>
-    <AssemblyName>FSharp.Core.dll</AssemblyName>
-    <HintPath>..\..\..\..\packages\FSharp.Core.4.0.0.1\lib\portable-net45+sl5+netcore45\FSharp.Core.dll</HintPath>
-  </Reference>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='portable40-net45+sl5+win8'">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+     <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
+     <DefineConstants>$(DefineConstants);PORTABLE47</DefineConstants>
+  </PropertyGroup>
+
+   <ItemGroup Condition="'$(TargetFramework)'=='portable40-net45+sl5+win8'">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.1.*" />
+    <PackageReference Include="FSharp.Compiler.Tools" Version="4.1.*"
+    />
+    <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" 
+    />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.1.*" />
+    <PackageReference Include="FSharp.Compiler.Tools" Version="4.1.*"
+    />
+    <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" 
+    />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,45 +40,13 @@
     <Compile Include="LightBulbTest.fs" />
     <Compile Include="BowlingTest.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
-      <Name>AnyUnit.Constraints</Name>
-      <Project>{7251d9b8-dd2a-4dca-a568-c53772081ce5}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FsUnit\AnyUnit.Style.FsUnit.fsproj">
-      <Name>AnyUnit.Style.FsUnit</Name>
-      <Project>{44c176a6-c439-4617-b880-f2f4e55f54f1}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
-      <Name>AnyUnit.Style.Xunit</Name>
-      <Project>{57504543-dc1d-4a8d-8e70-4464c296512c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj">
-      <Name>AnyUnit</Name>
-      <Project>{999019d5-60c5-4ce6-a070-28b197c44d2a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
 
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj"/>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FsUnit\AnyUnit.Style.FsUnit.fsproj"/>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj"/>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj"/>
   </ItemGroup>
+
+
 </Project>

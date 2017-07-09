@@ -22,6 +22,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using AnyUnit.Style.Xunit.Exceptions;
 using AnyUnit.Style.Xunit.Util;
+using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -955,7 +957,7 @@ namespace AnyUnit.Style.Xunit
                 Type type = typeof(T);
 
                 // Null?
-                if (!type.IsValueType || (type.IsGenericType && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Nullable<>))))
+                if (!type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Nullable<>))))
                 {
                     if (Object.Equals(x, default(T)))
                         return Object.Equals(y, default(T));
@@ -1023,7 +1025,7 @@ namespace AnyUnit.Style.Xunit
                 Type type = typeof(T);
 
                 // Null?
-                if (!type.IsValueType || (type.IsGenericType && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Nullable<>))))
+                if (!type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Nullable<>))))
                 {
                     if (Equals(x, default(T)))
                     {

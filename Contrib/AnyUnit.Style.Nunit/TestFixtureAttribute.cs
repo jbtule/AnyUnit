@@ -38,7 +38,7 @@ namespace AnyUnit.Style.Nunit
         {
             get
             {
-                return type => type.GetCustomAttributes(typeof (TestFixtureAttribute), true)
+                return type => type.GetTypeInfo().GetCustomAttributes(typeof (TestFixtureAttribute), true)
                                    .OfType<TestFixtureAttribute>().Select(a => new ParameterSet(a.Arguments)).ToList();
             }
         }
@@ -50,7 +50,7 @@ namespace AnyUnit.Style.Nunit
 
                 return (type, args) =>
                            {
-                               var ignore = type.GetCustomAttributes(typeof(IgnoreAttribute), true)
+                               var ignore = type.GetTypeInfo().GetCustomAttributes(typeof(IgnoreAttribute), true)
                               .OfType<IgnoreAttribute>()
                               .FirstOrDefault();
 
@@ -67,7 +67,7 @@ namespace AnyUnit.Style.Nunit
         public override IList<string> GetCategories(Type type)
         {
             var cats =Category.SafeSplit(",").ToList();
-            cats.AddRange(type.GetCustomAttributes(typeof(CategoryAttribute), true)
+            cats.AddRange(type.GetTypeInfo().GetCustomAttributes(typeof(CategoryAttribute), true)
                 .OfType<CategoryAttribute>()
                 .Select(trait => trait.Name));
 
@@ -76,7 +76,7 @@ namespace AnyUnit.Style.Nunit
 
         public override string GetDescription(Type type)
         {
-            return Description ?? type.GetCustomAttributes(typeof(DescriptionAttribute), true)
+            return Description ?? type.GetTypeInfo().GetCustomAttributes(typeof(DescriptionAttribute), true)
                                 .OfType<DescriptionAttribute>()
                                 .Select(trait => trait.Description)
                                 .FirstOrDefault();

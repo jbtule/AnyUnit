@@ -1,77 +1,38 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DBD9FD82-E254-43B4-9D69-C398ACEFB45B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AnyUnit.Style.Nunit</RootNamespace>
-    <AssemblyName>AnyUnit.Style.Nunit</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile136</TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworks>netstandard1.3;portable40-net40+sl5+win8+wp8</TargetFrameworks>
+
+   <Authors />
+    <Copyright>Copyright 2013-2017 Jay Tuley</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  
+    <Version>1.0.0-alpha</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wp8'">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+     <TargetFrameworkProfile>Profile136</TargetFrameworkProfile>
+     <DefineConstants>$(DefineConstants);PORTABLE136</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
-      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>AnyUnit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
-      <Project>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</Project>
-      <Name>AnyUnit.Constraints</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssertionHelper.cs" />
-    <Compile Include="CategoryAttribute.cs" />
-    <Compile Include="DescriptionAttribute.cs" />
-    <Compile Include="IgnoreAttribute.cs" />
-    <Compile Include="Pieces\Randomizer.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\VersionInfo.cs" />
 
-    <Compile Include="RandomAttribute.cs" />
-    <Compile Include="RangeAttribute.cs" />
-    <Compile Include="SetUpAttribute.cs" />
-    <Compile Include="TearDownAttribute.cs" />
-    <Compile Include="TestAttribute.cs" />
-    <Compile Include="TestCaseAttribute.cs" />
-    <Compile Include="TestFixtureAttribute.cs" />
-    <Compile Include="TimeoutAttribute.cs" />
-    <Compile Include="ValuesAttribute.cs" />
+  <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.3'">
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
+    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+
+  <ItemGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wp8'">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+      <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj"/>
+  </ItemGroup>
+
+
 </Project>

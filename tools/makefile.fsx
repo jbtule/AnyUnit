@@ -11,17 +11,18 @@ open Fake.AssemblyInfoFile
 let msbuild15ProjFiles =
    !! "./AnyUnit/*.csproj" //AnyUnit
    ++ "./Runner/anyunit-runner/*.csproj" //AggregateRunner
-
+   ++ "./Contrib/AnyUnit.*/*.*proj" //Styles
+   ++ "./WhoTestsTheTesters/**/*.fsproj"
 let projFiles =
     msbuild15ProjFiles
-    ++ "./Contrib/AnyUnit.*/*.*proj" //Styles
+  
     ++ "./Runner/Platforms/**/*-xap*.csproj" //environment first
     ++ "./Runner/Platforms/**/*.csproj" //platform runners
     -- if isMono then
           "./Runner/Platforms/sl/**/*.csproj" //sliverlight runners
        else
           "./runner/Platforms/mono*/**/*.csproj" //mono runners
-    ++ "./WhoTestsTheTesters/**/*.*proj"
+    ++ "./WhoTestsTheTesters/**/*.csproj"
     -- if isMono then
           "./WhoTestsTheTesters/Tests/Silverlight*/*.csproj"
        else
@@ -89,10 +90,6 @@ Target "Build" (fun () ->
         | ___ -> failwith (ext + " is not expected")
 
     [
-      "./Contrib/AnyUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/AnyUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
-      "./Contrib/AnyUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/AnyUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
     ] |> Seq.iter createVersionInfo
@@ -103,7 +100,7 @@ Target "Build" (fun () ->
     let buildMode = getBuildParamOrDefault "buildMode" "Release"
     let setParams defaults =
             { defaults with
-                Verbosity = Some(Quiet)
+                Verbosity = Some(MSBuildVerbosity.Quiet)
                 Targets = ["Build"]
                 Properties =
                     [

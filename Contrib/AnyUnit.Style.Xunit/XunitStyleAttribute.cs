@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using AnyUnit.Run;
 using AnyUnit.Util;
+using System.Reflection;
 
 namespace AnyUnit.Style.Xunit
 {
