@@ -8,10 +8,13 @@
 open Fake
 open Fake.AssemblyInfoFile
 
+let msbuild15ProjFiles =
+   !! "./PclUnit/*.csproj" //PclUnit
+   ++ "./Runner/pclunit-runner/*.csproj" //AggregateRunner
+
 let projFiles =
-  !! "./PclUnit/*.csproj" //PclUnit
+    msbuild15ProjFiles
     ++ "./Contrib/PclUnit.*/*.*proj" //Styles
-    ++ "./Runner/pclunit-runner/*.csproj" //AggregateRunner
     ++ "./Runner/Platforms/**/*-xap*.csproj" //environment first
     ++ "./Runner/Platforms/**/*.csproj" //platform runners
     -- if isMono then
@@ -86,12 +89,10 @@ Target "Build" (fun () ->
         | ___ -> failwith (ext + " is not expected")
 
     [
-      "./PclUnit/Properties/", "cs", mainVer, mainInfoVer
       "./Contrib/PclUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
       "./Contrib/PclUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
       "./Contrib/PclUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
       "./Contrib/PclUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
-      "./Runner/pclunit-runner/Properties/", "cs", runVer, runInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
     ] |> Seq.iter createVersionInfo
@@ -115,6 +116,8 @@ Target "Build" (fun () ->
 
     projFiles
       |> Seq.iter (build setParams)
+
+    !! "./Runner/pclunit-runner/bin/Release/net451/*" |> CopyFiles "./build/tools/"
 
     "./deploy/platforms.yml" |> CopyFile "./build/tools/platforms.yml"
 )
@@ -145,6 +148,15 @@ Target "RestorePackages" (fun () ->
     !! "./**/packages.config"
     -- "./tools/*"
       |> Seq.iter (RestorePackage id)
+
+    
+    let restoreProj = RestoreMSSolutionPackages (fun p ->
+         { p with
+             Retries = 4 })
+    
+    msbuild15ProjFiles 
+      |> Seq.iter restoreProj
+    
 )
 
 Target "Deploy:Build" (fun () ->

@@ -43,6 +43,26 @@ namespace PclUnit.Util
     public static class Utility
     {
 
+#if PORTABLE136
+
+        public static Type GetTypeInfo(this Type type)
+        {
+            return type;
+        }
+
+        public static MethodInfo GetMethodInfo(this Delegate del)
+        {
+            return del.Method;
+        }
+
+        public static IEnumerable<Attribute> GetCustomAttributes(this Assembly assembly){
+            return assembly.GetCustomAttributes(true).OfType<Attribute>();
+        }
+
+
+#endif
+
+
 
         public static bool IsStatic(this Type type)
         {

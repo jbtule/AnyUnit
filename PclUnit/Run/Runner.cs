@@ -96,8 +96,8 @@ namespace PclUnit.Run
 
                 runner.Assemblies.Add(assemblyMeta);
 
-                var generators = assembly.GetCustomAttributes()
-                                         .OfType<TestFixtureDiscoveryAttributeBase>().ToList();
+                var generators = assembly.GetCustomAttributes().OfType<TestFixtureDiscoveryAttributeBase>().ToList();
+
                 generators.Add(new DefaultDiscovery());
                 foreach (var generator in generators)
                 {

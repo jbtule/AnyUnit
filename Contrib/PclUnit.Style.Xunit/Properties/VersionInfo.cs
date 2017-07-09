@@ -6,6 +6,8 @@ using System.Reflection;
 [assembly: AssemblyInformationalVersionAttribute("1.0.6.0 (Built Locally)")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "1.0.6.0";
+        internal const System.String AssemblyVersion = "1.0.6.0";
+        internal const System.String AssemblyFileVersion = "1.0.6.0";
+        internal const System.String AssemblyInformationalVersion = "1.0.6.0 (Built Locally)";
     }
 }

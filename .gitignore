@@ -150,3 +150,7 @@ $RECYCLE.BIN/
 .DS_Store
 
 *.DotSettings
+
+.nuget/NuGet.exe
+
+**/.fake/*

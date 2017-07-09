@@ -1,14 +1,24 @@
-language: objective-c
+# Travis-CI Build for dynamitey 
+# see travis-ci.org for details
+
+language: csharp
+os: osx
+
+solution: PclUnit.mono.sln
 
 env:
   global:
     - EnableNuGetPackageRestore=true
-  matrix:
-    - MONO_VERSION="3.2.7"
+    
+mono: beta
+dotnet: 1.0.4
 
-before_install:
-  - wget "http://download.xamarin.com/MonoFrameworkMDK/Macx86/MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg"
-  - sudo installer -pkg "MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg" -target /
+install:
+  - msbuild /ver
 
 script:
   - ./build.fsx
+
+branches:
+  only:
+    - master
