@@ -37,6 +37,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+   <PropertyGroup>
+    <DefineConstants>$(DefineConstants);NET40</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ManyConsole">
       <HintPath>..\..\..\..\packages\ManyConsole.0.4.2.17\lib\ManyConsole.dll</HintPath>
