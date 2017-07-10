@@ -13,6 +13,8 @@ let msbuild15ProjFiles =
    ++ "./Runner/anyunit-runner/*.csproj" //AggregateRunner
    ++ "./Contrib/AnyUnit.*/*.*proj" //Styles
    ++ "./WhoTestsTheTesters/**/*.fsproj"
+   ++ "./WhoTestsTheTesters/**/ConventionTestProcessor.csproj"
+   ++ "./WhoTestsTheTesters/**/CoverageRunner.csproj"
 let projFiles =
     msbuild15ProjFiles
   
@@ -134,7 +136,7 @@ Target "Test" (fun () ->
                        info.Arguments <- args) |> ignore
 
     if not <| directExec (fun info ->
-                       info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/ConventionTestProcessor.exe"
+                       info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/net40/ConventionTestProcessor.exe"
                        info.Arguments <- "./deploy/build/test-output.json") then
        failwith "Tests Failed"
 
