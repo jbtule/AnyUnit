@@ -427,7 +427,6 @@ namespace AnyUnit.Constraints.Pieces
             return (ExactTypeConstraint)this.Append(new ExactTypeConstraint(typeof(T)));
         }
 
-
         #endregion
 
         #region InstanceOf
@@ -491,7 +490,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return (AssignableFromConstraint)this.Append(new AssignableFromConstraint(typeof(T)));
         }
-
 
         #endregion
 

@@ -7,7 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
+
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -35,7 +35,6 @@ namespace AnyUnit.Constraints.Pieces
             return new ComparerAdapter(comparer);
         }
 
-
         /// <summary>
         /// Returns a ComparisonAdapter that wraps an IComparer&lt;T&gt;
         /// </summary>
@@ -51,7 +50,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new ComparisonAdapterForComparison<T>(comparer);
         }
-
 
         /// <summary>
         /// Compares two objects

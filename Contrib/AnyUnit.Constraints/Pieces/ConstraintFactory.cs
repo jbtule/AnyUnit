@@ -367,7 +367,6 @@ namespace AnyUnit.Constraints.Pieces
             return new ExactTypeConstraint(expectedType);
         }
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual
         /// value is of the exact type supplied as an argument.
@@ -376,7 +375,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new ExactTypeConstraint(typeof(T));
         }
-#endif
 
         #endregion
 
@@ -391,7 +389,6 @@ namespace AnyUnit.Constraints.Pieces
             return new InstanceOfTypeConstraint(expectedType);
         }
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is of the type supplied as an argument or a derived type.
@@ -400,7 +397,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new InstanceOfTypeConstraint(typeof(T));
         }
-#endif
 
         /// <summary>
         /// Returns a constraint that tests whether the actual value
@@ -412,7 +408,6 @@ namespace AnyUnit.Constraints.Pieces
             return new InstanceOfTypeConstraint(expectedType);
         }
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is of the type supplied as an argument or a derived type.
@@ -422,7 +417,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new InstanceOfTypeConstraint(typeof(T));
         }
-#endif
 
         #endregion
 
@@ -437,7 +431,6 @@ namespace AnyUnit.Constraints.Pieces
             return new AssignableFromConstraint(expectedType);
         }
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is assignable from the type supplied as an argument.
@@ -446,7 +439,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new AssignableFromConstraint(typeof(T));
         }
-#endif
 
         #endregion
 
@@ -461,7 +453,6 @@ namespace AnyUnit.Constraints.Pieces
             return new AssignableToConstraint(expectedType);
         }
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is assignable from the type supplied as an argument.
@@ -470,7 +461,6 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new AssignableToConstraint(typeof(T));
         }
-#endif
 
         #endregion
 
@@ -700,7 +690,6 @@ namespace AnyUnit.Constraints.Pieces
 
         #region InRange<T>
 
-#if CLR_2_0 || CLR_4_0
         /// <summary>
         /// Returns a constraint that tests whether the actual value falls 
         /// within a specified range.
@@ -709,7 +698,7 @@ namespace AnyUnit.Constraints.Pieces
         {
             return new RangeConstraint<T>(from, to);
         }
-#endif
+
 
         #endregion
 

@@ -98,6 +98,7 @@ namespace AnyUnit.Constraints
             return Exception.TypeOf(expectedType);
         }
 
+
         /// <summary>
         /// Creates a constraint specifying the exact type of exception expected
         /// </summary>
@@ -118,6 +119,7 @@ namespace AnyUnit.Constraints
         {
             return Exception.InstanceOf(expectedType);
         }
+
 
         /// <summary>
         /// Creates a constraint specifying the type of exception expected

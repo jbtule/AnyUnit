@@ -5,6 +5,7 @@
 // ****************************************************************
 
 
+
 namespace AnyUnit.Constraints.Pieces
 {
     #region ConstraintOperator Base Class

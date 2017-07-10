@@ -167,7 +167,6 @@ namespace AnyUnit.Constraints.Pieces
             return Matches(del());
         }
 
-
         /// <summary>
         /// Test whether the constraint is satisfied by a given reference.
         /// The default implementation simply dereferences the value but
@@ -179,7 +178,7 @@ namespace AnyUnit.Constraints.Pieces
         {
             return Matches(actual);
         }
-
+	
 
         /// <summary>
         /// Write the constraint description to a MessageWriter

@@ -271,7 +271,6 @@ namespace AnyUnit.Constraints
             return new InstanceOfTypeConstraint(expectedType);
         }
 
-
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is of the type supplied as an argument or a derived type.
@@ -314,7 +313,6 @@ namespace AnyUnit.Constraints
             return new AssignableFromConstraint(expectedType);
         }
 
-
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is assignable from the type supplied as an argument.
@@ -323,7 +321,6 @@ namespace AnyUnit.Constraints
         {
             return new AssignableFromConstraint(typeof(T));
         }
-
 
         #endregion
 
@@ -338,7 +335,6 @@ namespace AnyUnit.Constraints
             return new AssignableToConstraint(expectedType);
         }
 
-
         /// <summary>
         /// Returns a constraint that tests whether the actual value
         /// is assignable from the type supplied as an argument.
@@ -347,7 +343,6 @@ namespace AnyUnit.Constraints
         {
             return new AssignableToConstraint(typeof(T));
         }
-
 
         #endregion
 

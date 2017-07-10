@@ -428,7 +428,6 @@ namespace AnyUnit.Constraints.Pieces
             return this;
         }
 
-
         /// <summary>
         /// Modifies the constraint to use an IComparer&lt;T&gt; and returns self.
         /// </summary>

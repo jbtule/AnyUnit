@@ -20,8 +20,8 @@ namespace TestAll
            var build = "Release";
 #endif
 
-           var pclrunnerDir = Path.Combine(whoTestsTestersDir, "..", "Runner", "anyunit-runner", "bin", build);
-           var conventionTesterPath = Path.Combine(whoTestsTestersDir, "ConventionTestProcessor", "bin", build, "ConventionTestProcessor.exe");
+           var pclrunnerDir = Path.Combine(whoTestsTestersDir, "..", "Runner", "anyunit-runner", "bin", build, "net451");
+           var conventionTesterPath = Path.Combine(whoTestsTestersDir, "ConventionTestProcessor", "bin", build, "net45", "ConventionTestProcessor.exe");
 
             var pclrunner = Path.Combine(pclrunnerDir, "anyunit-runner.exe");
             var testOutput = Path.Combine(pclrunnerDir, "TestAll.json");

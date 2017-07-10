@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 
-
 namespace AnyUnit.Constraints.Pieces
 {
     /// <summary>
@@ -91,4 +90,5 @@ namespace AnyUnit.Constraints.Pieces
             throw new ArgumentException("Neither value implements IComparable or IComparable<T>");
         }
     }
+
 }

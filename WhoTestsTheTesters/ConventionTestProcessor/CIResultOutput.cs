@@ -34,6 +34,7 @@ namespace ConventionTestProcessor
                 var url = new Uri(_appVeyorBaseUri, "api/tests");
                 Byte[] byteArray = Encoding.UTF8.GetBytes(json);
 
+
                 var request = WebRequest.Create(url);
                 request.Method = "POST";
                 request.ContentLength = byteArray.Length;

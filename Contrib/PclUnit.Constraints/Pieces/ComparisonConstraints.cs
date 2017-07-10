@@ -8,7 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-
 namespace AnyUnit.Constraints.Pieces
 {
     /// <summary>
