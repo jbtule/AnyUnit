@@ -1,4 +1,4 @@
-﻿namespace PAnyUnitStyle.FsUnit
+﻿namespace AnyUnit.Style.FsUnit
 
 
 open AnyUnit

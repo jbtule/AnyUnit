@@ -1,4 +1,5 @@
-﻿namespace PAnyUnitStyle.FsUnit
+﻿namespace AnyUnit.Style.FsUnit
+
 open AnyUnit.Constraints.Pieces
 
 type AssertionHelper () = 
