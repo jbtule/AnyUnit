@@ -118,6 +118,16 @@ Target "Build" (fun () ->
 
     !! "./Runner/anyunit-runner/bin/Release/net451/*" |> CopyFiles "./build/tools/"
 
+    !! "./Contrib/**/bin/Release/netstandard1.3/*"
+      |> CopyFiles "./build/lib/netstandard1.3/"
+    !! "./Contrib/**/bin/Release/portable40-net40+sl5+win8+wp8/*"
+      |> CopyFiles "./build/lib/portable40-net40+sl5+win8+wp8/"
+    !! "./Contrib/**/bin/Release/netstandard1.6/*"
+      |> CopyFiles "./build/lib/netstandard1.6/"
+    !! "./Contrib/**/bin/Release/portable40-net45+sl5+win8/*"
+      |> CopyFiles "./build/lib/portable40-net45+sl5+win8/"
+      
+
     "./deploy/platforms.yml" |> CopyFile "./build/tools/platforms.yml"
 )
 
