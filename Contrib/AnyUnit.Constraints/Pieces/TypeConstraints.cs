@@ -7,7 +7,8 @@
 using System;
 using System.Reflection;
 
-using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
+
 namespace AnyUnit.Constraints.Pieces
 {
     /// <summary>

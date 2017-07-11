@@ -23,7 +23,7 @@ using System.Globalization;
 using AnyUnit.Style.Xunit.Exceptions;
 using AnyUnit.Style.Xunit.Util;
 using System.Reflection;
-using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
 
 namespace AnyUnit.Style.Xunit
 {

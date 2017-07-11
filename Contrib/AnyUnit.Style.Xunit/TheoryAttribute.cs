@@ -17,7 +17,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
 
 namespace AnyUnit.Style.Xunit
 {

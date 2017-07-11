@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
+using AnyUnit.Compat.NetStandardV1;
 
 namespace AnyUnit
 {

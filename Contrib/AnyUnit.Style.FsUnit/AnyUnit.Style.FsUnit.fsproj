@@ -1,6 +1,6 @@
 ﻿<Project Sdk="FSharp.NET.Sdk;Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.6;portable40-net45+sl5+win8</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;portable40-net45+sl5+win8;net40;</TargetFrameworks>
   </PropertyGroup>
 
 
@@ -16,6 +16,25 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='portable45-net45+win8+wpa81+wp8'">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
+     <DefineConstants>$(DefineConstants);PORTABLE259</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='portable45-net45+win8+wpa81+wp8'">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO" />
+    <Reference Include="System.Net.Requests" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Diagnostics" />
+    <Reference Include="System.Threading" />
   </ItemGroup>
   
   <ItemGroup>

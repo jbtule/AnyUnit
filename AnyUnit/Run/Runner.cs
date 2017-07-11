@@ -19,6 +19,8 @@ using System.Linq;
 using System.Reflection;
 using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
+using AnyUnit.Compat.NetStandardV1;
 
 namespace AnyUnit.Run
 {

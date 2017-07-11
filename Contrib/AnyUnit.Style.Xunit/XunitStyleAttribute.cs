@@ -19,8 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AnyUnit.Run;
-using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
 using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
 {

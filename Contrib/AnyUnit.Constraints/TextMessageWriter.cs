@@ -8,7 +8,7 @@ using System;
 using System.Collections;
 using System.Globalization;
 using AnyUnit.Constraints.Pieces;
-using AnyUnit.Util;
+using AnyUnit.Compat.PortableV4;
 using System.Reflection;
 
 

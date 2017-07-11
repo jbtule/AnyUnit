@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using AnyUnit.Compat.PortableV4;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
