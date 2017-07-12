@@ -6,7 +6,7 @@
 
 using System;
 using System.Reflection;
-using AnyUnit.Compat.PortableV4;
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -46,9 +46,9 @@ namespace AnyUnit.Constraints.Pieces
         public override void WriteDescriptionTo(MessageWriter writer)
         {
             writer.WritePredicate("value matching");
-            writer.Write(predicate.GetMethodInfo().Name.StartsWith("<")
+            writer.Write(predicate.Name().StartsWith("<")
                 ? "lambda expression"
-                : predicate.GetMethodInfo().Name);
+                : predicate.Name());
         }
     }
 }

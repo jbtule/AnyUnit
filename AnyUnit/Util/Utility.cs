@@ -21,6 +21,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using AnyUnit.Compat.PortableV4;
+using AnyUnit.Compat.NetStandardV1;
+using System.Threading;
 
 namespace AnyUnit.Util
 {
@@ -44,10 +46,39 @@ namespace AnyUnit.Util
     public static class Utility
     {
 
+        public static IEnumerable<MethodInfo> GetFlattenedMethods(this Type type, bool includeNonPublic=false){
+            var flags = BindingFlags.Public
+                         | BindingFlags.FlattenHierarchy
+                         | BindingFlags.Instance 
+                         | BindingFlags.Static;
+            if(includeNonPublic){
+                flags |= BindingFlags.NonPublic;
+            }
+            return type.GetMethods(flags);
+        }
 
+        public static void RunThreadWithState(Action<object> callback, object state){
+            ThreadPool.QueueUserWorkItem(d=>callback(d), state);
+        }
+
+        public static bool MatchesGenericDef(this Type type, Type def){
+            return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().Equals(def);
+        }
         public static bool IsStatic(this Type type)
         {
             return type.GetTypeInfo().IsAbstract && type.GetTypeInfo().IsSealed;
+        }
+
+        public static bool IsGeneric(this Type type){
+            return type.GetTypeInfo().IsGenericType;
+        }
+
+        public static bool IsValue(this Type type){
+            return type.GetTypeInfo().IsValueType;
+        }
+
+        public static bool CanBeNull(this Type type){
+            return !type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().CanAssign(typeof(Nullable<>)));
         }
 
         public static string EscapeJson(this string json)
@@ -94,6 +125,30 @@ namespace AnyUnit.Util
 
         }
 
+        public static string Name(this Delegate del){
+            return del.GetMethodInfo().Name;
+        }
+
+        public static bool IsOfType(this Type type, object obj){
+            return type.IsInstanceOfType(obj);
+        }
+
+        public static bool CanAssign(this Type type, Type from){
+            return type.GetTypeInfo().IsAssignableFrom(from.GetTypeInfo());
+        }
+
+        public static IEnumerable<TAttr> GetAttributes<TAttr>(this Type type, bool inherit = true) where TAttr : Attribute {
+            return type.GetTypeInfo()
+                        .GetCustomAttributes(typeof (TAttr), inherit)
+                        .OfType<TAttr>();
+        }
+
+        
+        public static TAttr GetTopMostCustomAttribute<TAttr>(this Type type) where TAttr : Attribute{
+            return Utility.GetTopMostCustomAttribute<TAttr>((MemberInfo)type.GetTypeInfo());
+            //Cast to member info for type overloading on 
+            //frameworks were GetTypeInfo() returns Type
+        }
 
         public static TAttr GetTopMostCustomAttribute<TAttr>(this MemberInfo type) where TAttr : Attribute
         {

@@ -43,7 +43,7 @@ namespace AnyUnit.Run
 
         public virtual IEnumerable<TestHarness> GetHarnesses()
         {
-            return Type.GetMethods(BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Static)
+            return Type.GetFlattenedMethods()
                 .Select(m => new TestHarness(m.GetTopMostCustomAttribute<TestAttributeBase>(), m))
                 .Where(th => th.Attribute != null);
         } 

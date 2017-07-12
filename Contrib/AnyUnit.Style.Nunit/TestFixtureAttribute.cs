@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using AnyUnit.Compat.PortableV4;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
@@ -39,8 +38,8 @@ namespace AnyUnit.Style.Nunit
         {
             get
             {
-                return type => type.GetTypeInfo().GetCustomAttributes(typeof (TestFixtureAttribute), true)
-                                   .OfType<TestFixtureAttribute>().Select(a => new ParameterSet(a.Arguments)).ToList();
+                return type => type.GetAttributes<TestFixtureAttribute>()
+                                   .Select(a => new ParameterSet(a.Arguments)).ToList();
             }
         }
 
@@ -51,9 +50,8 @@ namespace AnyUnit.Style.Nunit
 
                 return (type, args) =>
                            {
-                               var ignore = type.GetTypeInfo().GetCustomAttributes(typeof(IgnoreAttribute), true)
-                              .OfType<IgnoreAttribute>()
-                              .FirstOrDefault();
+                               var ignore = type.GetAttributes<IgnoreAttribute>()
+                                                .FirstOrDefault();
 
                                if (ignore != null)
                                {
@@ -68,8 +66,7 @@ namespace AnyUnit.Style.Nunit
         public override IList<string> GetCategories(Type type)
         {
             var cats =Category.SafeSplit(",").ToList();
-            cats.AddRange(type.GetTypeInfo().GetCustomAttributes(typeof(CategoryAttribute), true)
-                .OfType<CategoryAttribute>()
+            cats.AddRange(type.GetAttributes<CategoryAttribute>()
                 .Select(trait => trait.Name));
 
             return cats;
@@ -77,10 +74,10 @@ namespace AnyUnit.Style.Nunit
 
         public override string GetDescription(Type type)
         {
-            return Description ?? type.GetTypeInfo().GetCustomAttributes(typeof(DescriptionAttribute), true)
-                                .OfType<DescriptionAttribute>()
-                                .Select(trait => trait.Description)
-                                .FirstOrDefault();
+            return Description ?? type
+                                        .GetAttributes<DescriptionAttribute>()
+                                        .Select(trait => trait.Description)
+                                        .FirstOrDefault();
         }  
         
         public string Description { get; set; }

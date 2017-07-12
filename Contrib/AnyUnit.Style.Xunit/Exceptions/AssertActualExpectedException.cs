@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using AnyUnit.Compat.PortableV4;
+using AnyUnit.Util;
 namespace AnyUnit.Style.Xunit.Exceptions
 {
     /// <summary>
@@ -82,7 +82,7 @@ namespace AnyUnit.Style.Xunit.Exceptions
 
         static string ConvertToSimpleTypeName(Type type)
         {
-            if (!type.GetTypeInfo().IsGenericType)
+            if (!type.IsGeneric())
                 return type.Name;
 
             Type[] genericTypes = type.GetGenericArguments();

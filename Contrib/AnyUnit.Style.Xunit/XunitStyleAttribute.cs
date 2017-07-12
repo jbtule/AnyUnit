@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AnyUnit.Run;
-using AnyUnit.Compat.PortableV4;
 using System.Reflection;
 using AnyUnit.Util;
 

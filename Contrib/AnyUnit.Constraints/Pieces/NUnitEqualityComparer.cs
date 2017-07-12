@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using AnyUnit.Compat.PortableV4;
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -174,9 +174,7 @@ namespace AnyUnit.Constraints.Pieces
     	private static Type[] GetEquatableGenericArguments(Type type)
     	{
 
-    	   return type.GetInterfaces().Where(@interface => @interface.GetTypeInfo().IsGenericType &&
-    	                                                   @interface.GetTypeInfo().GetGenericTypeDefinition()
-    	                                                             .Equals(typeof (IEquatable<>)))
+    	   return type.GetInterfaces().Where(@interface => @interface.MatchesGenericDef(typeof (IEquatable<>)))
                                      .Select(iEquatableInterface => iEquatableInterface.GetGenericArguments()[0]).ToArray();
     	}
 

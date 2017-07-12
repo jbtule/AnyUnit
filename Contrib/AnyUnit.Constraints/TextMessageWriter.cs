@@ -8,7 +8,7 @@ using System;
 using System.Collections;
 using System.Globalization;
 using AnyUnit.Constraints.Pieces;
-using AnyUnit.Compat.PortableV4;
+using AnyUnit.Util;
 using System.Reflection;
 
 
@@ -264,7 +264,7 @@ namespace AnyUnit.Constraints
                 WriteDecimal((decimal)val);
 			else if (val is DateTime)
 				WriteDateTime((DateTime)val);
-            else if (val.GetType().GetTypeInfo().IsValueType)
+            else if (val.GetType().IsValue())
                 Write(Fmt_ValueType, val);
             else
                 Write(Fmt_Default, val);

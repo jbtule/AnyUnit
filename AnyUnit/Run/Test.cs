@@ -102,7 +102,7 @@ namespace AnyUnit.Run
         {
             var state = new State(platform);
             var startTime = DateTime.Now;
-            ThreadPool.QueueUserWorkItem(RunHelper, state);
+            Utility.RunThreadWithState(RunHelper, state);
             Result result;
             if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))
             {

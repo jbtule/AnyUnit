@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AnyUnit.Run;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
 {
@@ -152,12 +153,7 @@ namespace AnyUnit.Style.Nunit
         protected MethodInfo GetMethodForAttribute(object fixture, Type attributeType)
         {
             var type = fixture as Type ?? fixture.GetType();
-            return type.GetMethods(
-                BindingFlags.Instance
-                | BindingFlags.Static
-                | BindingFlags.Public
-                | BindingFlags.NonPublic
-                | BindingFlags.FlattenHierarchy)
+            return type.GetFlattenedMethods(includeNonPublic:true)
                 .FirstOrDefault(m => m.GetCustomAttributes(attributeType, true).Any());
         }
      

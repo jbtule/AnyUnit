@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AnyUnit.Constraints.Pieces;
-using AnyUnit.Compat.PortableV4;
+using AnyUnit.Util;
 using System.Reflection;
 
 namespace AnyUnit.Constraints

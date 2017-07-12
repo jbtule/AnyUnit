@@ -32,7 +32,7 @@ namespace AnyUnit.Run
             get
             {
                 return a => a.GetExportedTypes()
-                             .Select(t => new Fixture(t.GetTypeInfo().GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
+                             .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
                              .Where(f => f.Attribute != null);
             }
         }

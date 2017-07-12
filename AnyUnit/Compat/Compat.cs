@@ -39,6 +39,13 @@ namespace AnyUnit.Compat.PortableV4
  public static class Compat
     {
 #if NETSTANDARD1_0
+        public static bool IsInstanceOfType(this Type type, Object obj){
+            if(obj == null){
+                return false;
+            }
+            return obj.GetType().GetTypeInfo().IsSubclassOf(type);
+        }
+
         public static IEnumerable<Type> GetExportedTypes(this Assembly assembly)
         {
             return assembly.ExportedTypes;
