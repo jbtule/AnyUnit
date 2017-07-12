@@ -6,14 +6,9 @@
     <OutputType>Exe</OutputType>
   
   </PropertyGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='netcore1.1'">
-    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
-  </ItemGroup>
+
  <ItemGroup>
+   <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
   <PackageReference Include="Newtonsoft.Json" Version="10.0.*"  />
 </ItemGroup>
   <ItemGroup>

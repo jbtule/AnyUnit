@@ -1,90 +1,34 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E64E577E-2F1D-48F9-935A-FABE93E3FBAA}</ProjectGuid>
+    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RoughRunner</RootNamespace>
-    <AssemblyName>RoughRunner</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+      <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
-      <Project>{7251D9B8-DD2A-4DCA-A568-C53772081CE5}</Project>
-      <Name>AnyUnit.Constraints</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj">
-      <Project>{DBD9FD82-E254-43B4-9D69-C398ACEFB45B}</Project>
-      <Name>AnyUnit.Style.Nunit</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
-      <Project>{57504543-DC1D-4A8D-8E70-4464C296512C}</Project>
-      <Name>AnyUnit.Style.Xunit</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
-      <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>AnyUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj">
-      <Project>{07944FC5-DEBB-478F-A464-AD62CA4DD7A0}</Project>
-      <Name>BasicTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\ConstraintsTests\ConstraintsTests.csproj">
-      <Project>{360DD182-DFD4-479E-B001-042413D2DE02}</Project>
-      <Name>ConstraintsTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\ConventionTestProcessor\ConventionTestProcessor.csproj">
-      <Project>{5AFB0620-F75F-45D6-B287-F1A2F1337DB2}</Project>
-      <Name>ConventionTestProcessor</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\Style\NunitTests\NunitTests.csproj">
-      <Project>{BA124F39-825D-49F1-B272-C3347E046800}</Project>
-      <Name>NunitTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tests\Style\XunitTests\XunitTests.csproj">
-      <Project>{E63677AE-4E0B-4983-9C30-9E5506F56D28}</Project>
-      <Name>XunitTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\Style\FsUnitTests\FsUnitTests.fsproj">
+ 
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
