@@ -43,7 +43,9 @@ namespace AnyUnit.Compat.PortableV4
             if(obj == null){
                 return false;
             }
-            return obj.GetType().GetTypeInfo().IsAssignableFrom(type.GetTypeInfo());
+            var objTypeInfo = obj.GetType().GetTypeInfo();
+            var typeInfo = type.GetTypeInfo();
+            return typeInfo.IsAssignableFrom(objTypeInfo);
         }
 
         public static IEnumerable<Type> GetExportedTypes(this Assembly assembly)
@@ -83,16 +85,20 @@ namespace AnyUnit.Compat.PortableV4
             var isPublic = (flags & BindingFlags.Public) == BindingFlags.Public;
             var isNonPublic = (flags & BindingFlags.NonPublic) == BindingFlags.NonPublic;
             var isFlatten = (flags & BindingFlags.FlattenHierarchy) == BindingFlags.FlattenHierarchy;
+           
 
             var methodSet = new List<PropertyInfo>();
             var typeInfo = target.GetTypeInfo();
-            if(isFlatten){
+            if(isFlatten || isInstance ){
                 var baseType = typeInfo.BaseType;
                 if(baseType != null){
-                    methodSet.AddRange(baseType.GetTypeInfo().DeclaredProperties.Where(m=>m.GetMethod.IsStatic));
+                    var props = baseType.GetTypeInfo().DeclaredProperties;
+                    methodSet.AddRange(props.Where(m=>(m.GetMethod.IsStatic && isFlatten)
+                                                   || !m.GetMethod.IsStatic && isInstance));
                 }
             }
-            methodSet.AddRange(target.GetTypeInfo().DeclaredProperties);
+            var info = target.GetTypeInfo();
+            methodSet.AddRange(info.DeclaredProperties);
 
             if(isDefault){
                 return null;
@@ -151,10 +157,12 @@ namespace AnyUnit.Compat.PortableV4
 
             var methodSet = new List<MethodInfo>();
             var typeInfo = target.GetTypeInfo();
-            if(isFlatten){
+            if(isFlatten || isInstance){
                 var baseType = typeInfo.BaseType;
                 if(baseType != null){
-                    methodSet.AddRange(baseType.GetTypeInfo().DeclaredMethods.Where(m=>m.IsStatic));
+                    var methods = baseType.GetTypeInfo().DeclaredMethods;
+                    methodSet.AddRange(methods.Where(m=>(m.IsStatic && isFlatten)
+                                                     || !m.IsStatic && isInstance));
                 }
             }
             methodSet.AddRange(target.GetTypeInfo().DeclaredMethods);
