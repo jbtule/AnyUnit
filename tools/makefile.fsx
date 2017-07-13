@@ -15,6 +15,7 @@ let msbuild15ProjFiles =
    ++ "./WhoTestsTheTesters/**/*.fsproj"
    ++ "./WhoTestsTheTesters/**/ConventionTestProcessor.csproj"
    ++ "./WhoTestsTheTesters/**/CoverageRunner.csproj"
+   ++ "./WhoTestsTheTesters/**/RoughRunner.csproj"
 let projFiles =
     msbuild15ProjFiles
   
