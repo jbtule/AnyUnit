@@ -43,7 +43,7 @@ namespace AnyUnit.Compat.PortableV4
             if(obj == null){
                 return false;
             }
-            return obj.GetType().GetTypeInfo().IsSubclassOf(type);
+            return obj.GetType().GetTypeInfo().IsAssignableFrom(type.GetTypeInfo());
         }
 
         public static IEnumerable<Type> GetExportedTypes(this Assembly assembly)
