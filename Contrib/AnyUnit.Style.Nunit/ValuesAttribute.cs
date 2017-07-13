@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
 {
@@ -100,7 +101,7 @@ namespace AnyUnit.Style.Nunit
                     continue;
                 }
 
-                if (targetType.IsInstanceOfType(arg))
+                if (targetType.IsOfType(arg))
                     continue;
 
                 bool convert = false;

@@ -46,6 +46,14 @@ namespace AnyUnit.Util
     public static class Utility
     {
 
+        public static IEnumerable<Type> AllTypes(this Assembly asm){
+            return asm.GetExportedTypes();
+        }
+
+         public static IEnumerable<MethodInfo> AllMethods(this Type type){
+            return type.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+        }
+
         public static IEnumerable<MethodInfo> GetFlattenedMethods(this Type type, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.FlattenHierarchy
@@ -158,7 +166,7 @@ namespace AnyUnit.Util
             return type.GetProperty(name,flags);
         }
 
-            public static MethodInfo Method(this Type type, string name, bool includeNonPublic=false){
+        public static MethodInfo Method(this Type type, string name, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.Instance 
                          | BindingFlags.Static;

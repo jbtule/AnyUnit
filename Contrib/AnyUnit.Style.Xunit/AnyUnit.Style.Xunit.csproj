@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;portable40-net40+sl5+win8+wpa81+wp8</TargetFrameworks>
+    <TargetFrameworks>netstandard1.0;portable40-net40+sl5+win8+wpa81+wp8</TargetFrameworks>
 
    <Authors />
     <Copyright>Copyright 2013-2017 Jay Tuley</Copyright>
@@ -17,11 +17,6 @@
      <TargetFrameworkProfile>Profile328</TargetFrameworkProfile>
      <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.3'">
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
-    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
-  </ItemGroup>
 
 
   <ItemGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wpa81+wp8'">

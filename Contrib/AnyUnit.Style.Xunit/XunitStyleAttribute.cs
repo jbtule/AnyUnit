@@ -33,9 +33,9 @@ namespace AnyUnit.Style.Xunit
             {
                 return a =>
                            {
-                               var types = a.GetExportedTypes();
+                               var types = a.AllTypes();
 
-                               return types.Where(t =>t.GetMethods()
+                               return types.Where(t =>t.AllMethods()
                                                        .Any(m => m.GetTopMostCustomAttribute<FactAttribute>() != null))
                                            .Select(t => new Fixture(new UnlabeledFixtureAttribute(), t));
                            };
