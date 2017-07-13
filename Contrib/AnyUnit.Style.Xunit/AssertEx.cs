@@ -440,7 +440,7 @@ namespace AnyUnit.Style.Xunit
         {
             Guard.ArgumentNotNull("expectedType", expectedType);
 
-            if (@object == null || !expectedType.IsAssignableFrom(@object.GetType()))
+            if (@object == null || !expectedType.CanAssignFrom(@object.GetType()))
                 assert.Fail(new IsAssignableFromException(expectedType, @object));
             assert.Okay();
         }

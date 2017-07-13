@@ -167,7 +167,7 @@ namespace AnyUnit.Constraints.Pieces
         public override bool Matches(object actual)
         {
             this.actual = actual;
-            return actual != null && actual.GetType().CanAssign(expectedType);
+            return actual != null && actual.GetType().CanAssignFrom(expectedType);
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace AnyUnit.Constraints.Pieces
         public override bool Matches(object actual)
         {
             this.actual = actual;
-            return actual != null && expectedType.CanAssign(actual.GetType());
+            return actual != null && expectedType.CanAssignFrom(actual.GetType());
         }
 
         /// <summary>

@@ -78,7 +78,7 @@ namespace AnyUnit.Util
         }
 
         public static bool CanBeNull(this Type type){
-            return !type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().CanAssign(typeof(Nullable<>)));
+            return !type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().CanAssignFrom(typeof(Nullable<>)));
         }
 
         public static string EscapeJson(this string json)
@@ -133,7 +133,58 @@ namespace AnyUnit.Util
             return type.IsInstanceOfType(obj);
         }
 
-        public static bool CanAssign(this Type type, Type from){
+        public static IEnumerable<Type> Interfaces(this Type type){
+            return type.GetTypeInfo().GetInterfaces();
+        }
+
+        public static PropertyInfo InstanceProperty(this Type type, string name, bool includeNonPublic=false){
+            var flags = BindingFlags.Public
+                         | BindingFlags.Instance ;
+            if(includeNonPublic){
+                flags |= BindingFlags.NonPublic;
+            }
+
+            return type.GetProperty(name,flags);
+        }
+
+         public static PropertyInfo Property(this Type type, string name, bool includeNonPublic=false){
+            var flags = BindingFlags.Public
+                         | BindingFlags.Instance 
+                         | BindingFlags.Static;
+            if(includeNonPublic){
+                flags |= BindingFlags.NonPublic;
+            }
+
+            return type.GetProperty(name,flags);
+        }
+
+            public static MethodInfo Method(this Type type, string name, bool includeNonPublic=false){
+            var flags = BindingFlags.Public
+                         | BindingFlags.Instance 
+                         | BindingFlags.Static;
+            if(includeNonPublic){
+                flags |= BindingFlags.NonPublic;
+            }
+
+            return type.GetMethod(name,flags);
+        }
+
+          public static MethodInfo Method(this Type type, string name, Type[] paramArray){
+            return type.GetMethod(name,paramArray);
+        }
+
+        public static PropertyInfo StaticProperty(this Type type, string name){
+            var flags = BindingFlags.Public
+                         | BindingFlags.Static 
+                         | BindingFlags.FlattenHierarchy;
+
+            return type.GetProperty(name,flags);
+        }
+
+        public static Type[] GenericArgs(this Type type){
+            return type.GetTypeInfo().GetGenericArguments();
+        }
+        public static bool CanAssignFrom(this Type type, Type from){
             return type.GetTypeInfo().IsAssignableFrom(from.GetTypeInfo());
         }
 

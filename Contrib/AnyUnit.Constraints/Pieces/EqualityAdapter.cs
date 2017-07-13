@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -105,16 +106,16 @@ namespace AnyUnit.Constraints.Pieces
             /// </summary>
             public override bool CanCompare(object x, object y)
             {
-                return typeof(T).IsAssignableFrom(x.GetType())
-                    && typeof(T).IsAssignableFrom(y.GetType());
+                return typeof(T).CanAssignFrom(x.GetType())
+                    && typeof(T).CanAssignFrom(y.GetType());
             }
 
             protected void ThrowIfNotCompatible(object x, object y)
             {
-                if (!typeof(T).IsAssignableFrom(x.GetType()))
+                if (!typeof(T).CanAssignFrom(x.GetType()))
                     throw new ArgumentException("Cannot compare " + x.ToString());
 
-                if (!typeof(T).IsAssignableFrom(y.GetType()))
+                if (!typeof(T).CanAssignFrom(y.GetType()))
                     throw new ArgumentException("Cannot compare " + y.ToString());
             }
         }

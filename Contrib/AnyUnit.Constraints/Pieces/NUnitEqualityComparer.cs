@@ -174,13 +174,13 @@ namespace AnyUnit.Constraints.Pieces
     	private static Type[] GetEquatableGenericArguments(Type type)
     	{
 
-    	   return type.GetInterfaces().Where(@interface => @interface.MatchesGenericDef(typeof (IEquatable<>)))
-                                     .Select(iEquatableInterface => iEquatableInterface.GetGenericArguments()[0]).ToArray();
+    	   return type.Interfaces().Where(@interface => @interface.MatchesGenericDef(typeof (IEquatable<>)))
+                                     .Select(iEquatableInterface => iEquatableInterface.GenericArgs()[0]).ToArray();
     	}
 
     	private static bool InvokeFirstIEquatableEqualsSecond(object first, object second)
     	{
-    		MethodInfo equals = typeof (IEquatable<>).MakeGenericType(second.GetType()).GetMethod("Equals");
+    		MethodInfo equals = typeof (IEquatable<>).MakeGenericType(second.GetType()).Method("Equals");
 
     		return (bool) equals.Invoke(first, new object[] {second});
     	}

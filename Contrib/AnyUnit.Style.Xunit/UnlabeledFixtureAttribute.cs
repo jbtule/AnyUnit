@@ -46,7 +46,7 @@ namespace AnyUnit.Style.Xunit
 
                                if (a.Length == 2)
                                {
-                                   ((Type)a[0]).GetMethod("SetFixture").Invoke(fixture, new[] { a[1] });
+                                   ((Type)a[0]).Method("SetFixture").Invoke(fixture, new[] { a[1] });
                                }
 
                                return fixture;
@@ -61,12 +61,12 @@ namespace AnyUnit.Style.Xunit
                 return t =>
                 {
                     //reflection set IUseFixture
-                    var useType = t.GetInterfaces()
+                    var useType = t.Interfaces()
                         .FirstOrDefault(it => it.MatchesGenericDef(typeof(IUseFixture<>)));
 
                     if (useType != null)
                     {
-                        var argType = useType.GetGenericArguments().Single();
+                        var argType = useType.GenericArgs().Single();
 
                         var arg = Activator.CreateInstance(argType);
 

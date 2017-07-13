@@ -85,7 +85,7 @@ namespace AnyUnit.Style.Xunit.Exceptions
             if (!type.IsGeneric())
                 return type.Name;
 
-            Type[] genericTypes = type.GetGenericArguments();
+            Type[] genericTypes = type.GenericArgs();
             string[] simpleNames = new string[genericTypes.Length];
 
             for (int idx = 0; idx < genericTypes.Length; idx++)

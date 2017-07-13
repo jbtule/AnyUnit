@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using AnyUnit.Style.Xunit.Util;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -67,7 +68,7 @@ namespace AnyUnit.Style.Xunit
             Guard.ArgumentNotNull("methodUnderTest", methodUnderTest);
 
             Type type = PropertyType ?? methodUnderTest.DeclaringType;
-            PropertyInfo propInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            PropertyInfo propInfo = type.StaticProperty(propertyName);
             if (propInfo == null)
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, "Could not find public static property {0} on {1}", propertyName, type.FullName));
 

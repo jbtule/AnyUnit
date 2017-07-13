@@ -51,9 +51,17 @@ namespace AnyUnit.Compat.PortableV4
             return assembly.ExportedTypes;
         }
 
-        public static MethodInfo GetMethod(this Type target, string name, BindingFlags flags){
+        public static IEnumerable<Type> GetInterfaces(this TypeInfo typeInfo){
+            return typeInfo.ImplementedInterfaces;
+        }
+
+        public static Type[] GetGenericArguments(this TypeInfo typeInfo){
+            return typeInfo.GenericTypeArguments;
+        }
+
+         public static PropertyInfo GetProperty(this Type target, string name, BindingFlags flags){
             
-          var methods = target.GetMethods(flags);
+          var methods = target.GetProperties(flags);
           if(methods == null){
               return null;
           }
@@ -63,10 +71,43 @@ namespace AnyUnit.Compat.PortableV4
             case 1:
                 return methods.FirstOrDefault();
             default:
-                throw new AmbiguousMatchException(String.Format("More than one {0} method on {1}", name, target));
+                throw new AmbiguousMatchException(String.Format("Unlikely but there is more than one {0} property on {1}", name, target));
           }
            
         }
+
+         public static IEnumerable<PropertyInfo> GetProperties(this Type target, BindingFlags flags){
+            var isDefault = flags == BindingFlags.Default;
+            var isStatic = (flags & BindingFlags.Static) == BindingFlags.Static;
+            var isInstance = (flags & BindingFlags.Instance) == BindingFlags.Instance;
+            var isPublic = (flags & BindingFlags.Public) == BindingFlags.Public;
+            var isNonPublic = (flags & BindingFlags.NonPublic) == BindingFlags.NonPublic;
+            var isFlatten = (flags & BindingFlags.FlattenHierarchy) == BindingFlags.FlattenHierarchy;
+
+            var methodSet = new List<PropertyInfo>();
+            var typeInfo = target.GetTypeInfo();
+            if(isFlatten){
+                var baseType = typeInfo.BaseType;
+                if(baseType != null){
+                    methodSet.AddRange(baseType.GetTypeInfo().DeclaredProperties.Where(m=>m.GetMethod.IsStatic));
+                }
+            }
+            methodSet.AddRange(target.GetTypeInfo().DeclaredProperties);
+
+            if(isDefault){
+                return null;
+            }
+
+            return methodSet.Where(m=> 
+                                                  (isStatic && m.GetMethod.IsStatic)
+                                                ||
+                                                  (isInstance && !m.GetMethod.IsStatic) 
+                                                || 
+                                                  (isPublic && m.GetMethod.IsPublic) 
+                                                || 
+                                                  (isNonPublic && !m.GetMethod.IsPublic) 
+                                             );
+         }
 
         public static MethodInfo GetMethod(this Type target, string name, Type[] paramTypes){
           var flags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;  
@@ -83,6 +124,22 @@ namespace AnyUnit.Compat.PortableV4
                 throw new AmbiguousMatchException(String.Format("More than one {0} method on {1}", name, target));
           }
         }
+
+        public static MethodInfo GetMethod(this Type target, string name, BindingFlags flags){
+          var methods = target.GetMethods(flags);
+          if(methods == null){
+              return null;
+          }
+          methods = methods.Where(m=>m.Name == name);
+          switch (methods.Count()) {
+            case 0:
+            case 1:
+                return methods.FirstOrDefault();
+            default:
+                throw new AmbiguousMatchException(String.Format("More than one {0} method on {1}", name, target));
+          }
+        }
+
 
         public static IEnumerable<MethodInfo> GetMethods(this Type target, BindingFlags flags){
             var isDefault = flags == BindingFlags.Default;

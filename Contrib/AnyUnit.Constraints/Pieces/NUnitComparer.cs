@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -51,11 +52,11 @@ namespace AnyUnit.Constraints.Pieces
             Type xType = x.GetType();
             Type yType = y.GetType();
 
-            MethodInfo method = xType.GetMethod("CompareTo", new Type[] { yType });
+            MethodInfo method = xType.Method("CompareTo", new Type[] { yType });
             if (method != null)
                 return (int)method.Invoke(x, new object[] { y });
 
-            method = yType.GetMethod("CompareTo", new Type[] { xType });
+            method = yType.Method("CompareTo", new Type[] { xType });
             if (method != null)
                 return -(int)method.Invoke(y, new object[] { x });
 

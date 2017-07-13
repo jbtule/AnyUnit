@@ -6,6 +6,7 @@
 
 using System;
 using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -48,8 +49,7 @@ namespace AnyUnit.Constraints.Pieces
             if (actualType == null)
                 actualType = actual.GetType();
 
-            PropertyInfo property = actualType.GetProperty(name,
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo property = actualType.InstanceProperty(name,includeNonPublic:true);
 
             return property != null;
         }
@@ -118,8 +118,7 @@ namespace AnyUnit.Constraints.Pieces
             if ( actualType == null )
                 actualType = actual.GetType();
 
-            PropertyInfo property = actualType.GetProperty(name,
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo property = actualType.InstanceProperty(name,includeNonPublic:true);
 
             if (property == null)
                 throw new ArgumentException(string.Format("Property {0} was not found",name), "name");

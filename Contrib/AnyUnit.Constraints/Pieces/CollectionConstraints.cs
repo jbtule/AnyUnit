@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using AnyUnit.Util;
 
 namespace AnyUnit.Constraints.Pieces
 {
@@ -493,7 +494,7 @@ namespace AnyUnit.Constraints.Pieces
 
                 if (this.propertyName != null)
                 {
-                    PropertyInfo prop = obj.GetType().GetProperty(propertyName);
+                    PropertyInfo prop = obj.GetType().Property(propertyName);
                     objToCompare = prop.GetValue(obj, null);
                     if (objToCompare == null)
                         throw new ArgumentNullException("actual", "Null property value at index " + index.ToString());
