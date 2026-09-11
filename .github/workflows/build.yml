@@ -22,10 +22,32 @@
 # step onto every one of those jobs too. test-wasm builds the real,
 # unfiltered AnyUnit.slnx (after publishing wasm-runner-host itself),
 # since it's the one job that actually needs wasm-runner built.
+#
+# `pack` builds every NuGet package this repo ships and uploads the
+# .nupkg files as a workflow artifact, on every run - not gated behind
+# a release tag, specifically so a prerelease package (MinVer versions
+# an untagged build as e.g. 1.0.0-alpha.0.<height>) is always available
+# to grab and test without cutting a release first. See that job's own
+# comment for why it also covers the real, tagged-release version with
+# no separate job needed for that case.
 name: build
 
 on:
   push:
+    # Not every branch: a branch with an open PR would otherwise run
+    # this workflow twice for the same commit - once for the push
+    # event, once for the pull_request event's synchronize. Restricting
+    # push to the default branch means a feature branch's own pushes
+    # are covered by pull_request alone (once a PR exists), and master
+    # still gets its own push-triggered run after a PR merges. tags is
+    # additive here (branches/tags combine with OR, not AND) - needed
+    # so pushing a release tag still triggers this workflow (in
+    # particular the pack job, so a tagged release gets the real
+    # MinVer-computed version, not just the untagged/prerelease one).
+    branches:
+      - master
+    tags:
+      - 'v*'
   pull_request:
 
 jobs:
@@ -236,3 +258,44 @@ jobs:
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # MinVer (Directory.Build.props) computes each package's
+          # version from git tags - actions/checkout's default shallow
+          # clone (fetch-depth 1) doesn't fetch tag history, which would
+          # make MinVer fall back to its untagged-build version scheme
+          # even on an actual tag push. Full history so it sees the
+          # real tag when there is one, and the real commit height
+          # otherwise (for the prerelease-version case this job exists
+          # for in the first place).
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Must come before the pack below: wasm-runner's own build (which
+      # `dotnet pack` triggers as part of packing it) fails outright
+      # unless wasm-runner-host has already been published - see
+      # wasm-runner.csproj's CheckWasmRunnerHostPublished target, and
+      # test-wasm's own comment for the same prerequisite.
+      - name: Publish wasm-runner-host
+        run: dotnet publish Runner/Platforms/wasm-runner-host -c Release
+
+      # Packs every IsPackable=true project (Directory.Build.props: off
+      # by default, opt-in per project) - non-packable projects are
+      # skipped automatically, nothing to filter here.
+      - name: Pack
+        run: dotnet pack AnyUnit.slnx --configuration Release -o packages
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: packages/*.nupkg
