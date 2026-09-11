@@ -3,6 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
+    <!--
+      This is the MTP adapter library itself, not a test project - but its
+      PackageReference to Microsoft.Testing.Platform is enough for editor
+      test-discovery (e.g. VS Code's C# extension) to list it as one
+      anyway. IsTestProject=false is the standard opt-out flag the MTP/VS
+      tooling honors for exactly this.
+    -->
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
