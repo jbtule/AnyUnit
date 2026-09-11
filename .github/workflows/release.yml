@@ -7,13 +7,14 @@
 # Every RID cross-compiles fine from any host (the .NET SDK downloads the
 # target runtime pack via NuGet regardless of the host's own arch -
 # verified locally: all 8 of these RIDs publish correctly from a single
-# macOS arm64 dev machine). So which host builds which RID below isn't
-# about capability, it's just spreading the work: one job per host
-# family, each producing every RID that's "theirs" (all Windows RIDs off
-# windows-latest, all Linux RIDs off ubuntu-latest, both macOS RIDs off
-# macos-latest) - per the user's own call that 32-bit/no-native-runner
-# variants (win-x86, linux-arm) don't need their own host, just get
-# published from their 64-bit counterpart's host.
+# macOS arm64 dev machine). So cross-compiling everything from one host
+# per OS would technically work - but each OS gets a real x64 host and a
+# real arm64 host below instead (same split already used in build.yml's
+# test matrix), so the arm64 RIDs are genuinely built on arm64 hardware
+# rather than cross-compiled, matching the value of running the actual
+# per-arch tests there. A RID with no hosted runner of its own (win-x86,
+# linux-arm - both 32-bit) rides along on its 64-bit counterpart's host,
+# per the user's own call that 32-bit hosts aren't needed.
 #
 # Deliberately NOT trimmed (PublishTrimmed) even though these are
 # self-contained: anyunit-runner loads test assemblies - and whatever
@@ -32,11 +33,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-windows:
+  publish-windows-x64:
     runs-on: windows-latest
     strategy:
       matrix:
-        rid: [win-x64, win-x86, win-arm64]
+        rid: [win-x64, win-x86]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -53,11 +54,49 @@ jobs:
           name: anyunit-runner-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}.exe
 
-  publish-linux:
+  publish-windows-arm64:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (win-arm64)
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -o publish/win-arm64
+      - name: Rename with RID
+        shell: bash
+        run: mv "publish/win-arm64/anyunit-runner.exe" "publish/win-arm64/anyunit-runner-win-arm64.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-win-arm64
+          path: publish/win-arm64/anyunit-runner-win-arm64.exe
+
+  publish-linux-x64:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (linux-x64)
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux-x64
+      - name: Rename with RID
+        run: mv "publish/linux-x64/anyunit-runner" "publish/linux-x64/anyunit-runner-linux-x64"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-linux-x64
+          path: publish/linux-x64/anyunit-runner-linux-x64
+
+  publish-linux-arm64:
+    runs-on: ubuntu-24.04-arm
     strategy:
       matrix:
-        rid: [linux-x64, linux-arm64, linux-arm]
+        # linux-arm (32-bit) has no hosted runner of its own - its 64-bit
+        # counterpart is arm64, not x64, so it rides along here rather
+        # than on publish-linux-x64.
+        rid: [linux-arm64, linux-arm]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -73,22 +112,36 @@ jobs:
           name: anyunit-runner-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}
 
-  publish-macos:
+  publish-macos-arm64:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        rid: [osx-arm64, osx-x64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Publish anyunit-runner (${{ matrix.rid }})
+      - name: Publish anyunit-runner (osx-arm64)
         run: |
-          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.rid }}
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o publish/osx-arm64
       - name: Rename with RID
-        run: mv "publish/${{ matrix.rid }}/anyunit-runner" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}"
+        run: mv "publish/osx-arm64/anyunit-runner" "publish/osx-arm64/anyunit-runner-osx-arm64"
       - uses: actions/upload-artifact@v4
         with:
-          name: anyunit-runner-${{ matrix.rid }}
-          path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}
+          name: anyunit-runner-osx-arm64
+          path: publish/osx-arm64/anyunit-runner-osx-arm64
+
+  publish-macos-x64:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (osx-x64)
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/osx-x64
+      - name: Rename with RID
+        run: mv "publish/osx-x64/anyunit-runner" "publish/osx-x64/anyunit-runner-osx-x64"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-osx-x64
+          path: publish/osx-x64/anyunit-runner-osx-x64
