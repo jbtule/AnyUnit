@@ -5,6 +5,7 @@
       "AnyUnit/AnyUnit.csproj",
       "AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj",
       "Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj",
+      "Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj",
       "Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj",
       "Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj",
       "Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj",

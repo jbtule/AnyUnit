@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Contrib/">
     <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
+    <Project Path="Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />

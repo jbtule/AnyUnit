@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Not a style built on AnyUnit's reflection-based discovery at all
+    (unlike Style.Nunit/.Xunit/.FsUnit, which all discover [Test]-
+    attributed INSTANCE methods on a class) - it's a value-based
+    alternative for F#'s own idiomatic top-level `let` test style, which
+    that reflection path can never see (confirmed: it compiles to a
+    static method, and AnyUnit's own Utility.AllMethods hardcodes
+    BindingFlags.Instance throughout). See Test.fs/Runner.fs for the
+    actual design: a `test { }` computation expression builds a Test
+    value by hand, and Runner.run executes a Test list directly,
+    producing the same ResultsFile/Result/TestMeta output every other
+    style produces via reflection.
+
+    Scaffold/exploratory as of this commit: no auto-discovery (pointing
+    a console runner at a plain .dll and having it "just find" these
+    tests) is attempted yet - a caller currently has to explicitly call
+    Runner.run itself with its own Test list. Adding real discovery
+    would mean a new TestFixtureDiscoveryAttributeBase that scans for
+    static properties of type Test (not methods) - a real follow-up,
+    not started here.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Value-based, computation-expression F# test style for AnyUnit - an alternative to reflection-discovered [Test] instance methods, for F#'s own idiomatic top-level `let` test style.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Test.fs" />
+    <Compile Include="Runner.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+</Project>
