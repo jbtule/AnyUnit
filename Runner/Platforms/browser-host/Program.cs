@@ -62,7 +62,14 @@ page.Console += (_, msg) => Console.Error.WriteLine($"[browser console:{msg.Type
 page.PageError += (_, msg) => Console.Error.WriteLine($"[browser error] {msg}");
 
 await page.GotoAsync(address);
-await page.WaitForSelectorAsync("#anyunit-done", new PageWaitForSelectorOptions { Timeout = 180000 });
+// State defaults to "visible", but #anyunit-done is deliberately
+// style="display:none" (a machine-readable hook, not UI) - waiting for
+// visible never resolves and just burns the full timeout.
+await page.WaitForSelectorAsync("#anyunit-done", new PageWaitForSelectorOptions
+{
+    State = WaitForSelectorState.Attached,
+    Timeout = 180000,
+});
 
 var hasError = await page.GetAttributeAsync("#anyunit-done", "data-haserror");
 var summary = await page.InnerTextAsync("#anyunit-summary");
