@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Separate satellite project, same reasoning as BasicTests.Mtp:
-    XunitTests.csproj stays a plain netstandard2.0 library so nothing that
-    references it is put at risk.
+    Separate project/folder, same reasoning as BasicTests.Mtp.csproj:
+    compiles XunitTests.csproj's own source directly via an explicit
+    cross-folder Compile Include - not a ProjectReference to it - so
+    the real [Test]-attributed classes live directly in this assembly
+    too.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -13,12 +15,13 @@
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\XunitTests\XunitTests.csproj" />
-    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+    <Compile Include="..\XunitTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
-    <AnyUnitTestAssembly Include="XunitTests" />
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
 
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />

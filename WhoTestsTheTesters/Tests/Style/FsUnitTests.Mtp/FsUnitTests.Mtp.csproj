@@ -1,12 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Separate satellite project, same reasoning as BasicTests.Mtp:
-    FsUnitTests.fsproj stays a plain netstandard2.0 library so nothing
-    that references it is put at risk. This satellite is C# (the
-    generated entry point / AnyUnit.TestingPlatform build props don't
-    care about source language - it's just Assembly.Load("FsUnitTests")
-    under the hood), it just ProjectReferences the F# test library.
+    Stays a separate satellite (ProjectReference, not colocated the way
+    BasicTests.Mtp/ConstraintsTests.Mtp/NunitTests.Mtp/XunitTests.Mtp
+    now are - see BasicTests.Mtp.csproj's own comment for that shape):
+    FsUnitTests.fsproj's source is F# (.fs files), but the generated MTP
+    entry point AnyUnit.TestingPlatform.targets writes is a C# (.g.cs)
+    file added via <Compile Include> - fine for a .csproj, but an
+    .fsproj uses the F# compiler, which can't compile a .cs file at all.
+    Colocating would mean either this project becoming an .fsproj (so it
+    globs the shared .fs source), which breaks the generated entry point,
+    or staying a .csproj (so the entry point still compiles), which
+    means the C# SDK's default globbing never picks up FsUnit.fs's F#
+    source in the first place. Either way the actual [Test]-attributed
+    classes can't end up compiled directly into this assembly - so
+    anyunit-runner/anyunit-net48-*/anyunit-wasm still can't point
+    straight at FsUnitTests.Mtp.dll and find real tests; point them at
+    FsUnitTests.dll (which this project's own ProjectReference flattens
+    into its output directory anyway) instead. `dotnet test` and
+    `dotnet run` on this project itself are unaffected by any of this -
+    the Assembly.Load("FsUnitTests") indirection this satellite shape
+    relies on works exactly the same regardless.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

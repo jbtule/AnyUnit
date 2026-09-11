@@ -1,15 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Deliberately a SEPARATE project from BasicTests.csproj, rather than
-    multi-targeting BasicTests itself to add net10.0+Exe+MTP alongside its
-    existing netstandard2.0 library target: BasicTests.csproj is also
-    ProjectReference'd by Runner/Platforms/browser (a self-contained
-    browser-wasm Blazor app) and WhoTestsTheTesters/RoughRunner, and a
-    self-contained executable cannot reference a non-self-contained one
-    (NETSDK1150) - confirmed by actually trying it. Keeping this as its own
-    project means BasicTests.csproj itself is completely unmodified - zero
-    risk to anything that already references it.
+    Separate project/folder (own default obj/bin, no collision risk with
+    BasicTests.csproj), but compiles BasicTests.csproj's own source
+    directly via an explicit cross-folder Compile Include - not a
+    ProjectReference to it. That means the actual [Test]-attributed
+    classes live directly in THIS assembly too, so
+    anyunit-runner/anyunit-net48-*/anyunit-wasm can point straight at
+    BasicTests.Mtp.dll and find real tests, not just the MTP entry point
+    (confirmed: pointing a runner at an earlier ProjectReference-based
+    satellite shape found 0 tests, since the actual test classes only
+    ever lived in the separately-referenced BasicTests.dll).
+
+    This also sidesteps the reason a ProjectReference-based satellite
+    couldn't just enable EnableAnyUnitRunner on BasicTests.csproj itself:
+    BasicTests.csproj is ProjectReference'd by WhoTestsTheTesters/RoughRunner
+    (non-self-contained), and a self-contained MTP executable can't
+    ProjectReference a non-self-contained one (NETSDK1150, confirmed by
+    hitting it) - with no ProjectReference between the two projects at
+    all, that conflict can't arise.
+
+    No <AnyUnitTestAssembly> override needed either: with none set, the
+    generated Main defaults to testing its own entry assembly - exactly
+    right now that the real test classes are compiled directly into it.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -19,15 +32,12 @@
   <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\BasicTests\BasicTests.csproj" />
-    <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+    <Compile Include="..\BasicTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- This project only ProjectReferences the real test assembly, so the
-         generated entry point needs to be told which assembly to test
-         rather than defaulting to its own entry assembly. -->
-    <AnyUnitTestAssembly Include="BasicTests" />
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
 
   <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
