@@ -4,7 +4,7 @@
 #
 # Usage: run-tests.sh <runner-path> <suffix>
 #   runner-path  path to a built anyunit-runner.dll (net10) or
-#                anyunit-win-runner-x86.exe / anyunit-win-runner-x64.exe
+#                anyunit-net48-win-runner-x86.exe / anyunit-net48-win-runner-x64.exe
 #                (net48, Windows only, one build per bitness) - a .dll is
 #                launched via the dotnet host, anything else (e.g. a
 #                net48 .exe) is invoked directly
