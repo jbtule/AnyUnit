@@ -21,11 +21,6 @@
 
   <ItemGroup>
     <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.1.8-alpha" />
-    <!-- Not a direct dependency of this runner - here so it's present in
-         the output directory for test assemblies that need it at runtime
-         (e.g. FsUnitTests, via AnyUnit.Style.FsUnit), since Assembly.LoadFrom
-         won't otherwise find it (see RunTests.cs's AssemblyResolve hook). -->
-    <PackageReference Include="FSharp.Core" Version="10.1.400" />
   </ItemGroup>
 
   <ItemGroup>

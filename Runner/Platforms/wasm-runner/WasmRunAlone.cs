@@ -35,21 +35,22 @@ public static class WasmRunAlone
         // loaded for dependency resolution only, not treated as test
         // assemblies to run (see the "extra" vs "assemblies" query
         // parameters below).
-        // Also scan wasm-runner's own output directory - not just each
-        // test assembly's directory - for the same reason net10-runner/
-        // net48-runner carry an unused-looking FSharp.Core
-        // PackageReference of their own: a netstandard2.0 test project
-        // doesn't copy its own PackageReference dependencies (FSharp.Core
-        // included) into its output folder, only an exe-shaped project
-        // does. Those two runners get FSharp.Core "for free" from
-        // .NET's default same-directory assembly probing once it's
-        // copied into their own output; wasm-runner-host runs inside
-        // the browser with no filesystem access at all, so it can only
-        // ever get a dependency that's been explicitly served over
-        // HTTP - hence needing it in this scan, not just the implicit
-        // probing net10/net48 rely on.
-        var scanDirs = dllPaths.Select(Path.GetDirectoryName).Append(AppContext.BaseDirectory).Distinct();
-        foreach (var dir in scanDirs)
+        //
+        // This only works if the test project's own build actually put
+        // its NuGet package dependencies there too, not just its
+        // ProjectReferences - a plain Library-output project does NOT
+        // copy PackageReferences locally by default (only an exe-shaped
+        // project does), so a test project with real package
+        // dependencies (e.g. FsUnitTests needing FSharp.Core, via
+        // AnyUnit.Style.FsUnit) needs
+        // <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        // itself to get its whole resolved package graph copied locally -
+        // see FsUnitTests.fsproj. This is the general fix (works for any
+        // NuGet package, not just FSharp.Core specifically), so it's the
+        // right thing to ask of any external test project pointed at
+        // this runner too, rather than this runner trying to guess or
+        // special-case individual package names.
+        foreach (var dir in dllPaths.Select(Path.GetDirectoryName).Distinct())
         {
             if (dir == null || !Directory.Exists(dir))
             {

@@ -58,13 +58,6 @@
   <ItemGroup>
     <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.1.8-alpha" />
     <PackageReference Include="PuppeteerSharp" Version="25.10.0" />
-    <!-- Not a direct dependency of this runner - here so it's present in
-         this project's own output directory for WasmRunAlone's
-         dependency scan to find and serve to the browser (e.g.
-         FsUnitTests, via AnyUnit.Style.FsUnit) - see that scan's own
-         comment for why this project needs it explicitly, unlike
-         net10-runner/net48-runner's implicit same-directory probing. -->
-    <PackageReference Include="FSharp.Core" Version="10.1.400" />
   </ItemGroup>
 
   <Target Name="CheckWasmRunnerHostPublished" BeforeTargets="Build;_GetPackageFiles">
