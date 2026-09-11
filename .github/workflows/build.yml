@@ -38,6 +38,7 @@ jobs:
           run ConstraintsTests ConstraintsTests
           run NunitTests Style/NunitTests
           run XunitTests Style/XunitTests
+          run FsUnitTests Style/FsUnitTests
 
       - name: Run tests through the net48 console runner (Windows only)
         if: runner.os == 'Windows'
@@ -52,3 +53,16 @@ jobs:
           run ConstraintsTests ConstraintsTests
           run NunitTests Style/NunitTests
           run XunitTests Style/XunitTests
+          run FsUnitTests Style/FsUnitTests
+
+      # AnyUnit's self-test assemblies deliberately contain failing/erroring/
+      # ignored tests (a "_Fail"-suffixed test is supposed to fail, an
+      # "_Opposite"-prefixed one inverts that, etc. - see
+      # WhoTestsTheTesters/ConventionTestProcessor). This is the real
+      # pass/fail gate: it checks every result's actual outcome against what
+      # its own name declares, rather than eyeballing raw counts.
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json

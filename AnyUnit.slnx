@@ -18,7 +18,9 @@
   <Folder Name="/Runner/Platforms/net48/">
     <Project Path="Runner/Platforms/net48/net48-runner.csproj" />
   </Folder>
-  <Folder Name="/WhoTestsTheTesters/" />
+  <Folder Name="/WhoTestsTheTesters/">
+    <Project Path="WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj" />
+  </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/">
     <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
