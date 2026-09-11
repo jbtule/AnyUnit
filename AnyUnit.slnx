@@ -18,6 +18,12 @@
   <Folder Name="/Runner/Platforms/net48/">
     <Project Path="Runner/Platforms/net48/net48-runner.csproj" />
   </Folder>
+  <Folder Name="/Runner/Platforms/wasm-runner/">
+    <Project Path="Runner/Platforms/wasm-runner/wasm-runner.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/wasm-runner-host/">
+    <Project Path="Runner/Platforms/wasm-runner-host/wasm-runner-host.csproj" />
+  </Folder>
   <Folder Name="/WhoTestsTheTesters/">
     <Project Path="WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj" />
     <Project Path="WhoTestsTheTesters/RoughRunner/RoughRunner.csproj" />

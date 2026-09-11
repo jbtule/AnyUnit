@@ -1,0 +1,37 @@
+@using System.Reflection
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@if (_assemblies == null)
+{
+    <p>Loading test assemblies...</p>
+}
+else
+{
+    <AnyUnit.BrowserRunner.AnyUnitRunnerPage TestAssemblies="_assemblies" />
+}
+
+@code {
+    private Assembly[]? _assemblies;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Assembly names to dynamically load are passed via the
+        // ?assemblies=Name1,Name2 query string (set by wasm-runner when it
+        // navigates here) rather than being known at publish time - this
+        // host is generic and published once.
+        var uri = new Uri(Nav.Uri);
+        var names = System.Web.HttpUtility.ParseQueryString(uri.Query)["assemblies"]
+            ?.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            ?? Array.Empty<string>();
+
+        var loaded = new List<Assembly>();
+        foreach (var name in names)
+        {
+            var bytes = await Http.GetByteArrayAsync($"testassemblies/{name}.dll");
+            loaded.Add(Assembly.Load(bytes));
+        }
+
+        _assemblies = loaded.ToArray();
+    }
+}
