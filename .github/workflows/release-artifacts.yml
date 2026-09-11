@@ -1,8 +1,14 @@
-# Builds self-contained, single-file, RID-suffixed anyunit-runner
-# executables for every RID that makes sense as a release download, and
-# uploads them as workflow artifacts (that upload is the "available to
-# use on the GitHub release page" part - actually attaching them to a
-# specific GitHub Release is a separate, deliberate step, not done here).
+# Builds the artifacts a release needs (self-contained, single-file,
+# RID-suffixed anyunit-runner executables for every RID that makes
+# sense as a release download, plus every NuGet package this repo
+# ships - see the `pack` job below), and uploads them all as workflow
+# artifacts. That's as far as this workflow goes on purpose: it packs
+# and builds BEFORE a release, it doesn't perform the release itself -
+# actually attaching these to a GitHub Release, and pushing the .nupkg
+# files to nuget.org, are separate, deliberate, outward-facing actions
+# not done here (not yet built at all, in fact - this workflow is
+# purely the build/pack stage that a future release step would consume
+# from).
 #
 # Every RID cross-compiles fine from any host (the .NET SDK downloads the
 # target runtime pack via NuGet regardless of the host's own arch -
@@ -24,7 +30,19 @@
 # "unused". Self-contained-but-untrimmed is a bigger download than
 # trimmed would be, but trimmed risks silently broken test-assembly
 # loading, which is worse.
-name: release
+#
+# The `pack` job builds every NuGet package this repo ships
+# (IsPackable=true projects - see Directory.Build.props's own comment:
+# that's opt-in per project, off by default, so `dotnet pack` on the
+# whole solution just skips everything else) and uploads the .nupkg
+# files as workflow artifacts - not pushed to nuget.org, just kept
+# available to grab and push manually (or attach to the GitHub Release)
+# once someone's actually ready to. One job, one host: packing is
+# OS-agnostic (the two dotnet-tool packages are "any"-RID/framework-
+# dependent, not self-contained), so there's nothing to gain from
+# spreading it across hosts the way the actual per-RID publishes above
+# are.
+name: release-artifacts
 
 on:
   push:
@@ -145,3 +163,39 @@ jobs:
         with:
           name: anyunit-runner-osx-x64
           path: publish/osx-x64/anyunit-runner-osx-x64
+
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # MinVer (Directory.Build.props) computes each package's
+          # version from git tags - actions/checkout's default shallow
+          # clone (fetch-depth 1) doesn't fetch tag history, which would
+          # make MinVer fall back to its untagged-build version scheme
+          # even on an actual tag push. Full history so it sees the real
+          # tag.
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Must come before the pack below: wasm-runner's own build (which
+      # `dotnet pack` triggers as part of packing it) fails outright
+      # unless wasm-runner-host has already been published - see
+      # wasm-runner.csproj's CheckWasmRunnerHostPublished target, and
+      # build.yml's test-wasm job for the same prerequisite.
+      - name: Publish wasm-runner-host
+        run: dotnet publish Runner/Platforms/wasm-runner-host -c Release
+
+      - name: Pack
+        run: dotnet pack AnyUnit.slnx --configuration Release -o packages
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: packages/*.nupkg
