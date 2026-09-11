@@ -1,8 +1,12 @@
 @page "/"
 @using System.Reflection
+@using System.Runtime.InteropServices
 @using AnyUnit.Run
+@using AnyUnit.Util
 
 <h1>AnyUnit browser runner</h1>
+
+<pre>@_diagnostics</pre>
 
 @if (_file == null)
 {
@@ -56,12 +60,40 @@ else
         "XunitTests",
     };
 
-    protected override void OnInitialized()
+    private string _diagnostics = string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
+        // Render this diagnostic line first (before the potentially-slow or
+        // -deadlocking test run below) so it's visible even if what follows
+        // hangs - Task.Yield forces an actual paint here.
+        _diagnostics =
+            $"OSDescription={RuntimeInformation.OSDescription}; " +
+            $"ProcessArchitecture={RuntimeInformation.ProcessArchitecture}; " +
+            $"ProcessorCount={Environment.ProcessorCount}; " +
+            $"Utility.IsSingleThreadedRuntime={Utility.IsSingleThreadedRuntime}";
+        StateHasChanged();
+        await Task.Yield();
+
         var assemblies = TestAssemblyNames.Select(Assembly.Load).ToList();
 
         var runner = Runner.Create("net10-browser", assemblies);
         var file = new ResultsFile();
+
+        // The "Timeout" category exercises AnyUnit's per-test [Timeout]
+        // enforcement, which relies on a background thread preempting a
+        // busy-looping test - something single-threaded WASM fundamentally
+        // doesn't have. Rather than let each of those tests spin for its
+        // full ~30s of wall-clock busy-wait (Utility.IsSingleThreadedRuntime
+        // is why they don't get killed early here), skip the category
+        // outright: it's testing a capability this platform can't have, not
+        // a real regression.
+        var filter = new TestFilter();
+        if (Utility.IsSingleThreadedRuntime)
+        {
+            filter.Excludes.Add("C:Timeout");
+        }
+
         runner.RunAll(r =>
         {
             _logBuilder.AppendLine($"{r.Test.Fixture.Assembly.Name}.{r.Test.Fixture.Name}.{r.Test.Name} [{r.Kind}]");
@@ -70,7 +102,7 @@ else
                 _logBuilder.AppendLine(r.Output);
             }
             file.Add(r);
-        });
+        }, filter);
         _file = file;
     }
 }
