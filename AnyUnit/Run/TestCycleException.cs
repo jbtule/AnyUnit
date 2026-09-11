@@ -167,7 +167,7 @@ namespace AnyUnit.Run
                 helper.Log.WriteLine(ex.Message);
                 helper.Log.WriteLine(ex.StackTrace);
                 if (ex.InnerException != null)
-                    WriteOutFullExceptionHelper(helper, ex);
+                    WriteOutFullExceptionHelper(helper, ex.InnerException);
             }
         }
     }
