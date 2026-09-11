@@ -1,0 +1,27 @@
+{
+  "solution": {
+    "path": "AnyUnit.slnx",
+    "projects": [
+      "AnyUnit/AnyUnit.csproj",
+      "AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj",
+      "Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj",
+      "Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj",
+      "Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj",
+      "Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj",
+      "Runner/Platforms/net10/net10-runner.csproj",
+      "Runner/Platforms/net48/net48-runner.csproj",
+      "WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj",
+      "WhoTestsTheTesters/RoughRunner/RoughRunner.csproj",
+      "WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj",
+      "WhoTestsTheTesters/Tests/ConstraintsTests.Mtp/ConstraintsTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj",
+      "WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj",
+      "WhoTestsTheTesters/Tests/Style/NunitTests.Mtp/NunitTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/Style/NunitTests/NunitTests.csproj",
+      "WhoTestsTheTesters/Tests/Style/XunitTests.Mtp/XunitTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj"
+    ]
+  }
+}

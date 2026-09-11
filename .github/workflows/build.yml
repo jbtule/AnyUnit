@@ -1,11 +1,3 @@
-# Note: the browser (net10-browser, WASM) target is intentionally not run
-# here yet. Runner/Platforms/wasm-runner (the anyunit-wasm CLI/dotnet tool)
-# drives it headlessly via Microsoft.Playwright, requires
-# Runner/Platforms/wasm-runner-host published first (see that project's own
-# comments), and can run any set of test assemblies together in one
-# invocation -- but automating that in CI is left for a follow-up once it's
-# been proven out on a real runner.
-#
 # Coverage runs as its own separate job (not part of the build-and-test
 # matrix): the managed code under test is the same regardless of which OS
 # it happens to run on, so measuring coverage three times over (once per
@@ -13,6 +5,23 @@
 # different pieces of information the way the matrix's actual pass/fail
 # results are. See that job's own comment for why coverlet.console
 # specifically.
+#
+# The wasm (browser) target also runs as its own separate job, not part
+# of the OS matrix: it works the same way regardless of host OS (the
+# actual test execution happens inside a headless Chromium PuppeteerSharp
+# drives, not the host's own runtime), and building wasm-runner-host (a
+# Blazor WASM app needing the wasm-tools workload and an Emscripten
+# native-link step) is slow enough that repeating it per matrix OS would
+# be pure waste, same reasoning as the coverage job. build-and-test and
+# coverage build AnyUnit.ci.slnf (a solution filter over AnyUnit.slnx)
+# rather than the solution directly, specifically to exclude wasm-runner/
+# wasm-runner-host from their build - wasm-runner's own build fails
+# outright unless wasm-runner-host has already been published (see
+# wasm-runner.csproj's CheckWasmRunnerHostPublished target), so building
+# the full, unfiltered solution here would force that slow Emscripten
+# step onto every one of those jobs too. test-wasm builds the real,
+# unfiltered AnyUnit.slnx (after publishing wasm-runner-host itself),
+# since it's the one job that actually needs wasm-runner built.
 name: build
 
 on:
@@ -24,7 +33,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # Real hosted runners for every arch .NET actually ships a
+        # runtime for (see release.yml for the RIDs that have no hosted
+        # runner at all - win-x86, linux-arm - and so can only ever be
+        # cross-published, never executed in CI).
+        os:
+          - ubuntu-latest      # linux-x64
+          - ubuntu-24.04-arm   # linux-arm64
+          - windows-latest     # win-x64
+          - windows-11-arm     # win-arm64
+          - macos-latest       # osx-arm64 (Apple Silicon)
+          - macos-15-intel     # osx-x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -33,8 +52,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # AnyUnit.ci.slnf builds everything EXCEPT wasm-runner/
+      # wasm-runner-host (see the top-of-file comment: wasm-runner's own
+      # build errors out unless wasm-runner-host is published first, and
+      # that publish - an Emscripten native-link step - is too slow to
+      # repeat across 6 matrix legs + coverage; test-wasm builds the full
+      # solution instead, once).
       - name: Build
-        run: dotnet build AnyUnit.slnx --configuration Release
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
 
       - name: Run tests through the net10 console runner
         shell: bash
@@ -47,7 +72,10 @@ jobs:
       # solution-wide build step above still also produces an unused,
       # unsuffixed net48-runner.exe (falls through both platform-
       # conditioned property groups when no Platform is specified) -
-      # harmless, just not one of these two.
+      # harmless, just not one of these two. Runs on windows-11-arm too
+      # (runner.os == 'Windows' covers both) - .NET Framework itself only
+      # ships x86/x64 builds, but Windows-on-ARM's built-in x64 emulation
+      # should run them; not independently verified on real ARM64 Windows.
       - name: Build net48 console runner (both bitnesses, Windows only)
         if: runner.os == 'Windows'
         run: |
@@ -86,7 +114,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Build
-        run: dotnet build AnyUnit.slnx --configuration Release
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
 
       # Uses coverlet.console (successor to the old CoverageRunner project,
       # which never actually collected coverage itself -- see
@@ -118,3 +146,43 @@ jobs:
         with:
           name: coverage
           path: coverage.cobertura.xml
+
+  test-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Must come before the solution build below: wasm-runner's own
+      # build fails outright unless wasm-runner-host has already been
+      # published (see wasm-runner.csproj's CheckWasmRunnerHostPublished
+      # target, and wasm-runner-host's own comment on why this can't be
+      # auto-triggered from inside wasm-runner's build instead).
+      - name: Publish wasm-runner-host
+        run: dotnet publish Runner/Platforms/wasm-runner-host -c Release
+
+      - name: Build
+        run: dotnet build AnyUnit.slnx --configuration Release
+
+      # PuppeteerSharp downloads its own headless Chrome on first use
+      # (BrowserFetcher, cached after that) - no separate install step
+      # the way Playwright's `playwright install` needed. GitHub's hosted
+      # ubuntu-latest image ships the system libraries headless Chrome
+      # typically needs; not independently verified here (couldn't test
+      # actual GitHub-hosted infra from local dev), so if this job fails
+      # on missing shared libraries, that's the first thing to check.
+      - name: Run tests through anyunit-wasm
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/wasm-runner/bin/Release/net10.0/anyunit-wasm.dll wasm
+
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json

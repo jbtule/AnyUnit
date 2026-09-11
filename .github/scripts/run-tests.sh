@@ -3,7 +3,8 @@
 # result set to /tmp/<name>-<suffix>.json.
 #
 # Usage: run-tests.sh <runner-path> <suffix>
-#   runner-path  path to a built anyunit-runner.dll (net10) or
+#   runner-path  path to a built anyunit-runner.dll (net10), anyunit-wasm.dll
+#                (browser-wasm, via PuppeteerSharp/headless Chrome), or
 #                anyunit-net48-win-runner-x86.exe / anyunit-net48-win-runner-x64.exe
 #                (net48, Windows only, one build per bitness) - a .dll is
 #                launched via the dotnet host, anything else (e.g. a

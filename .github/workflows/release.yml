@@ -1,0 +1,94 @@
+# Builds self-contained, single-file, RID-suffixed anyunit-runner
+# executables for every RID that makes sense as a release download, and
+# uploads them as workflow artifacts (that upload is the "available to
+# use on the GitHub release page" part - actually attaching them to a
+# specific GitHub Release is a separate, deliberate step, not done here).
+#
+# Every RID cross-compiles fine from any host (the .NET SDK downloads the
+# target runtime pack via NuGet regardless of the host's own arch -
+# verified locally: all 8 of these RIDs publish correctly from a single
+# macOS arm64 dev machine). So which host builds which RID below isn't
+# about capability, it's just spreading the work: one job per host
+# family, each producing every RID that's "theirs" (all Windows RIDs off
+# windows-latest, all Linux RIDs off ubuntu-latest, both macOS RIDs off
+# macos-latest) - per the user's own call that 32-bit/no-native-runner
+# variants (win-x86, linux-arm) don't need their own host, just get
+# published from their 64-bit counterpart's host.
+#
+# Deliberately NOT trimmed (PublishTrimmed) even though these are
+# self-contained: anyunit-runner loads test assemblies - and whatever
+# they transitively reference - via reflection at runtime
+# (Assembly.LoadFrom, see shared/RunTests.cs), which is exactly the
+# pattern the IL trimmer can't see through and routinely strips as
+# "unused". Self-contained-but-untrimmed is a bigger download than
+# trimmed would be, but trimmed risks silently broken test-assembly
+# loading, which is worse.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        rid: [win-x64, win-x86, win-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (${{ matrix.rid }})
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.rid }}
+      - name: Rename with RID
+        shell: bash
+        run: mv "publish/${{ matrix.rid }}/anyunit-runner.exe" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}.exe
+
+  publish-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [linux-x64, linux-arm64, linux-arm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (${{ matrix.rid }})
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.rid }}
+      - name: Rename with RID
+        run: mv "publish/${{ matrix.rid }}/anyunit-runner" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}
+
+  publish-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish anyunit-runner (${{ matrix.rid }})
+        run: |
+          dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.rid }}
+      - name: Rename with RID
+        run: mv "publish/${{ matrix.rid }}/anyunit-runner" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}
