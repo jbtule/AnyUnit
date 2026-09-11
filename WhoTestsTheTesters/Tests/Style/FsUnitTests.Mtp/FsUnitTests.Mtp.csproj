@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Separate satellite project, same reasoning as BasicTests.Mtp:
+    FsUnitTests.fsproj stays a plain netstandard2.0 library so nothing
+    that references it is put at risk. This satellite is C# (the
+    generated entry point / AnyUnit.TestingPlatform build props don't
+    care about source language - it's just Assembly.Load("FsUnitTests")
+    under the hood), it just ProjectReferences the F# test library.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\FsUnitTests\FsUnitTests.fsproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AnyUnitTestAssembly Include="FsUnitTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>

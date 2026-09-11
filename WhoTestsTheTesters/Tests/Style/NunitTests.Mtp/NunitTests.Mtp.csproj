@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Separate satellite project, same reasoning as BasicTests.Mtp:
+    NunitTests.csproj stays a plain netstandard2.0 library so nothing that
+    references it is put at risk.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\NunitTests\NunitTests.csproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AnyUnitTestAssembly Include="NunitTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>
