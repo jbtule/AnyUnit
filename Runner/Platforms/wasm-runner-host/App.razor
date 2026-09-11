@@ -1,4 +1,5 @@
 @using System.Reflection
+@using System.Runtime.Loader
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -16,14 +17,70 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Assembly names to dynamically load are passed via the
-        // ?assemblies=Name1,Name2 query string (set by wasm-runner when it
-        // navigates here) rather than being known at publish time - this
-        // host is generic and published once.
+        // Assembly names are passed via the query string (set by
+        // wasm-runner when it navigates here) rather than being known at
+        // publish time - this host is generic and published once.
+        //   assemblies=Name1,Name2  - the actual test assemblies to run.
+        //   extra=Name3,Name4       - their own dependencies (most real
+        //     test assemblies aren't self-contained: style libraries, the
+        //     system under test, other NuGet packages).
         var uri = new Uri(Nav.Uri);
-        var names = System.Web.HttpUtility.ParseQueryString(uri.Query)["assemblies"]
-            ?.Split(',', StringSplitOptions.RemoveEmptyEntries)
-            ?? Array.Empty<string>();
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var names = query["assemblies"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+        var extraNames = query["extra"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+        // Dependencies are NOT eagerly Assembly.Load-ed here - confirmed
+        // empirically (a minimal LibA/LibB repro) that Mono/WASM doesn't
+        // properly register an eagerly-loaded assembly for OTHER
+        // assemblies' cross-references to resolve against: loading LibB,
+        // then LibA (which has a compile-time reference to LibB), then
+        // calling LibA.GetExportedTypes() (exactly what AnyUnit.Run.
+        // DefaultDiscovery does) threw ReflectionTypeLoadException even
+        // though LibB was genuinely loaded and directly reflectable.
+        //
+        // The fix: pre-fetch each dependency's bytes into memory (pure
+        // I/O, no assembly loading yet), and hand them to the runtime's
+        // OWN resolution mechanism - AssemblyLoadContext.Default.Resolving
+        // - which fires reactively exactly when some other assembly's
+        // reference actually needs resolving. Confirmed this fixes the
+        // same repro. The handler itself must stay synchronous (no async
+        // I/O inside it) since it runs on WASM's single UI thread and a
+        // blocking wait on a pending fetch would deadlock - hence
+        // pre-fetching the bytes upfront rather than fetching lazily
+        // inside the handler.
+        var dependencyBytes = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in extraNames)
+        {
+            if (HostProvidedAssemblies.Contains(name))
+            {
+                // Already part of this host's own static reference graph
+                // (AnyUnit itself, AnyUnit.BrowserRunner) - fetching and
+                // registering a second copy would just be wasted work,
+                // since the runtime already has the real one loaded.
+                continue;
+            }
+
+            try
+            {
+                dependencyBytes[name] = await Http.GetByteArrayAsync($"testassemblies/{name}.dll");
+            }
+            catch (Exception ex)
+            {
+                // Not every .dll that happens to sit in a test project's
+                // output folder is actually fetchable/loadable under WASM
+                // (e.g. a native-only or reference-assembly-only one).
+                // Leave it out of the cache - if something genuinely needs
+                // it, Resolving will fail to find it and surface a normal
+                // FileNotFoundException at that point, same as it would
+                // for a truly missing dependency.
+                await Log($"Skipping dependency '{name}': {ex.Message}");
+            }
+        }
+
+        AssemblyLoadContext.Default.Resolving += (context, name) =>
+            name.Name != null && dependencyBytes.TryGetValue(name.Name, out var bytes)
+                ? context.LoadFromStream(new MemoryStream(bytes))
+                : null;
 
         var loaded = new List<Assembly>();
         foreach (var name in names)
@@ -33,5 +90,31 @@ else
         }
 
         _assemblies = loaded.ToArray();
+    }
+
+    private static readonly HashSet<string> HostProvidedAssemblies = new(StringComparer.OrdinalIgnoreCase)
+    {
+        typeof(AnyUnit.Run.Runner).Assembly.GetName().Name!,
+        typeof(AnyUnit.BrowserRunner.AnyUnitRunnerPage).Assembly.GetName().Name!,
+    };
+
+    // Console.WriteLine is documented to route to the browser's JS console
+    // under Blazor WASM, and that's normally exactly what wasm-runner's
+    // Playwright driver listens to (page.Console) - but calls made from
+    // inside this component's OnInitializedAsync weren't reliably showing
+    // up there in practice. Posting back to wasm-runner's own Kestrel
+    // host - which is already proven reliable, it's how every test
+    // assembly gets served - sidesteps that uncertainty rather than
+    // continuing to chase it.
+    private async Task Log(string message)
+    {
+        try
+        {
+            await Http.PostAsync("log", new StringContent(message));
+        }
+        catch
+        {
+            // Best-effort - never let a logging failure mask the real error.
+        }
     }
 }

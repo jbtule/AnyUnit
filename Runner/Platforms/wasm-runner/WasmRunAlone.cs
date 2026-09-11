@@ -20,7 +20,33 @@ public static class WasmRunAlone
 
     public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity)
     {
+        var testAssemblyNames = dllPaths.Select(p => Path.GetFileNameWithoutExtension(p)!).ToList();
         var nameToPath = dllPaths.ToDictionary(p => Path.GetFileNameWithoutExtension(p)!, p => p, StringComparer.OrdinalIgnoreCase);
+
+        // Most real test assemblies aren't self-contained - they reference
+        // their own dependencies (style libraries, the system under test,
+        // other NuGet packages). dotnet build/publish already flattens all
+        // of that into the same output folder as the test assembly itself
+        // (the same assumption net10-runner/net48-runner's own
+        // AssemblyResolve fallback in RunTests.cs relies on) - so serve and
+        // load every .dll found alongside each given assembly too, not
+        // just the ones named on the command line. These extra ones are
+        // loaded for dependency resolution only, not treated as test
+        // assemblies to run (see the "extra" vs "assemblies" query
+        // parameters below).
+        foreach (var dir in dllPaths.Select(Path.GetDirectoryName).Distinct())
+        {
+            if (dir == null || !Directory.Exists(dir))
+            {
+                continue;
+            }
+
+            foreach (var siblingDll in Directory.GetFiles(dir, "*.dll"))
+            {
+                var name = Path.GetFileNameWithoutExtension(siblingDll);
+                nameToPath.TryAdd(name, siblingDll);
+            }
+        }
 
         var hostWwwroot = DefaultHostWwwroot;
         if (!Directory.Exists(hostWwwroot))
@@ -48,6 +74,20 @@ public static class WasmRunAlone
             await context.Response.SendFileAsync(path);
         });
 
+        // Backup logging channel: Console.WriteLine is documented to route
+        // to the browser's JS console under Blazor WASM, and normally
+        // page.Console below picks that straight up - but calls from
+        // inside a Razor component's OnInitializedAsync weren't reliably
+        // showing up there in practice (unclear why; not worth chasing
+        // further). Posting back to our own Kestrel host, which we
+        // already fully control, sidesteps that uncertainty entirely.
+        app.MapPost("/log", async context =>
+        {
+            using var reader = new StreamReader(context.Request.Body);
+            var message = await reader.ReadToEndAsync();
+            Console.Error.WriteLine($"[wasm log] {message}");
+        });
+
         app.UseStaticFiles(new StaticFileOptions { ServeUnknownFileTypes = true });
         app.MapFallbackToFile("index.html");
         await app.StartAsync();
@@ -56,7 +96,8 @@ public static class WasmRunAlone
             .Features.Get<IServerAddressesFeature>()!
             .Addresses.First();
 
-        var assembliesParam = string.Join(",", nameToPath.Keys.Select(name => Uri.EscapeDataString(name)));
+        var assembliesParam = string.Join(",", testAssemblyNames.Select(name => Uri.EscapeDataString(name)));
+        var extraParam = string.Join(",", nameToPath.Keys.Except(testAssemblyNames, StringComparer.OrdinalIgnoreCase).Select(name => Uri.EscapeDataString(name)));
 
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
@@ -66,7 +107,7 @@ public static class WasmRunAlone
 
         PrintStart(teamCity);
 
-        await page.GotoAsync($"{address}/?assemblies={assembliesParam}");
+        await page.GotoAsync($"{address}/?assemblies={assembliesParam}&extra={extraParam}");
         await page.WaitForSelectorAsync("#anyunit-done", new PageWaitForSelectorOptions
         {
             State = WaitForSelectorState.Attached,
