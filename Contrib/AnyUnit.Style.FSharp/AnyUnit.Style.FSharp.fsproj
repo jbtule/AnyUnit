@@ -1,25 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Not a style built on AnyUnit's reflection-based discovery at all
-    (unlike Style.Nunit/.Xunit/.FsUnit, which all discover [Test]-
-    attributed INSTANCE methods on a class) - it's a value-based
-    alternative for F#'s own idiomatic top-level `let` test style, which
-    that reflection path can never see (confirmed: it compiles to a
-    static method, and AnyUnit's own Utility.AllMethods hardcodes
-    BindingFlags.Instance throughout). See Test.fs/Runner.fs for the
-    actual design: a `test { }` computation expression builds a Test
-    value by hand, and Runner.run executes a Test list directly,
-    producing the same ResultsFile/Result/TestMeta output every other
-    style produces via reflection.
+    Not built on method-attribute discovery the way Style.Nunit/.Xunit/
+    .FsUnit are (all three discover [Test]-attributed methods) - this
+    style's unit is a VALUE (Test, see Test.fs), built with the `test { }`
+    computation expression, so there's no method to attribute in the
+    first place. Discovery.fs's FSharpStyleAttribute (the
+    [<assembly: FSharpStyle>] opt-in, same shape as AnyUnit.Style.Xunit's
+    XunitStyleAttribute) finds fixtures by property TYPE instead
+    (any static property of type Test) - confirmed necessary, not just a
+    style choice: an attribute placed on an F# top-level `let value = ...`
+    binding lands on the compiler-generated PROPERTY, not the reflectable
+    getter MethodInfo every other style's discovery depends on.
 
-    Scaffold/exploratory as of this commit: no auto-discovery (pointing
-    a console runner at a plain .dll and having it "just find" these
-    tests) is attempted yet - a caller currently has to explicitly call
-    Runner.run itself with its own Test list. Adding real discovery
-    would mean a new TestFixtureDiscoveryAttributeBase that scans for
-    static properties of type Test (not methods) - a real follow-up,
-    not started here.
+    Runner.run (also still available directly) executes a Test list by
+    hand and folds the results into a real ResultsFile - the same
+    machinery FSharpTestAttribute's TestInvoke calls into once a test is
+    discovered, so the two paths produce identical results either way.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -29,6 +26,7 @@
 
   <ItemGroup>
     <Compile Include="Test.fs" />
+    <Compile Include="Discovery.fs" />
     <Compile Include="Runner.fs" />
   </ItemGroup>
 
