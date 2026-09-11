@@ -33,12 +33,19 @@ namespace AnyUnit.Run
         public AssemblyMeta()
         {
             Fixtures = new CallBackList<FixtureMeta>(it => it.Assembly = this);
+            NamespaceScopes = new List<NamespaceScope>();
         }
 
         public string UniqueName { get; set; }
         public string Name { get; set; }
-    
+
         public IList<FixtureMeta> Fixtures { get; set; }
+
+        // [SetUpFixture]-equivalent scopes discovered in this assembly (see
+        // NamespaceScope and SetUpFixtureAttributeBase). Not part of the
+        // JSON output below - this is run-time bookkeeping, not test
+        // metadata.
+        public IList<NamespaceScope> NamespaceScopes { get; set; }
 
 
         public string ToListJson()

@@ -100,5 +100,27 @@ namespace AnyUnit.Run
                 Attribute.OneTimeTearDown(Type, _oneTimeSetUpState);
             }
         }
+
+        // [SetUpFixture]-equivalent scopes (see NamespaceScope) that wrap
+        // this fixture's tests, outermost-first (a test can be under more
+        // than one nested namespace scope at once). Computed once and
+        // cached - every Test sharing this Fixture has the same answer.
+        private IList<NamespaceScope> _applicableNamespaceScopes;
+
+        internal IList<NamespaceScope> ApplicableNamespaceScopes
+        {
+            get
+            {
+                if (_applicableNamespaceScopes == null)
+                {
+                    var ns = Type.Namespace ?? string.Empty;
+                    _applicableNamespaceScopes = Assembly.NamespaceScopes
+                        .Where(s => s.AppliesTo(ns))
+                        .OrderBy(s => s.Namespace.Length)
+                        .ToList();
+                }
+                return _applicableNamespaceScopes;
+            }
+        }
     }
 }

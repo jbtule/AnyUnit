@@ -172,6 +172,13 @@ namespace AnyUnit.Run
             Result finalResult = null;
             try
             {
+                // Outermost-first: a namespace-scoped [SetUpFixture] wraps
+                // its own fixture-level OneTimeSetUp.
+                foreach (var scope in _fixture.ApplicableNamespaceScopes)
+                {
+                    scope.EnsureOneTimeSetUp();
+                }
+
                 _fixture.EnsureOneTimeSetUp();
 
                 fixture = _init(_type, _constructorArgs.Parameters);
@@ -245,6 +252,21 @@ namespace AnyUnit.Run
                 catch (Exception ex)
                 {
                     exceptions.Add(TestCycle.Teardown, ex);
+                }
+                // Innermost-first: the reverse of the setup-side order above.
+                // Each scope is notified independently - one throwing must
+                // not stop the others from being notified too, or their
+                // own countdowns would never reach zero.
+                for (var i = _fixture.ApplicableNamespaceScopes.Count - 1; i >= 0; i--)
+                {
+                    try
+                    {
+                        _fixture.ApplicableNamespaceScopes[i].NotifyTestFinished();
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(TestCycle.Teardown, ex);
+                    }
                 }
                 exceptions.WriteOutExceptions(helper);
                 state.Result = finalResult ?? new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);

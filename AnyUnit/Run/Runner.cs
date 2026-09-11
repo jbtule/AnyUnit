@@ -127,6 +127,30 @@ namespace AnyUnit.Run
                         }
                     }
                 }
+
+                // [SetUpFixture]-equivalent discovery: unconditional, same
+                // as the default per-class Fixture scan above, so any style
+                // can define its own SetUpFixtureAttributeBase subclass
+                // with no assembly-level opt-in needed. Registered after
+                // this assembly's fixtures/tests are fully built, so each
+                // scope's test count (for NamespaceScope's fire-teardown-
+                // at-zero bookkeeping) can be computed exactly once, up
+                // front - see NamespaceScope's own comment for why that
+                // doesn't require those tests to be contiguous in
+                // runner.Tests.
+                var setUpFixtures = assembly.GetExportedTypes()
+                    .Select(t => new { Type = t, Attr = t.GetTopMostCustomAttribute<SetUpFixtureAttributeBase>() })
+                    .Where(x => x.Attr != null);
+
+                foreach (var setUpFixture in setUpFixtures)
+                {
+                    var ns = setUpFixture.Type.Namespace ?? string.Empty;
+                    var count = assemblyMeta.Fixtures.OfType<Fixture>()
+                        .Where(f => NamespaceScope.IsUnderNamespace(f.Type.Namespace ?? string.Empty, ns))
+                        .SelectMany(f => f.Tests)
+                        .Count();
+                    assemblyMeta.NamespaceScopes.Add(new NamespaceScope(ns, setUpFixture.Type, setUpFixture.Attr, count));
+                }
             }
 
             return runner;
