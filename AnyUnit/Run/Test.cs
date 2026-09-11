@@ -41,6 +41,7 @@ namespace AnyUnit.Run
             WaitHandle.WaitAll(new[] { new ManualResetEvent(false) }, milliseconds);
         }
 
+        private readonly Fixture _fixture;
         private readonly FixtureInitializer _init;
         private readonly Type _type;
         private readonly TestInvoker _invoke;
@@ -89,6 +90,7 @@ namespace AnyUnit.Run
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
 
+            _fixture = fixture;
             _init = fixture.Attribute.FixtureInit;
             _type = fixture.Type;
             _invoke = harness.Attribute.TestInvoke;
@@ -170,6 +172,7 @@ namespace AnyUnit.Run
             Result finalResult = null;
             try
             {
+                _fixture.EnsureOneTimeSetUp();
 
                 fixture = _init(_type, _constructorArgs.Parameters);
                 var helpertemp = fixture as IAssertionHelper;
@@ -230,6 +233,14 @@ namespace AnyUnit.Run
                     {
                         disposable.Dispose();
                     }
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(TestCycle.Teardown, ex);
+                }
+                try
+                {
+                    _fixture.NotifyTestFinished();
                 }
                 catch (Exception ex)
                 {
