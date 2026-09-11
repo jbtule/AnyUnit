@@ -3,6 +3,18 @@
 # Microsoft.Playwright against a `dotnet publish` of Runner/Platforms/browser
 # -- see that project's Program.cs for usage -- but automating that in CI is
 # left for a follow-up once it's been proven out on a real runner.
+#
+# Coverage: uses Microsoft's dotnet-coverage global tool (successor to the
+# old CoverageRunner project, which never actually collected coverage
+# itself -- see WhoTestsTheTesters/Readme.md's history -- it just gave an
+# external profiler something simple to launch). `dotnet-coverage collect`
+# wraps the net10-runner test run and instruments the whole process tree.
+# The command shape here is confirmed correct against the tool's own
+# --help, but wasn't verified end-to-end on every platform before this was
+# committed (local profiler attach failed in one dev environment with "no
+# code coverage data available. Profiler was not initialized" -- watch the
+# first few runs of this step across the OS matrix to confirm it actually
+# produces non-empty reports).
 name: build
 
 on:
@@ -26,19 +38,37 @@ jobs:
       - name: Build
         run: dotnet build AnyUnit.slnx --configuration Release
 
-      - name: Run tests through the net10 console runner
+      # net10-runner exits non-zero whenever a test assembly has any
+      # Fail/Error results - which AnyUnit's self-test assemblies always do,
+      # on purpose (see the "Verify results match naming convention" step
+      # below). That exit code is meaningful for a one-off local run, but
+      # here it would (under `set -e`) abort this script after the first
+      # assembly, so each invocation is `|| true`d - the real pass/fail
+      # gate is ConventionTestProcessor, not this runner's exit code.
+      - name: Run tests through the net10 console runner, with coverage
         shell: bash
         run: |
           set -e
-          run() {
-            dotnet run --project Runner/Platforms/net10/net10-runner.csproj --configuration Release --no-build -- \
-              run -o "/tmp/$1-net10.json" "WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll"
-          }
-          run BasicTests BasicTests
-          run ConstraintsTests ConstraintsTests
-          run NunitTests Style/NunitTests
-          run XunitTests Style/XunitTests
-          run FsUnitTests Style/FsUnitTests
+          dotnet tool install --global dotnet-coverage
+          dotnet-coverage collect --output coverage.cobertura.xml --output-format cobertura -- \
+            bash -c '
+              set -e
+              run() {
+                dotnet run --project Runner/Platforms/net10/net10-runner.csproj --configuration Release --no-build -- \
+                  run -o "/tmp/$1-net10.json" "WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll" || true
+              }
+              run BasicTests BasicTests
+              run ConstraintsTests ConstraintsTests
+              run NunitTests Style/NunitTests
+              run XunitTests Style/XunitTests
+              run FsUnitTests Style/FsUnitTests
+            '
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: coverage.cobertura.xml
 
       - name: Run tests through the net48 console runner (Windows only)
         if: runner.os == 'Windows'
@@ -47,7 +77,7 @@ jobs:
           set -e
           run() {
             dotnet run --project Runner/Platforms/net48/net48-runner.csproj --configuration Release --no-build -- \
-              run -o "/tmp/$1-net48.json" "WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll"
+              run -o "/tmp/$1-net48.json" "WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll" || true
           }
           run BasicTests BasicTests
           run ConstraintsTests ConstraintsTests
