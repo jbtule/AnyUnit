@@ -18,8 +18,8 @@ coverage.cobertura.xml
 x64/
 build/
 # ...except NuGet's build/ convention folder (auto-imported .props/.targets),
-# used by Contrib/AnyUnit.TestingPlatform for its property-based opt-in.
-!Contrib/AnyUnit.TestingPlatform/build/
+# used by AnyUnit.TestingPlatform for its property-based opt-in.
+!AnyUnit.TestingPlatform/build/
 [Bb]in/
 [Oo]bj/
 

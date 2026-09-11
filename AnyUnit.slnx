@@ -4,7 +4,6 @@
     <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
-    <Project Path="Contrib/AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
   </Folder>
   <Folder Name="/Runner/" />
   <Folder Name="/Runner/Platforms/">
@@ -34,4 +33,5 @@
     <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj" />
   </Folder>
   <Project Path="AnyUnit/AnyUnit.csproj" />
+  <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
 </Solution>

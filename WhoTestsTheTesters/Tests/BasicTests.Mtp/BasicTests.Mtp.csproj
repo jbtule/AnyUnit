@@ -16,11 +16,11 @@
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
 
-  <Import Project="..\..\..\Contrib\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\BasicTests\BasicTests.csproj" />
-    <ProjectReference Include="..\..\..\Contrib\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+    <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +30,6 @@
     <AnyUnitTestAssembly Include="BasicTests" />
   </ItemGroup>
 
-  <Import Project="..\..\..\Contrib\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
 
 </Project>
