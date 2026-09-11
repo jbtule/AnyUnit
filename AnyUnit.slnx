@@ -6,12 +6,6 @@
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
   </Folder>
   <Folder Name="/Runner/" />
-  <Folder Name="/Runner/Platforms/">
-    <Project Path="Runner/Platforms/browser-host/browser-host.csproj" />
-  </Folder>
-  <Folder Name="/Runner/Platforms/browser/">
-    <Project Path="Runner/Platforms/browser/browser-runner.csproj" />
-  </Folder>
   <Folder Name="/Runner/Platforms/net10/">
     <Project Path="Runner/Platforms/net10/net10-runner.csproj" />
   </Folder>

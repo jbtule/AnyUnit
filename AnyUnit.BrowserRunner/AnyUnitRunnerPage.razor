@@ -31,8 +31,9 @@ else
 
     <pre>@_log</pre>
 
-    @* Machine-readable hooks for a headless host (see Runner/Platforms/browser-host) to
-       scrape once the run is finished, without needing any JS interop of its own. *@
+    @* Machine-readable hooks for a headless host (see Runner/Platforms/wasm-runner's
+       WasmRunAlone.cs) to scrape once the run is finished, without needing any JS
+       interop of its own. *@
     <pre id="anyunit-summary" style="display:none">@_summary</pre>
     <pre id="anyunit-json" style="display:none">@_file.ToListJson()</pre>
     <div id="anyunit-done" style="display:none" data-haserror="@_file.HasError.ToString().ToLowerInvariant()"></div>

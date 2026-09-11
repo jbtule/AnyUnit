@@ -1,8 +1,10 @@
 # Note: the browser (net10-browser, WASM) target is intentionally not run
-# here yet. Runner/Platforms/browser-host drives it headlessly via
-# Microsoft.Playwright against a `dotnet publish` of Runner/Platforms/browser
-# -- see that project's Program.cs for usage -- but automating that in CI is
-# left for a follow-up once it's been proven out on a real runner.
+# here yet. Runner/Platforms/wasm-runner (the anyunit-wasm CLI/dotnet tool)
+# drives it headlessly via Microsoft.Playwright, requires
+# Runner/Platforms/wasm-runner-host published first (see that project's own
+# comments), and can run any set of test assemblies together in one
+# invocation -- but automating that in CI is left for a follow-up once it's
+# been proven out on a real runner.
 #
 # Coverage: uses coverlet.console (successor to the old CoverageRunner
 # project, which never actually collected coverage itself -- see
