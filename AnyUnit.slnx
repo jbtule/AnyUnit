@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/Contrib/">
+    <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
+    <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
+    <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
+  </Folder>
+  <Folder Name="/Runner/" />
+  <Folder Name="/Runner/Platforms/">
+    <Project Path="Runner/Platforms/browser-host/browser-host.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/browser/">
+    <Project Path="Runner/Platforms/browser/browser-runner.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/net10/">
+    <Project Path="Runner/Platforms/net10/net10-runner.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/net48/">
+    <Project Path="Runner/Platforms/net48/net48-runner.csproj" />
+  </Folder>
+  <Folder Name="/WhoTestsTheTesters/" />
+  <Folder Name="/WhoTestsTheTesters/Tests/">
+    <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
+  </Folder>
+  <Folder Name="/WhoTestsTheTesters/Tests/Style/">
+    <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests/NunitTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj" />
+  </Folder>
+  <Project Path="AnyUnit/AnyUnit.csproj" />
+</Solution>
