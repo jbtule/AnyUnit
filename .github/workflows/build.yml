@@ -85,12 +85,12 @@ jobs:
       - name: Run tests through the net48 console runner, x86 (Windows only)
         if: runner.os == 'Windows'
         shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x86/Release/net48/anyunit-net48-runner-win-32.exe net48-x86
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x86/Release/net48/anyunit-net48-runner-win32.exe net48-x86
 
       - name: Run tests through the net48 console runner, x64 (Windows only)
         if: runner.os == 'Windows'
         shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x64/Release/net48/anyunit-net48-runner-win-64.exe net48-x64
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x64/Release/net48/anyunit-net48-runner-win64.exe net48-x64
 
       # AnyUnit's self-test assemblies deliberately contain failing/erroring/
       # ignored tests (a "_Fail"-suffixed test is supposed to fail, an

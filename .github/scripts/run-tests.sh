@@ -5,7 +5,7 @@
 # Usage: run-tests.sh <runner-path> <suffix>
 #   runner-path  path to a built anyunit-runner.dll (net10), anyunit-wasm.dll
 #                (browser-wasm, via PuppeteerSharp/headless Chrome), or
-#                anyunit-net48-runner-win-32.exe / anyunit-net48-runner-win-64.exe
+#                anyunit-net48-runner-win32.exe / anyunit-net48-runner-win64.exe
 #                (net48, Windows only, one build per bitness) - a .dll is
 #                launched via the dotnet host, anything else (e.g. a
 #                net48 .exe) is invoked directly
