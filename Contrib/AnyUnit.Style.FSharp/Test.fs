@@ -30,14 +30,16 @@ type Test =
 
 /// Read-only access to this test's IAssert, for calling straight into
 /// whichever style package's IAssert extension methods you want (e.g.
-/// AnyUnit.Style.Xunit's `assert'.Equal(x, y)`, or AnyUnit.Constraints'
-/// `assert'.That(...)`) - AnyUnit.Style.FSharp doesn't provide its own
+/// AnyUnit.Style.Xunit's `Assert.Equal(x, y)`, or AnyUnit.Constraints'
+/// `Assert.That(...)`) - AnyUnit.Style.FSharp doesn't provide its own
 /// assertion vocabulary, it only wires up test *values* to AnyUnit's
-/// existing Assert/Result/Log machinery. Bind it with `let!`:
+/// existing Assert/Result/Log machinery. Bind it with `let!`, naming it
+/// `Assert` (capital A - only the lowercase `assert` keyword is
+/// reserved in F#) reads closest to how every other style calls it:
 ///
 ///     let myTest = test "name" {
-///         let! assert' = assertion
-///         assert'.Equal(1, 1)
+///         let! Assert = assertion
+///         Assert.Equal(1, 1)
 ///     }
 let assertion: TestM<IAssert> = fun helper -> helper.Assert
 
