@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using PuppeteerSharp;
@@ -18,7 +19,7 @@ public static class WasmRunAlone
     private static string DefaultHostWwwroot =>
         Path.Combine(AppContext.BaseDirectory, "wasm-host", "wwwroot");
 
-    public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity)
+    public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity, bool forceNoSandbox = false)
     {
         var testAssemblyNames = dllPaths.Select(p => Path.GetFileNameWithoutExtension(p)!).ToList();
         var nameToPath = dllPaths.ToDictionary(p => Path.GetFileNameWithoutExtension(p)!, p => p, StringComparer.OrdinalIgnoreCase);
@@ -34,7 +35,21 @@ public static class WasmRunAlone
         // loaded for dependency resolution only, not treated as test
         // assemblies to run (see the "extra" vs "assemblies" query
         // parameters below).
-        foreach (var dir in dllPaths.Select(Path.GetDirectoryName).Distinct())
+        // Also scan wasm-runner's own output directory - not just each
+        // test assembly's directory - for the same reason net10-runner/
+        // net48-runner carry an unused-looking FSharp.Core
+        // PackageReference of their own: a netstandard2.0 test project
+        // doesn't copy its own PackageReference dependencies (FSharp.Core
+        // included) into its output folder, only an exe-shaped project
+        // does. Those two runners get FSharp.Core "for free" from
+        // .NET's default same-directory assembly probing once it's
+        // copied into their own output; wasm-runner-host runs inside
+        // the browser with no filesystem access at all, so it can only
+        // ever get a dependency that's been explicitly served over
+        // HTTP - hence needing it in this scan, not just the implicit
+        // probing net10/net48 rely on.
+        var scanDirs = dllPaths.Select(Path.GetDirectoryName).Append(AppContext.BaseDirectory).Distinct();
+        foreach (var dir in scanDirs)
         {
             if (dir == null || !Directory.Exists(dir))
             {
@@ -108,7 +123,24 @@ public static class WasmRunAlone
         // needed the way `playwright install` was.
         var browserFetcher = new BrowserFetcher();
         await browserFetcher.DownloadAsync();
-        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+        // --no-sandbox, Linux CI only (or -no-sandbox forces it):
+        // Chromium's own sandbox needs unprivileged user namespaces,
+        // which Linux CI containers (confirmed on GitHub-hosted
+        // ubuntu-latest) commonly run with AppArmor restrictions that
+        // block - without it, launch fails outright there with "No
+        // usable sandbox!". A real Linux desktop/dev machine has a
+        // working sandbox, so this isn't a blanket "Linux" workaround -
+        // it's gated on the CI env var that GitHub Actions (and
+        // virtually every other CI system, by long-standing convention)
+        // sets, so a local Linux dev run keeps the real sandbox. Not
+        // needed on macOS/Windows either way (different, non-namespace-
+        // based sandboxing). forceNoSandbox (RunCommand's -no-sandbox)
+        // is an explicit override for when that auto-detection guesses
+        // wrong, e.g. a self-hosted/Docker environment without CI set.
+        var isLinuxCi = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            && Environment.GetEnvironmentVariable("CI") is not null;
+        var args = isLinuxCi || forceNoSandbox ? new[] { "--no-sandbox" } : [];
+        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true, Args = args });
         var page = await browser.NewPageAsync();
         page.Console += (_, e) => Console.Error.WriteLine($"[browser console:{e.Message.Type}] {e.Message.Text}");
         page.PageError += (_, e) => Console.Error.WriteLine($"[browser error] {e.Message}");

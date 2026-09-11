@@ -148,7 +148,15 @@ jobs:
           path: coverage.cobertura.xml
 
   test-wasm:
-    runs-on: ubuntu-latest
+    # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
+    # unprivileged user namespaces, which GitHub's ubuntu-latest image
+    # blocks via AppArmor (confirmed: launch failed there with "No
+    # usable sandbox!"). WasmRunAlone.cs now also passes --no-sandbox
+    # as a direct fix, but macOS sidesteps the whole class of problem -
+    # no such restriction there - and this exact wasm-runner-host/
+    # wasm-runner pipeline has been the one actually exercised locally
+    # all along, on an arm64 Mac.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -172,11 +180,11 @@ jobs:
 
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - no separate install step
-      # the way Playwright's `playwright install` needed. GitHub's hosted
-      # ubuntu-latest image ships the system libraries headless Chrome
-      # typically needs; not independently verified here (couldn't test
-      # actual GitHub-hosted infra from local dev), so if this job fails
-      # on missing shared libraries, that's the first thing to check.
+      # the way Playwright's `playwright install` needed. If this ever
+      # moves back to a Linux runner, note anyunit-wasm's -no-sandbox
+      # flag (WasmRunAlone.cs auto-applies it under Linux CI already,
+      # detected via the CI env var - the flag is only needed if that
+      # heuristic doesn't fire, e.g. a self-hosted/Docker runner).
       - name: Run tests through anyunit-wasm
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/wasm-runner/bin/Release/net10.0/anyunit-wasm.dll wasm
