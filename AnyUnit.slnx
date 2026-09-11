@@ -24,6 +24,7 @@
     <Project Path="WhoTestsTheTesters/RoughRunner/RoughRunner.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/">
+    <Project Path="WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
   </Folder>
