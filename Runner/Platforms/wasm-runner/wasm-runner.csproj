@@ -4,10 +4,12 @@
     CLI tool: `wasm-runner run [-o|-output <file>] [-teamcity] <assemblypaths...>`
     (same flag shape as net10-runner/net48-runner, see Runner/Platforms/shared).
     Drives the generic ../wasm-runner-host WASM app headlessly via
-    Playwright, serving the caller's test assemblies from wherever they
-    actually live on disk (no copying), dynamically loaded at runtime by
-    the host - see wasm-runner-host's own comments for why no
-    republish per run is needed.
+    PuppeteerSharp (pure .NET, no bundled Node.js driver - see
+    WasmRunAlone.cs's own comment on why this replaced
+    Microsoft.Playwright), serving the caller's test assemblies from
+    wherever they actually live on disk (no copying), dynamically loaded
+    at runtime by the host - see wasm-runner-host's own comments for why
+    no republish per run is needed.
 
     PREREQUISITE: publish wasm-runner-host with a plain, standard publish
     (no custom -o) before building/packing THIS project:
@@ -52,7 +54,7 @@
 
   <ItemGroup>
     <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.1.8-alpha" />
-    <PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
+    <PackageReference Include="PuppeteerSharp" Version="25.10.0" />
   </ItemGroup>
 
   <Target Name="CheckWasmRunnerHostPublished" BeforeTargets="Build;_GetPackageFiles">

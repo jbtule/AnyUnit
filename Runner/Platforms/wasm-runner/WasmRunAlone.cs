@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Playwright;
+using PuppeteerSharp;
 
 namespace WasmRunner;
 
@@ -99,24 +99,36 @@ public static class WasmRunAlone
         var assembliesParam = string.Join(",", testAssemblyNames.Select(name => Uri.EscapeDataString(name)));
         var extraParam = string.Join(",", nameToPath.Keys.Except(testAssemblyNames, StringComparer.OrdinalIgnoreCase).Select(name => Uri.EscapeDataString(name)));
 
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+        // PuppeteerSharp instead of Microsoft.Playwright: pure .NET, no
+        // bundled Node.js driver (Playwright's own package bundled ALL
+        // platforms' Node runtimes for a cross-platform "any"-RID dotnet
+        // tool like this one, ~106MB dead weight - see the package
+        // breakdown this replaced). DownloadAsync is a no-op after the
+        // first run (cached locally), so no separate install step is
+        // needed the way `playwright install` was.
+        var browserFetcher = new BrowserFetcher();
+        await browserFetcher.DownloadAsync();
+        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
         var page = await browser.NewPageAsync();
-        page.Console += (_, msg) => Console.Error.WriteLine($"[browser console:{msg.Type}] {msg.Text}");
-        page.PageError += (_, msg) => Console.Error.WriteLine($"[browser error] {msg}");
+        page.Console += (_, e) => Console.Error.WriteLine($"[browser console:{e.Message.Type}] {e.Message.Text}");
+        page.PageError += (_, e) => Console.Error.WriteLine($"[browser error] {e.Message}");
 
         PrintStart(teamCity);
 
-        await page.GotoAsync($"{address}/?assemblies={assembliesParam}&extra={extraParam}");
-        await page.WaitForSelectorAsync("#anyunit-done", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Attached,
-            Timeout = 180000,
-        });
+        await page.GoToAsync($"{address}/?assemblies={assembliesParam}&extra={extraParam}");
+        // Default WaitForSelectorOptions (neither Visible nor Hidden set)
+        // waits for present-in-DOM regardless of visibility - exactly what
+        // #anyunit-done (deliberately style="display:none") needs, no
+        // override required (unlike Playwright, whose default is
+        // visible-only and needed an explicit State=Attached override).
+        await page.WaitForSelectorAsync("#anyunit-done", new WaitForSelectorOptions { Timeout = 180000 });
 
-        var hasErrorAttr = await page.GetAttributeAsync("#anyunit-done", "data-haserror");
-        var summary = await page.InnerTextAsync("#anyunit-summary");
-        var json = await page.InnerTextAsync("#anyunit-json");
+        var doneElement = await page.QuerySelectorAsync("#anyunit-done");
+        var hasErrorAttr = await doneElement.EvaluateFunctionAsync<string?>("e => e.getAttribute('data-haserror')");
+        var summaryElement = await page.QuerySelectorAsync("#anyunit-summary");
+        var summary = await summaryElement.EvaluateFunctionAsync<string>("e => e.innerText");
+        var jsonElement = await page.QuerySelectorAsync("#anyunit-json");
+        var json = await jsonElement.EvaluateFunctionAsync<string>("e => e.innerText");
 
         await app.StopAsync();
 
