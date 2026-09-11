@@ -6,21 +6,13 @@
 # invocation -- but automating that in CI is left for a follow-up once it's
 # been proven out on a real runner.
 #
-# Coverage: uses coverlet.console (successor to the old CoverageRunner
-# project, which never actually collected coverage itself -- see
-# WhoTestsTheTesters/Readme.md's history -- it just gave an external
-# profiler something simple to launch). Tried Microsoft's dotnet-coverage
-# global tool first, which works by injecting a live CLR profiler into the
-# target process; that failed locally with "Profiler was not initialized"
-# on macOS with System Integrity Protection enabled (SIP blocks that kind
-# of runtime injection into signed processes -- a known category of
-# limitation for profiler-based tools there, not a bug in this setup).
-# coverlet.console instruments the target assembly's IL statically before
-# running it, so it doesn't need live process injection at all -- verified
-# working end-to-end locally on the same machine (real, non-zero coverage
-# numbers). Should also work fine on Linux/Windows runners, where
-# dotnet-coverage likely would have too, but coverlet needed no live-runner
-# verification gap to ship.
+# Coverage runs as its own separate job (not part of the build-and-test
+# matrix): the managed code under test is the same regardless of which OS
+# it happens to run on, so measuring coverage three times over (once per
+# matrix OS) would just be the same numbers three times, not three
+# different pieces of information the way the matrix's actual pass/fail
+# results are. See that job's own comment for why coverlet.console
+# specifically.
 name: build
 
 on:
@@ -44,21 +36,9 @@ jobs:
       - name: Build
         run: dotnet build AnyUnit.slnx --configuration Release
 
-      - name: Run tests through the net10 console runner, with coverage
+      - name: Run tests through the net10 console runner
         shell: bash
-        run: |
-          set -e
-          dotnet tool install --global coverlet.console
-          coverlet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll \
-            --target "bash" \
-            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10" \
-            --output coverage --format cobertura
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.os }}
-          path: coverage.cobertura.xml
+        run: .github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10
 
       # net48-runner needs an explicit -p:Platform build per bitness
       # (classic .NET Framework has no RuntimeIdentifier/self-contained
@@ -95,3 +75,46 @@ jobs:
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build AnyUnit.slnx --configuration Release
+
+      # Uses coverlet.console (successor to the old CoverageRunner project,
+      # which never actually collected coverage itself -- see
+      # WhoTestsTheTesters/Readme.md's history -- it just gave an external
+      # profiler something simple to launch). Tried Microsoft's
+      # dotnet-coverage global tool first, which works by injecting a live
+      # CLR profiler into the target process; that failed locally with
+      # "Profiler was not initialized" on macOS with System Integrity
+      # Protection enabled (SIP blocks that kind of runtime injection into
+      # signed processes -- a known category of limitation for
+      # profiler-based tools there, not a bug in this setup). coverlet.
+      # console instruments the target assembly's IL statically before
+      # running it, so it doesn't need live process injection at all --
+      # verified working end-to-end locally (real, non-zero coverage
+      # numbers), and being platform-agnostic static instrumentation is
+      # exactly why it doesn't matter which single OS runs this job.
+      - name: Run tests through the net10 console runner, with coverage
+        shell: bash
+        run: |
+          set -e
+          dotnet tool install --global coverlet.console
+          coverlet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll \
+            --target "bash" \
+            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10" \
+            --output coverage --format cobertura
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.cobertura.xml
