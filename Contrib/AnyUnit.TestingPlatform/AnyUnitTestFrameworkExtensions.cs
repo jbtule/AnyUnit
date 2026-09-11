@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Testing.Platform.Builder;
 using Microsoft.Testing.Platform.Capabilities.TestFramework;
 
@@ -34,11 +35,19 @@ namespace AnyUnit.TestingPlatform
     /// </summary>
     public static class AnyUnitTestFrameworkExtensions
     {
-        public static void AddAnyUnitTestFramework(this ITestApplicationBuilder builder)
+        /// <summary>
+        /// `testAssemblies`: which assembly(s) to discover/run tests from.
+        /// Omit it when the test project compiles its own tests directly
+        /// into the MTP executable (defaults to the entry assembly). Pass
+        /// one explicitly when this host project instead references its
+        /// test project(s) as libraries, e.g.
+        /// `builder.AddAnyUnitTestFramework(typeof(BasicTests.Basic).Assembly)`.
+        /// </summary>
+        public static void AddAnyUnitTestFramework(this ITestApplicationBuilder builder, params Assembly[] testAssemblies)
         {
             builder.RegisterTestFramework(
                 _ => new AnyUnitTestFrameworkCapabilities(),
-                (capabilities, serviceProvider) => new AnyUnitTestFramework());
+                (capabilities, serviceProvider) => new AnyUnitTestFramework(testAssemblies));
         }
     }
 }

@@ -37,6 +37,23 @@ namespace AnyUnit.TestingPlatform
     /// </summary>
     internal sealed class AnyUnitTestFramework : ITestFramework, IDataProducer
     {
+        private readonly Assembly[] _testAssemblies;
+
+        // Defaults to the entry assembly, matching a test project that
+        // compiles its own tests directly into the MTP executable. A host
+        // project that instead references its test assemblies as
+        // libraries (see AnyUnitTestFrameworkExtensions.AddAnyUnitTestFramework's
+        // own testAssemblies parameter) needs to say so explicitly - the
+        // entry assembly would otherwise be the host itself, which has no
+        // tests of its own, and Runner.Create would (silently) find zero.
+        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies)
+        {
+            var assemblies = (testAssemblies ?? Enumerable.Empty<Assembly>()).ToArray();
+            _testAssemblies = assemblies.Length > 0
+                ? assemblies
+                : new[] { Assembly.GetEntryAssembly() ?? typeof(AnyUnitTestFramework).Assembly };
+        }
+
         public string Uid => "AnyUnit.TestingPlatform";
         public string Version => "1.0.0";
         public string DisplayName => "AnyUnit";
@@ -58,8 +75,7 @@ namespace AnyUnit.TestingPlatform
 
         public async Task ExecuteRequestAsync(ExecuteRequestContext context)
         {
-            var assembly = Assembly.GetEntryAssembly() ?? typeof(AnyUnitTestFramework).Assembly;
-            var runner = Runner.Create("mtp", new[] { assembly });
+            var runner = Runner.Create("mtp", _testAssemblies);
 
             if (context.Request is DiscoverTestExecutionRequest discover)
             {
