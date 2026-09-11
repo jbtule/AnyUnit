@@ -60,10 +60,29 @@ jobs:
           name: coverage-${{ matrix.os }}
           path: coverage.cobertura.xml
 
-      - name: Run tests through the net48 console runner (Windows only)
+      # net48-runner needs an explicit -p:Platform build per bitness
+      # (classic .NET Framework has no RuntimeIdentifier/self-contained
+      # deployment model - bitness is a PE-header PlatformTarget, not
+      # something one build can produce both variants of). The generic
+      # solution-wide build step above still also produces an unused,
+      # unsuffixed net48-runner.exe (falls through both platform-
+      # conditioned property groups when no Platform is specified) -
+      # harmless, just not one of these two.
+      - name: Build net48 console runner (both bitnesses, Windows only)
+        if: runner.os == 'Windows'
+        run: |
+          dotnet build Runner/Platforms/net48/net48-runner.csproj --configuration Release -p:Platform=x86
+          dotnet build Runner/Platforms/net48/net48-runner.csproj --configuration Release -p:Platform=x64
+
+      - name: Run tests through the net48 console runner, x86 (Windows only)
         if: runner.os == 'Windows'
         shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/Release/net48/anyunit-net48-runner.exe net48
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x86/Release/net48/anyunit-win-runner-x86.exe net48-x86
+
+      - name: Run tests through the net48 console runner, x64 (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x64/Release/net48/anyunit-win-runner-x64.exe net48-x64
 
       # AnyUnit's self-test assemblies deliberately contain failing/erroring/
       # ignored tests (a "_Fail"-suffixed test is supposed to fail, an

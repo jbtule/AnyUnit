@@ -1,13 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    Build both bitnesses explicitly (classic .NET Framework has no
+    self-contained/RuntimeIdentifier deployment model - bitness is a plain
+    PE-header PlatformTarget, requiring two separate builds, not one
+    multi-RID publish):
+
+      dotnet build -c Release -p:Platform=x86
+      dotnet build -c Release -p:Platform=x64
+
+    Output lands in bin\x86\Release\net48\ and bin\x64\Release\net48\
+    respectively (SDK-style projects insert $(Platform) into the default
+    output path once Platforms/Platform is in play).
+
+    Named "win", not "net48": target framework is an implementation
+    detail; what a caller actually needs to know is that this only runs
+    on Windows (.NET Framework has no other host OS) - same reasoning
+    that kept anyunit-runner/anyunit-wasm's names free of "net10"/"wasm"
+    implementation specifics too where the OS/runtime story matters more.
+  -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>SatelliteRunner.Shared</RootNamespace>
-    <!-- Not packaged as a tool (no .NET Framework support in that
-         mechanism), but the executable name stays anyunit-prefixed for
-         consistency with the ones that are (anyunit-runner, anyunit-wasm). -->
-    <AssemblyName>anyunit-net48-runner</AssemblyName>
+    <Platforms>x86;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'x86'">
+    <AssemblyName>anyunit-win-runner-x86</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <AssemblyName>anyunit-win-runner-x64</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
