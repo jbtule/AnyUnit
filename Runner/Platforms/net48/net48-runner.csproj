@@ -15,7 +15,11 @@
 
     Named with both "net48" (exact framework) and "win" (only runs on
     Windows - .NET Framework has no other host OS, worth saying
-    explicitly rather than leaving implied).
+    explicitly rather than leaving implied). Suffixed win-32/win-64
+    rather than x86/x64: the win-64 build is plain x64, but it runs
+    fine on Windows-on-ARM64 too via the OS's built-in x64 emulation,
+    so "win-64" (bitness) is the more accurate label than "x64"
+    (implies Intel/AMD specifically).
   -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -25,12 +29,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'x86'">
-    <AssemblyName>anyunit-net48-win-runner-x86</AssemblyName>
+    <AssemblyName>anyunit-net48-runner-win-32</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'x64'">
-    <AssemblyName>anyunit-net48-win-runner-x64</AssemblyName>
+    <AssemblyName>anyunit-net48-runner-win-64</AssemblyName>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
