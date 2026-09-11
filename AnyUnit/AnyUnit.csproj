@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.0;portable40-net40+sl5+win8+wpa81+wp8</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
 
    <Authors />
     <Copyright>Copyright 2013-2017 Jay Tuley</Copyright>
@@ -12,22 +12,5 @@
     <DelaySign>False</DelaySign>
     <Version>1.0.0-alpha</Version>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wpa81+wp8'">
-     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-     <TargetFrameworkProfile>Profile328</TargetFrameworkProfile>
-     <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.0'">
-  </ItemGroup>
-
-
-  <ItemGroup Condition="'$(TargetFramework)'=='portable40-net40+sl5+win8+wpa81+wp8'">
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-
 
 </Project>
