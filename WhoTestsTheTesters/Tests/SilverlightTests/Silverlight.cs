@@ -11,8 +11,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using PclUnit;
-using PclUnit.Run;
+using AnyUnit;
+using AnyUnit.Run;
 
 namespace SilverlightTests
 {

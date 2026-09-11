@@ -39,9 +39,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\..\..\PclUnit\PclUnit.csproj">
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj">
       <Project>{999019D5-60C5-4CE6-A070-28B197C44D2A}</Project>
-      <Name>PclUnit</Name>
+      <Name>AnyUnit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

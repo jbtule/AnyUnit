@@ -1,0 +1,61 @@
+﻿<Project Sdk="FSharp.NET.Sdk;Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.6;portable40-net45+sl5+win8;net40;</TargetFrameworks>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='portable40-net45+sl5+win8'">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+     <TargetFrameworkProfile>Profile47</TargetFrameworkProfile>
+     <DefineConstants>$(DefineConstants);PORTABLE47</DefineConstants>
+  </PropertyGroup>
+
+   <ItemGroup Condition="'$(TargetFramework)'=='portable40-net45+sl5+win8'">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='portable45-net45+win8+wpa81+wp8'">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
+     <DefineConstants>$(DefineConstants);PORTABLE259</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='portable45-net45+win8+wpa81+wp8'">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO" />
+    <Reference Include="System.Net.Requests" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Diagnostics" />
+    <Reference Include="System.Threading" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.1.*" />
+    <PackageReference Include="FSharp.Compiler.Tools" Version="4.1.*"
+    />
+    <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" 
+    />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="FsUnit.fs" />
+    <Compile Include="AssertionHelper.fs" />
+    <None Include="Script.fsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
+    </ProjectReference>
+    <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
+    </ProjectReference>
+  </ItemGroup>
+
+    
+</Project>

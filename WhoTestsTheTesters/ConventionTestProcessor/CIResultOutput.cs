@@ -2,8 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using PclUnit.Run;
-using PclUnit.Util;
+using AnyUnit.Run;
+using AnyUnit.Util;
 using System.Threading.Tasks;
 
 namespace ConventionTestProcessor
@@ -33,6 +33,7 @@ namespace ConventionTestProcessor
 
                 var url = new Uri(_appVeyorBaseUri, "api/tests");
                 Byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
 
                 var request = WebRequest.Create(url);
                 request.Method = "POST";
@@ -98,7 +99,7 @@ namespace ConventionTestProcessor
                                         'StdErr': ''
                                     }}",
                                      fullName.EscapeJson(),
-                                     "PclUnit",
+                                     "AnyUnit",
                                      result.Test.Fixture.Assembly.Name.EscapeJson(),
                                      outcome.EscapeJson(),
                                      (result.EndTime - result.StartTime).Milliseconds,
@@ -109,7 +110,7 @@ namespace ConventionTestProcessor
         }
 
 
-        public static void PostMatchResult(PclUnit.Run.Result result, PclUnit.Run.ResultKind match)
+        public static void PostMatchResult(AnyUnit.Run.Result result, AnyUnit.Run.ResultKind match)
         {
              if (_appVeyorRunner)
              {

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright 2013 PclUnit Contributors
+//  Copyright 2013 AnyUnit Contributors
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -25,8 +25,13 @@ using ManyConsole;
 
 using SatelliteRunner.Shared;
 
-
+#if NET40
+namespace net40_runner
+#elif NET45
+namespace net45_runner
+#else
 namespace net_runner
+#endif
 {
     class Program
     {

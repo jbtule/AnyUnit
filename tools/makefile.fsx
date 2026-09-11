@@ -8,17 +8,24 @@
 open Fake
 open Fake.AssemblyInfoFile
 
+let msbuild15ProjFiles =
+   !! "./AnyUnit/*.csproj" //AnyUnit
+   ++ "./Runner/anyunit-runner/*.csproj" //AggregateRunner
+   ++ "./Contrib/AnyUnit.*/*.*proj" //Styles
+   ++ "./WhoTestsTheTesters/**/*.fsproj"
+   ++ "./WhoTestsTheTesters/**/ConventionTestProcessor.csproj"
+   ++ "./WhoTestsTheTesters/**/CoverageRunner.csproj"
+   ++ "./WhoTestsTheTesters/**/RoughRunner.csproj"
 let projFiles =
-  !! "./PclUnit/*.csproj" //PclUnit
-    ++ "./Contrib/PclUnit.*/*.*proj" //Styles
-    ++ "./Runner/pclunit-runner/*.csproj" //AggregateRunner
+    msbuild15ProjFiles
+  
     ++ "./Runner/Platforms/**/*-xap*.csproj" //environment first
     ++ "./Runner/Platforms/**/*.csproj" //platform runners
     -- if isMono then
           "./Runner/Platforms/sl/**/*.csproj" //sliverlight runners
        else
           "./runner/Platforms/mono*/**/*.csproj" //mono runners
-    ++ "./WhoTestsTheTesters/**/*.*proj"
+    ++ "./WhoTestsTheTesters/**/*.csproj"
     -- if isMono then
           "./WhoTestsTheTesters/Tests/Silverlight*/*.csproj"
        else
@@ -86,12 +93,6 @@ Target "Build" (fun () ->
         | ___ -> failwith (ext + " is not expected")
 
     [
-      "./PclUnit/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Constraints/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.FsUnit/", "fs" ,mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Nunit/Properties/", "cs", mainVer, mainInfoVer
-      "./Contrib/PclUnit.Style.Xunit/Properties/", "cs", mainVer, mainInfoVer
-      "./Runner/pclunit-runner/Properties/", "cs", runVer, runInfoVer
       "./Runner/Platforms/shared/", "cs", runVer, runInfoVer
 
     ] |> Seq.iter createVersionInfo
@@ -102,7 +103,7 @@ Target "Build" (fun () ->
     let buildMode = getBuildParamOrDefault "buildMode" "Release"
     let setParams defaults =
             { defaults with
-                Verbosity = Some(Quiet)
+                Verbosity = Some(MSBuildVerbosity.Quiet)
                 Targets = ["Build"]
                 Properties =
                     [
@@ -115,6 +116,18 @@ Target "Build" (fun () ->
 
     projFiles
       |> Seq.iter (build setParams)
+
+    !! "./Runner/anyunit-runner/bin/Release/net451/*" |> CopyFiles "./build/tools/"
+
+    !! "./Contrib/**/bin/Release/netstandard1.3/*"
+      |> CopyFiles "./build/lib/netstandard1.3/"
+    !! "./Contrib/**/bin/Release/portable40-net40+sl5+win8+wp8/*"
+      |> CopyFiles "./build/lib/portable40-net40+sl5+win8+wp8/"
+    !! "./Contrib/**/bin/Release/netstandard1.6/*"
+      |> CopyFiles "./build/lib/netstandard1.6/"
+    !! "./Contrib/**/bin/Release/portable40-net45+sl5+win8/*"
+      |> CopyFiles "./build/lib/portable40-net45+sl5+win8/"
+      
 
     "./deploy/platforms.yml" |> CopyFile "./build/tools/platforms.yml"
 )
@@ -130,11 +143,11 @@ Target "Test" (fun () ->
         (if isMono then ".mono" else "") buildMode
 
     directExec (fun info ->
-                       info.FileName <- "./build/tools/pclunit-runner.exe"
+                       info.FileName <- "./build/tools/anyunit-runner.exe"
                        info.Arguments <- args) |> ignore
 
     if not <| directExec (fun info ->
-                       info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/ConventionTestProcessor.exe"
+                       info.FileName <- "./WhoTestsTheTesters/ConventionTestProcessor/bin/Release/net40/ConventionTestProcessor.exe"
                        info.Arguments <- "./deploy/build/test-output.json") then
        failwith "Tests Failed"
 
@@ -143,8 +156,19 @@ Target "Test" (fun () ->
 Target "RestorePackages" (fun () ->
     trace " --- Restore Packages --- "
     !! "./**/packages.config"
+    ++ "./**/packages.*.config"
     -- "./tools/*"
       |> Seq.iter (RestorePackage id)
+
+    
+    let restoreProj = fun args ->
+                   directExec (fun info ->
+                       info.FileName <- "msbuild"
+                       info.Arguments <- "/t:restore " + args) |> ignore
+    
+    msbuild15ProjFiles 
+      |> Seq.iter restoreProj
+    
 )
 
 Target "Deploy:Build" (fun () ->

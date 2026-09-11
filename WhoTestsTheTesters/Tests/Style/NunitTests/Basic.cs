@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PclUnit.Run;
-using PclUnit.Style.Nunit;
+using AnyUnit.Run;
+using AnyUnit.Style.Nunit;
 
 namespace NunitTests
 {

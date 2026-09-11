@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PclUnit.Style.Xunit;
+using AnyUnit.Style.Xunit;
 
 namespace XunitTests
 {
@@ -61,7 +61,7 @@ namespace XunitTests
             while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
-                PclUnit.Run.Test.Sleep(100);
+                AnyUnit.Run.Test.Sleep(100);
             }
         }
 

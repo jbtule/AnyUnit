@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+        <TargetFramework>net451</TargetFramework>
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>anyunitrunner</RootNamespace>
+    <AssemblyName>anyunit-runner</AssemblyName>
+
+  </PropertyGroup>
+  <ItemGroup>
+
+    <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.0.2-alpha" />
+    <PackageReference Include="Nancy" Version="0.22.2"/>
+    <PackageReference Include="Nancy.Hosting.Self" Version="0.22.2"/>
+    <PackageReference Include="Nancy.Serialization.JsonNet" Version="0.22.2"/>
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.1"/>
+    <PackageReference Include="YamlDotNet" Version="3.1.0"/>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='netcore1.1'">
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net451'">
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="platforms.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

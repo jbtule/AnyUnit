@@ -1,0 +1,17 @@
+image: Visual Studio 2017 Preview
+
+environment:
+  msbuild: C:\Program Files (x86)\Microsoft Visual Studio\Preview\Community\MSBuild\15.0\bin
+
+build: off
+
+build_script:
+  - cmd: set PATH=%PATH%;C:\Program Files (x86)\Microsoft SDKs\F#\4.1\Framework\v4.0\
+  - cmd: fsi --exec ./build.fsx
+
+test: off
+
+artifacts:
+  - path: deploy\build\*.zip
+
+skip_branch_with_pr: true
