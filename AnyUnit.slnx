@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Contrib/">
     <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
+    <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
   </Folder>
@@ -23,6 +24,7 @@
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/Style/">
+    <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests/NunitTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj" />
   </Folder>
