@@ -7,9 +7,10 @@
     need the actual ASP.NET Core Components APIs, which only exist for
     "net" TFMs (not netstandard2.0, unlike AnyUnit's own core libraries).
 
-    Runner/Platforms/browser is this repo's own consumer: a thin host app
-    (Program.cs/App.razor/wwwroot/index.html) that references this
-    package plus its own test assemblies - exactly the same
+    Runner/Platforms/wasm-runner-host is this repo's own consumer: a
+    thin host app (Program.cs/App.razor/wwwroot/index.html) that
+    references this package and dynamically loads whatever test
+    assemblies anyunit-wasm points it at over HTTP - exactly the same
     library/satellite split used for AnyUnit.TestingPlatform +
     BasicTests.Mtp.
   -->
