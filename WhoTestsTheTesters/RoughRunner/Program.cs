@@ -28,13 +28,7 @@ namespace RoughRunner
     {
         private static int Main(string[] args)
         {
-            #if NET45 
-            var platform = "net40";
-            #elif NETCOREAPP2_0
-            var platform = "core2_0";
-            #endif
-
-            var id = platform + (Environment.Is64BitProcess ? "x64" : "x86");
+            var id = "net10";
 
             //Just hard code in assemblies to test
             var asms = new[]

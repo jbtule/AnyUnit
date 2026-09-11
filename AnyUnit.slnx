@@ -20,6 +20,7 @@
   </Folder>
   <Folder Name="/WhoTestsTheTesters/">
     <Project Path="WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj" />
+    <Project Path="WhoTestsTheTesters/RoughRunner/RoughRunner.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/">
     <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
