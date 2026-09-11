@@ -5,6 +5,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>SatelliteRunner.Shared</RootNamespace>
     <AssemblyName>net10-runner</AssemblyName>
+
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>anyunit-runner</ToolCommandName>
+    <PackageId>AnyUnit.Runner</PackageId>
+    <Description>Standalone console runner for AnyUnit test assemblies (`anyunit-runner run [-o|-output file] [-teamcity] assembly.dll...`).</Description>
   </PropertyGroup>
 
   <ItemGroup>
