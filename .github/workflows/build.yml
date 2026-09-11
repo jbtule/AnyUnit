@@ -50,6 +50,25 @@ on:
       - 'v*'
   pull_request:
 
+# For a pull_request event, actions/checkout defaults to the synthetic
+# refs/pull/<PR>/merge commit (this branch merged into its base), not
+# this branch's own tip - its history includes the base branch's, which
+# throws off MinVer's git-tag-based versioning (pack job): a tag that's
+# only reachable via the base branch becomes reachable through the
+# merge commit too, and if it happens to be closer than any tag on this
+# branch's own history, MinVer computes the version from THAT tag
+# instead - different, not reproducible locally, and liable to shift on
+# its own if the base branch moves, with no new commits on this branch
+# at all (confirmed: happened for real - a PR run produced
+# 1.0.0-alpha.0.2 off v0.9.0-wip, a tag that only exists on master,
+# while every local build off this branch's own tip computed
+# 1.0.0-alpha.0.<much higher>, off v0.8.0-alpha instead). Checking out
+# the actual PR head commit instead sidesteps this for every job, not
+# just pack - matching what actually gets tested to the commit a
+# reviewer is looking at, not a preview merge nothing else reproduces.
+env:
+  CHECKOUT_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   build-and-test:
     strategy:
@@ -69,6 +88,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -172,6 +193,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -223,6 +246,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -263,6 +288,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
         with:
           # MinVer (Directory.Build.props) computes each package's
           # version from git tags - actions/checkout's default shallow
