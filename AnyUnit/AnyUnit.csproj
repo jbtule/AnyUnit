@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
    <Authors />
-    <Copyright>Copyright 2013-2017 Jay Tuley</Copyright>
+    <Copyright>Copyright 2013-2026 Jay Tuley</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <SignAssembly>True</SignAssembly>
