@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>FsUnit-style F# assertions for AnyUnit.</Description>
   </PropertyGroup>
 
   <ItemGroup>

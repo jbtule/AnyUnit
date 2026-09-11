@@ -1,0 +1,48 @@
+<Project>
+
+  <!--
+    Shared across the whole repo. Packable projects (the ones meant to
+    ship as NuGet packages/dotnet tools) opt in explicitly with
+    <IsPackable>true</IsPackable> in their own csproj - default is false
+    here so a plain `dotnet pack` on the solution doesn't try to produce
+    a nupkg for every internal runner/test-payload project too.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+
+    <Authors>Jay Tuley</Authors>
+    <Copyright>Copyright 2013-2026 Jay Tuley</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/jbtule/AnyUnit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jbtule/AnyUnit.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <!--
+    Strong-naming (see Directory.Build.targets for why it's there and not
+    here) needs the key file path regardless, so define it once centrally.
+  -->
+  <PropertyGroup>
+    <AnyUnitStrongNameKeyFile>$(MSBuildThisFileDirectory)sn.snk</AnyUnitStrongNameKeyFile>
+  </PropertyGroup>
+
+  <!--
+    Version comes from git tags (MinVer), not hand-edited per project -
+    the old approach had four-plus csproj files independently carrying
+    (and drifting on) <Version>1.0.0-alpha</Version>, with newer projects
+    simply missing it. MinVerTagPrefix matches the repo's existing tag
+    convention (v0.8.0-alpha, v0.9.0-wip). MinVerMinimumMajorMinor keeps
+    untagged builds reading as 1.0.0-alpha.0.<height> instead of
+    continuing to increment off that stale v0.9.0-wip tag once v1.0.0
+    is actually cut.
+  -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

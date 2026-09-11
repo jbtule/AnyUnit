@@ -2,18 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-
-   <Authors />
-    <Copyright>Copyright 2013-2026 Jay Tuley</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-
-    <Version>1.0.0-alpha</Version>
+    <IsPackable>true</IsPackable>
+    <Description>NUnit-source-compatible attributes and assertions for AnyUnit.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
-      <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj"/>
+    <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj" />
   </ItemGroup>
 
 </Project>

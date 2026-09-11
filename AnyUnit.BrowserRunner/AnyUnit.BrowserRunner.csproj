@@ -17,6 +17,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <Description>Reusable Blazor WebAssembly results-page component for running AnyUnit tests in the browser.</Description>
   </PropertyGroup>
 
   <ItemGroup>

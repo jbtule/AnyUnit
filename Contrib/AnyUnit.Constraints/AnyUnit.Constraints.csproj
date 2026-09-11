@@ -2,15 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-
-   <Authors />
-    <Copyright>Copyright 2013-2026 Jay Tuley</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>sn.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>False</DelaySign>
-    <Version>1.0.0-alpha</Version>
+    <IsPackable>true</IsPackable>
+    <Description>NUnit-style Has/Is fluent constraint syntax for AnyUnit.</Description>
   </PropertyGroup>
 
   <ItemGroup>
