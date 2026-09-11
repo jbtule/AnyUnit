@@ -35,7 +35,18 @@ namespace ConventionTestProcessor
                 Byte[] byteArray = Encoding.UTF8.GetBytes(json);
 
 
+                // WebRequest is obsolete (SYSLIB0014) in favor of
+                // HttpClient, but this whole method is AppVeyor-specific
+                // dead code in practice now - _appVeyorRunner (checked
+                // before this method is ever called) can never be true
+                // since AppVeyor's own config was removed from this repo
+                // (GitHub Actions is the only CI here now), and
+                // APPVEYOR_API_URL is never going to be set. Not worth
+                // rewriting a code path that never actually runs; just
+                // silencing the specific warning it produces.
+#pragma warning disable SYSLIB0014
                 var request = WebRequest.Create(url);
+#pragma warning restore SYSLIB0014
                 request.Method = "POST";
                 request.ContentLength = byteArray.Length;
                 request.ContentType = @"application/json";

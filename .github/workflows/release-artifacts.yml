@@ -46,8 +46,8 @@ jobs:
       matrix:
         rid: [win-x64, win-x86]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (${{ matrix.rid }})
@@ -56,7 +56,7 @@ jobs:
       - name: Rename with RID
         shell: bash
         run: mv "publish/${{ matrix.rid }}/anyunit-runner.exe" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}.exe"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}.exe
@@ -64,8 +64,8 @@ jobs:
   publish-windows-arm64:
     runs-on: windows-11-arm
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (win-arm64)
@@ -74,7 +74,7 @@ jobs:
       - name: Rename with RID
         shell: bash
         run: mv "publish/win-arm64/anyunit-runner.exe" "publish/win-arm64/anyunit-runner-win-arm64.exe"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-win-arm64
           path: publish/win-arm64/anyunit-runner-win-arm64.exe
@@ -82,8 +82,8 @@ jobs:
   publish-linux-x64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (linux-x64)
@@ -91,7 +91,7 @@ jobs:
           dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux-x64
       - name: Rename with RID
         run: mv "publish/linux-x64/anyunit-runner" "publish/linux-x64/anyunit-runner-linux-x64"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-linux-x64
           path: publish/linux-x64/anyunit-runner-linux-x64
@@ -105,8 +105,8 @@ jobs:
         # than on publish-linux-x64.
         rid: [linux-arm64, linux-arm]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (${{ matrix.rid }})
@@ -114,7 +114,7 @@ jobs:
           dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.rid }}
       - name: Rename with RID
         run: mv "publish/${{ matrix.rid }}/anyunit-runner" "publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}/anyunit-runner-${{ matrix.rid }}
@@ -122,8 +122,8 @@ jobs:
   publish-macos-arm64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (osx-arm64)
@@ -131,7 +131,7 @@ jobs:
           dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o publish/osx-arm64
       - name: Rename with RID
         run: mv "publish/osx-arm64/anyunit-runner" "publish/osx-arm64/anyunit-runner-osx-arm64"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-osx-arm64
           path: publish/osx-arm64/anyunit-runner-osx-arm64
@@ -139,8 +139,8 @@ jobs:
   publish-macos-x64:
     runs-on: macos-15-intel
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Publish anyunit-runner (osx-x64)
@@ -148,7 +148,7 @@ jobs:
           dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/osx-x64
       - name: Rename with RID
         run: mv "publish/osx-x64/anyunit-runner" "publish/osx-x64/anyunit-runner-osx-x64"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: anyunit-runner-osx-x64
           path: publish/osx-x64/anyunit-runner-osx-x64
