@@ -1,25 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <!--
-    Razor Class Library, not an app: this ships the reusable
-    AnyUnitRunnerPage component (results table, log, and headless-scrape
-    hooks) for any Blazor WebAssembly host to drop in. Blazor components
-    need the actual ASP.NET Core Components APIs, which only exist for
-    "net" TFMs (not netstandard2.0, unlike AnyUnit's own core libraries).
+    Razor Class Library, not an app: this holds the AnyUnitRunnerPage
+    component (results table, log, and headless-scrape hooks) that
+    Blazor components need the actual ASP.NET Core Components APIs for,
+    which only exist for "net" TFMs (not netstandard2.0, unlike
+    AnyUnit's own core libraries) - so it can't just live inside
+    wasm-runner-host directly as a plain .razor file.
 
-    Runner/Platforms/wasm-runner-host is this repo's own consumer: a
-    thin host app (Program.cs/App.razor/wwwroot/index.html) that
-    references this package and dynamically loads whatever test
-    assemblies anyunit-wasm points it at over HTTP - exactly the same
-    library/satellite split used for AnyUnit.TestingPlatform +
-    BasicTests.Mtp.
+    Not packed (IsPackable false, unlike the rest of this repo's
+    libraries): despite being a real, structurally reusable component,
+    it's internal plumbing for Runner/Platforms/wasm-runner-host (this
+    repo's own, only consumer - a thin host app that references it and
+    dynamically loads whatever test assemblies anyunit-wasm points it
+    at over HTTP), not something meant to be pulled in by someone
+    else's Blazor host app.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <IsPackable>true</IsPackable>
-    <Description>Reusable Blazor WebAssembly results-page component for running AnyUnit tests in the browser.</Description>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
