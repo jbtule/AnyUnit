@@ -1,39 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-      <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj" />
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
+    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj" />
+    <ProjectReference Include="..\Tests\ConstraintsTests\ConstraintsTests.csproj" />
+    <ProjectReference Include="..\ConventionTestProcessor\ConventionTestProcessor.csproj" />
+    <ProjectReference Include="..\Tests\Style\NunitTests\NunitTests.csproj" />
+    <ProjectReference Include="..\Tests\Style\XunitTests\XunitTests.csproj" />
+    <ProjectReference Include="..\Tests\Style\FsUnitTests\FsUnitTests.fsproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\Tests\BasicTests\BasicTests.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\Tests\ConstraintsTests\ConstraintsTests.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\ConventionTestProcessor\ConventionTestProcessor.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\Tests\Style\NunitTests\NunitTests.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\Tests\Style\XunitTests\XunitTests.csproj">
-    </ProjectReference>
-    <ProjectReference Include="..\Tests\Style\FsUnitTests\FsUnitTests.fsproj">
- 
-    </ProjectReference>
-  </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

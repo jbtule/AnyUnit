@@ -23,6 +23,7 @@ using System.Text;
 using AnyUnit.Compat.PortableV4;
 using AnyUnit.Compat.NetStandardV1;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace AnyUnit.Util
 {
@@ -68,6 +69,15 @@ namespace AnyUnit.Util
         public static void RunThreadWithState(Action<object> callback, object state){
             ThreadPool.QueueUserWorkItem(d=>callback(d), state);
         }
+
+        // Browser WebAssembly, without <WasmEnableThreads>, has no real
+        // background threads: a ThreadPool work item only runs when this
+        // thread yields back to the browser's event loop. A caller that
+        // blocks synchronously waiting on it (as Test.Run does, to enforce
+        // per-test timeouts) would deadlock forever - it never yields, so
+        // the queued work item never gets to run.
+        public static readonly bool IsSingleThreadedRuntime =
+            RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
         public static bool MatchesGenericDef(this Type type, Type def){
             return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().Equals(def);

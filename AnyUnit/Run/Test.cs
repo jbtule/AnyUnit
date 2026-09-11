@@ -27,6 +27,17 @@ namespace AnyUnit.Run
 
         public static void Sleep(int milliseconds)
         {
+            if (Utility.IsSingleThreadedRuntime)
+            {
+                // Same reasoning as the single-threaded branch in Run() below:
+                // a blocking wait needs a real second thread to eventually
+                // unblock it (even one that's only there to honor the
+                // timeout), which single-threaded WASM doesn't have. Rather
+                // than hang, just don't block - callers busy-looping on
+                // wall-clock time around this (e.g. AnyUnit's [Timeout]
+                // tests) will simply spin faster, not slower.
+                return;
+            }
             WaitHandle.WaitAll(new[] { new ManualResetEvent(false) }, milliseconds);
         }
 
@@ -102,6 +113,20 @@ namespace AnyUnit.Run
         {
             var state = new State(platform);
             var startTime = DateTime.Now;
+
+            if (Utility.IsSingleThreadedRuntime)
+            {
+                // See Utility.IsSingleThreadedRuntime: the ThreadPool +
+                // blocking-wait dance below would deadlock here, so run the
+                // test body inline instead. This does mean [Timeout] isn't
+                // enforced on this platform - a hung test hangs the caller,
+                // same as it would hang any other single-threaded caller.
+                RunHelper(state);
+                ParameterSetRelease();
+                Results.Add(state.Result);
+                return state.Result;
+            }
+
             Utility.RunThreadWithState(RunHelper, state);
             Result result;
             if (WaitHandle.WaitAll(new WaitHandle[] {state.Event}, Timeout ?? System.Threading.Timeout.Infinite))

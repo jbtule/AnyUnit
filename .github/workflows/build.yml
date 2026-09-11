@@ -1,0 +1,76 @@
+# Note: the browser (net10-browser, WASM) target is intentionally not run
+# here yet. Runner/Platforms/browser-host drives it headlessly via
+# Microsoft.Playwright against a `dotnet publish` of Runner/Platforms/browser
+# -- see that project's Program.cs for usage -- but automating that in CI is
+# left for a follow-up once it's been proven out on a real runner.
+#
+# Coverage: uses coverlet.console (successor to the old CoverageRunner
+# project, which never actually collected coverage itself -- see
+# WhoTestsTheTesters/Readme.md's history -- it just gave an external
+# profiler something simple to launch). Tried Microsoft's dotnet-coverage
+# global tool first, which works by injecting a live CLR profiler into the
+# target process; that failed locally with "Profiler was not initialized"
+# on macOS with System Integrity Protection enabled (SIP blocks that kind
+# of runtime injection into signed processes -- a known category of
+# limitation for profiler-based tools there, not a bug in this setup).
+# coverlet.console instruments the target assembly's IL statically before
+# running it, so it doesn't need live process injection at all -- verified
+# working end-to-end locally on the same machine (real, non-zero coverage
+# numbers). Should also work fine on Linux/Windows runners, where
+# dotnet-coverage likely would have too, but coverlet needed no live-runner
+# verification gap to ship.
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build AnyUnit.slnx --configuration Release
+
+      - name: Run tests through the net10 console runner, with coverage
+        shell: bash
+        run: |
+          set -e
+          dotnet tool install --global coverlet.console
+          coverlet Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll \
+            --target "bash" \
+            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll net10" \
+            --output coverage --format cobertura
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: coverage.cobertura.xml
+
+      - name: Run tests through the net48 console runner (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/Release/net48/net48-runner.exe net48
+
+      # AnyUnit's self-test assemblies deliberately contain failing/erroring/
+      # ignored tests (a "_Fail"-suffixed test is supposed to fail, an
+      # "_Opposite"-prefixed one inverts that, etc. - see
+      # WhoTestsTheTesters/ConventionTestProcessor). This is the real
+      # pass/fail gate: it checks every result's actual outcome against what
+      # its own name declares, rather than eyeballing raw counts.
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
