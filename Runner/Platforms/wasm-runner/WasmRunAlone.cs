@@ -8,12 +8,15 @@ public static class WasmRunAlone
 {
     private const string PlatformId = "net10-wasm";
 
-    // TODO: not yet a packaged dotnet tool - resolves the pre-published
-    // generic host via a relative dev path. A real tool package would
-    // embed this as bundled content instead (see wasm-runner.csproj).
+    // Same layout whether run from source or installed as a packed tool:
+    // wasm-runner.csproj's PublishWasmRunnerHost target lays the host out
+    // at $(OutDir)wasm-host\wwwroot (i.e. right next to this assembly),
+    // and AddWasmRunnerHostToPack embeds that same relative shape as tool
+    // content under tools/<tfm>/any/wasm-host/ - the folder a packed
+    // tool's own assembly runs from too, so AppContext.BaseDirectory
+    // resolves it identically either way.
     private static string DefaultHostWwwroot =>
-        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-            "..", "..", "..", "..", "wasm-runner-host", "bin", "Release", "net10.0", "publish", "wwwroot"));
+        Path.Combine(AppContext.BaseDirectory, "wasm-host", "wwwroot");
 
     public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity)
     {

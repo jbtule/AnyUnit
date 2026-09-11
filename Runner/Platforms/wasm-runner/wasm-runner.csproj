@@ -9,12 +9,30 @@
     the host - see wasm-runner-host's own comments for why no
     republish per run is needed.
 
-    NOT YET a packaged dotnet tool: HostWwwroot currently resolves via a
-    relative dev path (see Program.cs) rather than bundled tool content.
-    Turning this into a real distributable `dotnet tool` package still
-    needs the published wasm-runner-host wwwroot embedded as content
-    (PackageReference item with Pack="true") - tracked as a follow-up,
-    not done here.
+    PREREQUISITE: publish wasm-runner-host with a plain, standard publish
+    (no custom -o) before building/packing THIS project:
+
+      dotnet publish Runner/Platforms/wasm-runner-host -c Release
+
+    This project deliberately does NOT auto-trigger that publish itself
+    (an earlier version tried invoking it via an Exec/custom -o inside
+    this project's own build/pack targets - dotnet pack's internal
+    re-invocations of a PackAsTool project's publish turned out to
+    process that nested Exec inconsistently across passes, sometimes
+    nesting the host's output an extra directory level and sometimes
+    not, in a way that wasn't reliably normalizable from inside this
+    project. A separate, plain, standard-location publish - the exact
+    form that's been reliable throughout this repo's own manual use of
+    it - sidesteps that whole class of problem.) CI runs the publish
+    step explicitly before packing (see the publish workflow).
+
+    Below, the standard publish output (bin/Release/net10.0/publish/
+    wwwroot) is copied into this project's own $(OutDir)wasm-host/wwwroot
+    for local dotnet build/run, and declared as pack content under
+    tools/$(TargetFramework)/any/wasm-host/wwwroot/ - the same relative
+    layout a packed tool's own assembly ends up in, so WasmRunAlone's
+    AppContext.BaseDirectory-relative lookup resolves it identically
+    whether run from source or installed.
   -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -22,11 +40,45 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>WasmRunner</RootNamespace>
+
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>anyunit-wasm</ToolCommandName>
+    <PackageId>AnyUnit.Runner.Wasm</PackageId>
+    <Description>Standalone browser-wasm runner for AnyUnit test assemblies, no republish per run (`anyunit-wasm run [-o|-output file] [-teamcity] assembly.dll...`).</Description>
+
+    <WasmRunnerHostPublishWwwroot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../wasm-runner-host/bin/Release/net10.0/publish/wwwroot/'))</WasmRunnerHostPublishWwwroot>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.1.8-alpha" />
     <PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
+  </ItemGroup>
+
+  <Target Name="CheckWasmRunnerHostPublished" BeforeTargets="Build;_GetPackageFiles">
+    <Error Condition="!Exists('$(WasmRunnerHostPublishWwwroot)index.html')"
+           Text="wasm-runner-host hasn't been published. Run: dotnet publish Runner/Platforms/wasm-runner-host -c Release" />
+  </Target>
+
+  <Target Name="CopyWasmRunnerHostToOutput" BeforeTargets="Build" DependsOnTargets="CheckWasmRunnerHostPublished">
+    <ItemGroup>
+      <_WasmHostPublishFiles Include="$(WasmRunnerHostPublishWwwroot)**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_WasmHostPublishFiles)"
+          DestinationFiles="@(_WasmHostPublishFiles->'$(OutDir)wasm-host\wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <!--
+    PackagePath is a plain destination FOLDER, not a per-file %(...)
+    transform: NuGet's pack task auto-preserves each matched file's
+    relative path under it for a recursive ** Include. Manual
+    %(RecursiveDir)-based transforms (tried first) got contaminated
+    somewhere in NuGet's own item processing - confirmed via -v:diag -
+    and this simpler, documented form sidesteps that entirely.
+  -->
+  <ItemGroup>
+    <None Include="$(WasmRunnerHostPublishWwwroot)**" Pack="true" PackagePath="tools\$(TargetFramework)\any\wasm-host\wwwroot" />
   </ItemGroup>
 
 </Project>
