@@ -58,6 +58,15 @@ namespace AnyUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
+                               var platform = type.GetAttributes<PlatformAttribute>()
+                                                .FirstOrDefault();
+
+                               string platformReason;
+                               if (platform != null && !platform.IsSupported(out platformReason))
+                               {
+                                   throw new IgnoreException(platformReason);
+                               }
+
                                return base.FixtureInit(type, args);
                            };
             }

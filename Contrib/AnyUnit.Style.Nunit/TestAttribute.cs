@@ -105,12 +105,33 @@ namespace AnyUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
+                               var platform = method.GetCustomAttributes(typeof (PlatformAttribute), true)
+                                     .OfType<PlatformAttribute>()
+                                     .FirstOrDefault();
+
+                               string platformReason;
+                               if (platform != null && !platform.IsSupported(out platformReason))
+                               {
+                                   throw new IgnoreException(platformReason);
+                               }
+
                                var setUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute));
                                var teardownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute));
+
+                               // Class-level actions wrap method-level ones: BeforeTest runs
+                               // class-level first, AfterTest runs method-level first.
+                               var targetType = target as Type ?? target.GetType();
+                               var testActions = targetType.GetCustomAttributes(true).OfType<ITestAction>()
+                                   .Concat(method.GetCustomAttributes(true).OfType<ITestAction>())
+                                   .ToList();
+
                                TestCycleExceptions te = null;
                                Func<TestCycleExceptions> exceptions = () => te ?? (te = new TestCycleExceptions());
                                try //TryCatch Setup Errors
                                {
+                                   foreach (var action in testActions)
+                                       action.BeforeTest(method);
+
                                    if (setUpMethod != null)
                                        setUpMethod.Invoke(target, null);
                                    try //TryCatch Test Errors
@@ -132,6 +153,16 @@ namespace AnyUnit.Style.Nunit
                                    {
                                        if (teardownMethod != null)
                                            teardownMethod.Invoke(target, null);
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                       exceptions().Add(TestCycle.Teardown, ex);
+                                   }
+
+                                   try //TryCatch Test Action Errors
+                                   {
+                                       foreach (var action in Enumerable.Reverse(testActions))
+                                           action.AfterTest(method);
                                    }
                                    catch (Exception ex)
                                    {
