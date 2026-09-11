@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Razor Class Library, not an app: this ships the reusable
+    AnyUnitRunnerPage component (results table, log, and headless-scrape
+    hooks) for any Blazor WebAssembly host to drop in. Blazor components
+    need the actual ASP.NET Core Components APIs, which only exist for
+    "net" TFMs (not netstandard2.0, unlike AnyUnit's own core libraries).
+
+    Runner/Platforms/browser is this repo's own consumer: a thin host app
+    (Program.cs/App.razor/wwwroot/index.html) that references this
+    package plus its own test assemblies - exactly the same
+    library/satellite split used for AnyUnit.TestingPlatform +
+    BasicTests.Mtp.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+</Project>

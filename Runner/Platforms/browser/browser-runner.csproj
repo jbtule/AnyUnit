@@ -1,5 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
+  <!--
+    Thin host app: this repo's own dogfooding consumer of the reusable
+    AnyUnit.BrowserRunner package, same shape as BasicTests.Mtp is for
+    AnyUnit.TestingPlatform. An external consumer would build an
+    equivalent minimal Blazor WASM host - Program.cs/App.razor/
+    wwwroot/index.html plus a ProjectReference to AnyUnit.BrowserRunner
+    and their own test assembly - and drop in <AnyUnitRunnerPage
+    TestAssemblies="..." /> the same way Pages/Index.razor does below.
+  -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -7,12 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\AnyUnit.BrowserRunner\AnyUnit.BrowserRunner.csproj" />
     <ProjectReference Include="..\..\..\WhoTestsTheTesters\Tests\BasicTests\BasicTests.csproj" />
     <ProjectReference Include="..\..\..\WhoTestsTheTesters\Tests\ConstraintsTests\ConstraintsTests.csproj" />
     <ProjectReference Include="..\..\..\WhoTestsTheTesters\Tests\Style\NunitTests\NunitTests.csproj" />

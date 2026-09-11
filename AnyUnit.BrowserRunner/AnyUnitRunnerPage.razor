@@ -1,0 +1,112 @@
+@using System.Reflection
+@using System.Runtime.InteropServices
+@using AnyUnit.Run
+@using AnyUnit.Util
+
+<h1>AnyUnit browser runner</h1>
+
+<pre>@_diagnostics</pre>
+
+@if (_file == null)
+{
+    <p><em>Running tests...</em></p>
+}
+else
+{
+    <table>
+        <tbody>
+            @foreach (var kv in _file.ResultCount.OrderBy(it => it.Key))
+            {
+                <tr>
+                    <td>@kv.Key</td>
+                    <td>@kv.Value</td>
+                </tr>
+            }
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>@_file.ResultCount.Sum(r => r.Value)</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <pre>@_log</pre>
+
+    @* Machine-readable hooks for a headless host (see Runner/Platforms/browser-host) to
+       scrape once the run is finished, without needing any JS interop of its own. *@
+    <pre id="anyunit-summary" style="display:none">@_summary</pre>
+    <pre id="anyunit-json" style="display:none">@_file.ToListJson()</pre>
+    <div id="anyunit-done" style="display:none" data-haserror="@_file.HasError.ToString().ToLowerInvariant()"></div>
+}
+
+@code {
+    /// <summary>
+    /// The test assemblies to run. Required - a consumer supplies their own,
+    /// e.g. <c>TestAssemblies="new[] { typeof(MyTests.Basic).Assembly }"</c>.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<Assembly> TestAssemblies { get; set; } = Array.Empty<Assembly>();
+
+    /// <summary>
+    /// Optional filter, merged with the built-in WASM single-threaded
+    /// exclusion below (a consumer-supplied filter doesn't need to know
+    /// about that platform quirk itself).
+    /// </summary>
+    [Parameter]
+    public TestFilter? Filter { get; set; }
+
+    private ResultsFile? _file;
+    private readonly System.Text.StringBuilder _logBuilder = new();
+    private string _log => _logBuilder.ToString();
+    private string _summary => _file == null
+        ? string.Empty
+        : string.Join("\n",
+            _file.ResultCount.OrderBy(kv => kv.Key)
+                .Select(kv => $"  {kv.Key,-15}{kv.Value,4}")
+                .Append($"{"Total",-17}{_file.ResultCount.Sum(r => r.Value),4}"));
+
+    private string _diagnostics = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Render this diagnostic line first (before the potentially-slow or
+        // -deadlocking test run below) so it's visible even if what follows
+        // hangs - Task.Yield forces an actual paint here.
+        _diagnostics =
+            $"OSDescription={RuntimeInformation.OSDescription}; " +
+            $"ProcessArchitecture={RuntimeInformation.ProcessArchitecture}; " +
+            $"ProcessorCount={Environment.ProcessorCount}; " +
+            $"Utility.IsSingleThreadedRuntime={Utility.IsSingleThreadedRuntime}";
+        StateHasChanged();
+        await Task.Yield();
+
+        var runner = Runner.Create("net10-browser", TestAssemblies);
+        var file = new ResultsFile();
+
+        // The "Timeout" category exercises AnyUnit's per-test [Timeout]
+        // enforcement, which relies on a background thread preempting a
+        // busy-looping test - something single-threaded WASM fundamentally
+        // doesn't have. Rather than let each of those tests spin for its
+        // full ~30s of wall-clock busy-wait (Utility.IsSingleThreadedRuntime
+        // is why they don't get killed early here), skip the category
+        // outright: it's testing a capability this platform can't have, not
+        // a real regression. This applies to any consumer, not just
+        // AnyUnit's own test payloads, so it's baked in here rather than
+        // left for each host to rediscover.
+        var filter = Filter ?? new TestFilter();
+        if (Utility.IsSingleThreadedRuntime && !filter.Excludes.Contains("C:Timeout"))
+        {
+            filter.Excludes.Add("C:Timeout");
+        }
+
+        runner.RunAll(r =>
+        {
+            _logBuilder.AppendLine($"{r.Test.Fixture.Assembly.Name}.{r.Test.Fixture.Name}.{r.Test.Name} [{r.Kind}]");
+            if (!string.IsNullOrEmpty(r.Output))
+            {
+                _logBuilder.AppendLine(r.Output);
+            }
+            file.Add(r);
+        }, filter);
+        _file = file;
+    }
+}
