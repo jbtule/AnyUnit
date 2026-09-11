@@ -92,6 +92,48 @@ jobs:
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x64/Release/net48/anyunit-net48-runner-win64.exe net48-x64
 
+      # Same RID/host split as release.yml (see its own comment): each
+      # matrix leg here publishes whichever self-contained, single-file
+      # RID build(s) are "theirs" - a 32-bit RID with no hosted runner
+      # of its own rides along on its 64-bit counterpart's leg
+      # (win-x86 here, linux-arm on ubuntu-24.04-arm). Actually running
+      # the self-test suite through each one - not just release.yml's
+      # plain `dotnet publish` - is a real functional check that the
+      # self-contained/single-file publish itself works, not just that
+      # the framework-dependent build above does. Uploaded as workflow
+      # artifacts so they're downloadable straight from this run, same
+      # exe names release.yml produces.
+      - name: Publish, test, and upload self-contained RID build(s)
+        shell: bash
+        run: |
+          set -e
+          case "${{ matrix.os }}" in
+            windows-latest)   rids="win-x64 win-x86" ;;
+            windows-11-arm)   rids="win-arm64" ;;
+            ubuntu-latest)    rids="linux-x64" ;;
+            ubuntu-24.04-arm) rids="linux-arm64 linux-arm" ;;
+            macos-latest)     rids="osx-arm64" ;;
+            macos-15-intel)   rids="osx-x64" ;;
+          esac
+          for rid in $rids; do
+            dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r "$rid" --self-contained true -p:PublishSingleFile=true -o "publish/$rid"
+            if [ -f "publish/$rid/anyunit-runner.exe" ]; then
+              exe="publish/$rid/anyunit-runner-$rid.exe"
+              mv "publish/$rid/anyunit-runner.exe" "$exe"
+            else
+              exe="publish/$rid/anyunit-runner-$rid"
+              mv "publish/$rid/anyunit-runner" "$exe"
+              chmod +x "$exe"
+            fi
+            .github/scripts/run-tests.sh "$exe" "net10-$rid"
+          done
+
+      - name: Upload self-contained RID build(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: anyunit-runner-${{ matrix.os }}
+          path: publish/*/anyunit-runner-*
+
       # AnyUnit's self-test assemblies deliberately contain failing/erroring/
       # ignored tests (a "_Fail"-suffixed test is supposed to fail, an
       # "_Opposite"-prefixed one inverts that, etc. - see
