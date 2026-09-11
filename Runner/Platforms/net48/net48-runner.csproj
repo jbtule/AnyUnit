@@ -4,7 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>SatelliteRunner.Shared</RootNamespace>
-    <AssemblyName>net48-runner</AssemblyName>
+    <!-- Not packaged as a tool (no .NET Framework support in that
+         mechanism), but the executable name stays anyunit-prefixed for
+         consistency with the ones that are (anyunit-runner, anyunit-wasm). -->
+    <AssemblyName>anyunit-net48-runner</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

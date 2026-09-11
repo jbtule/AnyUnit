@@ -3,9 +3,10 @@
 # result set to /tmp/<name>-<suffix>.json.
 #
 # Usage: run-tests.sh <runner-path> <suffix>
-#   runner-path  path to a built net10-runner.dll or net48-runner.exe -
-#                a .dll is launched via the dotnet host, anything else
-#                (e.g. a net48 .exe) is invoked directly
+#   runner-path  path to a built anyunit-runner.dll (net10) or
+#                anyunit-net48-runner.exe (net48) - a .dll is launched via
+#                the dotnet host, anything else (e.g. a net48 .exe) is
+#                invoked directly
 #   suffix       tag appended to each output filename, e.g. net10 or net48
 #
 # Deliberately does not `set -e` around the individual test runs: the

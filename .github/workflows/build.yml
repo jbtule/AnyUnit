@@ -49,9 +49,9 @@ jobs:
         run: |
           set -e
           dotnet tool install --global coverlet.console
-          coverlet Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll \
+          coverlet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll \
             --target "bash" \
-            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll net10" \
+            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10" \
             --output coverage --format cobertura
 
       - name: Upload coverage report
@@ -63,7 +63,7 @@ jobs:
       - name: Run tests through the net48 console runner (Windows only)
         if: runner.os == 'Windows'
         shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/Release/net48/net48-runner.exe net48
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/Release/net48/anyunit-net48-runner.exe net48
 
       # AnyUnit's self-test assemblies deliberately contain failing/erroring/
       # ignored tests (a "_Fail"-suffixed test is supposed to fail, an

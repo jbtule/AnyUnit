@@ -42,6 +42,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>WasmRunner</RootNamespace>
+    <!-- Matches ToolCommandName below, so the raw executable is called the
+         same thing whether run from source or as the installed tool. -->
+    <AssemblyName>anyunit-wasm</AssemblyName>
 
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
