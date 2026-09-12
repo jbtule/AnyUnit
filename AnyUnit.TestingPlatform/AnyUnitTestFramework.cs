@@ -75,7 +75,11 @@ namespace AnyUnit.TestingPlatform
 
         public async Task ExecuteRequestAsync(ExecuteRequestContext context)
         {
-            var runner = Runner.Create("mtp", _testAssemblies);
+            // Fully qualified: AnyUnit.Run.Runner (the discovery/execution engine),
+            // not this namespace's own AnyUnit.TestingPlatform.Runner (the
+            // RunAsync entry-point helper in Runner.cs) - same simple name,
+            // different types, only disambiguated by being explicit here.
+            var runner = AnyUnit.Run.Runner.Create("mtp", _testAssemblies);
 
             if (context.Request is DiscoverTestExecutionRequest discover)
             {

@@ -15,11 +15,17 @@ already-loaded ones).
 ## When to use this instead of `AnyUnit.TestingPlatform`
 
 `AnyUnit.TestingPlatform` generates a `dotnet test`/`dotnet run`-compatible
-entry point for you automatically (C# only, via `EnableAnyUnitRunner`).
-Reach for `AnyUnit.Runner.Bootstrap` instead when you need to write that
-entry point yourself - an F# test project (F# has no equivalent
-source-generator opt-in), or a browser-wasm host with no CLI concept at
-all (a plain console `Main`, run under `node`/`bun`).
+entry point for you automatically, but only for C# (its code-generation
+target only knows how to inject a `.cs` file). An F# project can still
+get a real MTP-integrated entry point by calling
+`AnyUnit.TestingPlatform.Runner.RunAsync` directly from its own
+hand-written `Program.fs` - see that package's own README.
+
+Reach for `AnyUnit.Runner.Bootstrap` instead when you don't want an MTP-
+integrated entry point at all - its own simpler output format, no MTP
+package dependency, and no headless-browser/dev-server concept to work
+around for a browser-wasm host (a plain console `Main`, run under
+`node`/`bun`).
 
 ## Usage
 
