@@ -21,45 +21,46 @@ namespace AnyUnit.Runner.Bootstrap
         /// <summary>
         /// Discovers and runs every AnyUnit test in the assembly that
         /// calls this method, printing the same human-readable (or, with
-        /// <paramref name="teamCity"/>, TeamCity service-message) output
+        /// <paramref name="outputStyle"/>, TeamCity service-message) output
         /// anyunit-runner's own console output uses. <paramref name="platform"/>
         /// is a free-form label (shows up in each Result's own Platform
         /// field and in the printed output) - not interpreted by AnyUnit
         /// itself, just like anyunit-runner's own RunnerId.
         /// </summary>
         /// <param name="platform">Free-form platform label, e.g. "net10", "browser-wasm".</param>
-        /// <param name="teamCity">TeamCity service messages instead of the plain human-readable summary.</param>
+        /// <param name="outputStyle">Console output format - PlainText (default) or TeamCity service messages.</param>
         /// <param name="jsonOutputPath">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces).</param>
         /// <returns>0 if every test passed (no Fail/Error results); 1 otherwise - suitable as a process exit code.</returns>
-        public static int Run(string platform, bool teamCity = false, string jsonOutputPath = null)
+        public static int Run(string platform, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, string jsonOutputPath = null)
         {
             var callingAssembly = Assembly.GetCallingAssembly();
-            return RunCore(platform, new[] { callingAssembly }, teamCity, jsonOutputPath);
+            return RunCore(platform, new[] { callingAssembly }, outputStyle, jsonOutputPath);
         }
 
         /// <summary>
-        /// Same as <see cref="Run(string, bool, string)"/>, but discovers tests
-        /// across a caller-named set of assemblies instead of just the calling
-        /// one - for a host that statically links/bundles several test
-        /// assemblies together (e.g. a browser-wasm build compiling in more
-        /// than one project's tests) rather than compiling them all into one.
-        /// Each name is matched by simple assembly name (no version/culture/
-        /// public key token) against whatever's already loaded into the
-        /// process (<see cref="AppDomain.CurrentDomain"/> - in a wasm build,
-        /// that's every assembly the runtime loaded at boot, native-linked or
-        /// not); a name not found there is tried via <see cref="Assembly.Load(string)"/>
-        /// as a fallback, for a host where it isn't necessarily preloaded.
+        /// Same as <see cref="Run(string, ConsoleOutputStyle, string)"/>, but
+        /// discovers tests across a caller-named set of assemblies instead of
+        /// just the calling one - for a host that statically links/bundles
+        /// several test assemblies together (e.g. a browser-wasm build
+        /// compiling in more than one project's tests) rather than compiling
+        /// them all into one. Each name is matched by simple assembly name (no
+        /// version/culture/public key token) against whatever's already loaded
+        /// into the process (<see cref="AppDomain.CurrentDomain"/> - in a wasm
+        /// build, that's every assembly the runtime loaded at boot, native-
+        /// linked or not); a name not found there is tried via
+        /// <see cref="Assembly.Load(string)"/> as a fallback, for a host where
+        /// it isn't necessarily preloaded.
         /// </summary>
         /// <param name="platform">Free-form platform label, e.g. "net10", "browser-wasm".</param>
         /// <param name="assemblyNames">Simple names of the assemblies to discover tests in (e.g. "Tesseract.Tests", "Tesseract.Tests.SkiaSharp").</param>
-        /// <param name="teamCity">TeamCity service messages instead of the plain human-readable summary.</param>
+        /// <param name="outputStyle">Console output format - PlainText (default) or TeamCity service messages.</param>
         /// <param name="jsonOutputPath">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces).</param>
         /// <returns>0 if every test passed (no Fail/Error results); 1 otherwise - suitable as a process exit code.</returns>
         /// <exception cref="InvalidOperationException">A named assembly isn't loaded and couldn't be loaded either - almost always means it's not actually linked/referenced into this build.</exception>
-        public static int Run(string platform, IEnumerable<string> assemblyNames, bool teamCity = false, string jsonOutputPath = null)
+        public static int Run(string platform, IEnumerable<string> assemblyNames, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, string jsonOutputPath = null)
         {
             var assemblies = ResolveAssemblies(assemblyNames);
-            return RunCore(platform, assemblies, teamCity, jsonOutputPath);
+            return RunCore(platform, assemblies, outputStyle, jsonOutputPath);
         }
 
         private static Assembly[] ResolveAssemblies(IEnumerable<string> assemblyNames)
@@ -89,9 +90,8 @@ namespace AnyUnit.Runner.Bootstrap
             return resolved.ToArray();
         }
 
-        private static int RunCore(string platform, Assembly[] assemblies, bool teamCity, string jsonOutputPath)
+        private static int RunCore(string platform, Assembly[] assemblies, ConsoleOutputStyle outputStyle, string jsonOutputPath)
         {
-            var outputStyle = teamCity ? ConsoleOutputStyle.TeamCity : ConsoleOutputStyle.PlainText;
             var file = new RunTests { OutputStyle = outputStyle }.RunAssemblies(platform, assemblies);
 
             if (jsonOutputPath != null)

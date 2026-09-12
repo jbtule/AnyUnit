@@ -39,8 +39,8 @@ internal static class Program
 let main _ = AnyUnit.Runner.Bootstrap.Runner.Run("net10")
 ```
 
-Prints the same human-readable (or, with `teamCity: true`, TeamCity
-service-message) output `anyunit-runner`'s own console output uses, and
+Prints the same human-readable (or, with `outputStyle: ConsoleOutputStyle.TeamCity`,
+TeamCity service-message) output `anyunit-runner`'s own console output uses, and
 returns a process exit code (0 if every test passed).
 
 To discover tests across more than one already-loaded assembly instead of
