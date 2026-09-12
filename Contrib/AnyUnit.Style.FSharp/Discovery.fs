@@ -26,6 +26,23 @@ let private testProperties (t: Type) =
     t.GetProperties(BindingFlags.Public ||| BindingFlags.Static ||| BindingFlags.FlattenHierarchy)
     |> Seq.filter (fun p -> p.PropertyType = typeof<Test> && p.GetIndexParameters().Length = 0 && p.GetGetMethod() <> null)
 
+/// The other, equally idiomatic way to write a plain (non-data) test:
+/// `let name () = test { ... }` - a real F# *function* taking a single
+/// `unit` parameter. Confirmed directly (a throwaway repro): unlike a
+/// curried function with a genuine argument, F# compiles this down to an
+/// ordinary static method with ZERO IL parameters and a plain (non-
+/// "get_"-prefixed, non-IsSpecialName) name - a real, reflectable
+/// MethodInfo distinct from testProperties' compiler-generated property
+/// getters. Excluding IsSpecialName keeps this from ever colliding with
+/// a property getter; requiring zero parameters keeps it disjoint from
+/// dataTestMethods (which requires at least one).
+let private testMethods (t: Type) =
+    t.GetFlattenedMethods()
+    |> Seq.filter (fun m ->
+        m.ReturnType = typeof<Test>
+        && not m.IsSpecialName
+        && m.GetParameters().Length = 0)
+
 /// True once every one of a method's parameters carries its own
 /// IArgParameter (NUnit's Values/ValueSource/Random, or any other
 /// style's own implementation) - mirrors AnyUnit.Style.Nunit.
@@ -137,10 +154,11 @@ type private DataTestAttribute() =
             |> Seq.map (fun args -> ParameterSet(args)))
 
 /// A Fixture whose harnesses come from static PROPERTIES of type Test
-/// (an F# module's `let myTest = test { ... }` bindings) and
-/// parametrized data-test METHODS (`let f (x) = test { ... }`, carrying
-/// any style's IRowInlineParameter row attribute), not [Test]-attributed
-/// instance methods - see FSharpTestAttribute's/dataTestMethods' own
+/// (an F# module's `let myTest = test { ... }` bindings), plain zero-arg
+/// test METHODS (`let myTest () = test { ... }`), and parametrized
+/// data-test METHODS (`let f (x) = test { ... }`, carrying any style's
+/// IRowInlineParameter row attribute), not [Test]-attributed instance
+/// methods - see FSharpTestAttribute's/testMethods'/dataTestMethods' own
 /// comments for why GetHarnesses (AnyUnit.Run.Fixture's own default
 /// implementation, method-attribute-based) has to be overridden here
 /// instead of reused.
@@ -149,9 +167,11 @@ type private FSharpFixture(type_: Type) =
     static let plainAttribute = FSharpTestAttribute() :> TestAttributeBase
     static let dataAttribute = DataTestAttribute() :> TestAttributeBase
     override _.GetHarnesses() : TestHarness seq =
-        Seq.append
-            (testProperties type_ |> Seq.map (fun p -> TestHarness(plainAttribute, p.GetGetMethod())))
-            (dataTestMethods type_ |> Seq.map (fun m -> TestHarness(dataAttribute, m)))
+        Seq.concat [
+            testProperties type_ |> Seq.map (fun p -> TestHarness(plainAttribute, p.GetGetMethod()))
+            testMethods type_ |> Seq.map (fun m -> TestHarness(plainAttribute, m))
+            dataTestMethods type_ |> Seq.map (fun m -> TestHarness(dataAttribute, m))
+        ]
 
 /// `[<assembly: FSharpStyle>]` - AnyUnit.Style.FSharp's discovery opt-in,
 /// same shape as AnyUnit.Style.Xunit's XunitStyleAttribute: without it,
@@ -164,5 +184,8 @@ type FSharpStyleAttribute() =
     override _.Generator =
         FixtureGenerator(fun a ->
             a.AllTypes()
-            |> Seq.filter (fun t -> not (Seq.isEmpty (testProperties t)) || not (Seq.isEmpty (dataTestMethods t)))
+            |> Seq.filter (fun t ->
+                not (Seq.isEmpty (testProperties t))
+                || not (Seq.isEmpty (testMethods t))
+                || not (Seq.isEmpty (dataTestMethods t)))
             |> Seq.map (fun t -> FSharpFixture(t) :> Fixture))

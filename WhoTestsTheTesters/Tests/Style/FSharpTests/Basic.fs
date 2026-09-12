@@ -38,6 +38,16 @@ let testFail_Fail = test {
     Assert.Fail("Just Fail")
 }
 
+/// Covers Discovery.fs's testMethods: the other equally idiomatic way to
+/// write a plain test - a real zero-arg F# *function* (compiles to a
+/// genuine, zero-IL-parameter MethodInfo, unlike a value binding's
+/// compiler-generated property getter) - discovered and run exactly the
+/// same as the `let x = test { }` value-binding form above.
+let testUnitArg_Success () = test {
+    let! Assert = assertion
+    Assert.True(true)
+}
+
 let testNothing_NoError = test { () }
 
 let test_Error = test { failwith "This should be an error." }
