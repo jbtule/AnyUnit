@@ -23,6 +23,19 @@ namespace XunitTests
         }
 
         [Fact]
+        public void ContainsPredicate_Success()
+        {
+            var found = Assert.Contains(Enumerable.Range(1, 5), it => it > 3);
+            Assert.Equal(4, found);
+        }
+
+        [Fact]
+        public void ContainsPredicate_Fail()
+        {
+            Assert.Contains(Enumerable.Range(1, 5), it => it > 10);
+        }
+
+        [Fact]
         public void DoesNotContain_Success()
         {
             Assert.DoesNotContain(4, Enumerable.Range(10, 5));
