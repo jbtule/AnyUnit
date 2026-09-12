@@ -35,7 +35,10 @@ internal static class Program
     private static int Main(string[] args)
     {
         var jsonOutputPath = args.Length > 0 ? args[0] : null;
-        return AnyUnit.Runner.Bootstrap.Runner.Run("net10", jsonOutputPath: jsonOutputPath);
+        using (var jsonOutputStream = jsonOutputPath != null ? File.Create(jsonOutputPath) : null)
+        {
+            return AnyUnit.Runner.Bootstrap.Runner.Run("net10", jsonOutputStream: jsonOutputStream);
+        }
     }
 }
 ```
@@ -48,6 +51,12 @@ let main _ = AnyUnit.Runner.Bootstrap.Runner.Run("net10")
 Prints the same human-readable (or, with `outputStyle: ConsoleOutputStyle.TeamCity`,
 TeamCity service-message) output `anyunit-runner`'s own console output uses, and
 returns a process exit code (0 if every test passed).
+
+`jsonOutputStream` takes a `Stream`, not a file path - open your own
+`FileStream` for the common case (as above), or hand it a `MemoryStream`
+to get the JSON in memory instead, for a host with no meaningful file
+system, or one that wants the results somewhere other than disk (a UI, a
+network call, ...). Left open when `Run` returns - it's yours either way.
 
 To discover tests across more than one already-loaded assembly instead of
 just the calling one (e.g. a browser-wasm host that statically links

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using SatelliteRunner.Shared;
 
 namespace AnyUnit.Runner.Bootstrap
@@ -29,12 +30,12 @@ namespace AnyUnit.Runner.Bootstrap
         /// </summary>
         /// <param name="platform">Free-form platform label, e.g. "net10", "browser-wasm".</param>
         /// <param name="outputStyle">Console output format - PlainText (default) or TeamCity service messages.</param>
-        /// <param name="jsonOutputPath">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces).</param>
+        /// <param name="jsonOutputStream">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces) - a <see cref="Stream"/>, not a file path, so a platform/host with no meaningful file system (or one that just wants the JSON in memory - a <see cref="MemoryStream"/> - instead of on disk) still works; open your own <see cref="FileStream"/> for the common "write it to a file" case. Left open (not disposed) when this returns - the caller owns it.</param>
         /// <returns>0 if every test passed (no Fail/Error results); 1 otherwise - suitable as a process exit code.</returns>
-        public static int Run(string platform, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, string jsonOutputPath = null)
+        public static int Run(string platform, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, Stream jsonOutputStream = null)
         {
             var callingAssembly = Assembly.GetCallingAssembly();
-            return RunCore(platform, new[] { callingAssembly }, outputStyle, jsonOutputPath);
+            return RunCore(platform, new[] { callingAssembly }, outputStyle, jsonOutputStream);
         }
 
         /// <summary>
@@ -54,13 +55,13 @@ namespace AnyUnit.Runner.Bootstrap
         /// <param name="platform">Free-form platform label, e.g. "net10", "browser-wasm".</param>
         /// <param name="assemblyNames">Simple names of the assemblies to discover tests in (e.g. "Tesseract.Tests", "Tesseract.Tests.SkiaSharp").</param>
         /// <param name="outputStyle">Console output format - PlainText (default) or TeamCity service messages.</param>
-        /// <param name="jsonOutputPath">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces).</param>
+        /// <param name="jsonOutputStream">If set, the full results are also written here as JSON (same shape anyunit-runner's own `-o`/`-output` flag produces) - a <see cref="Stream"/>, not a file path; see the other overload's own remarks.</param>
         /// <returns>0 if every test passed (no Fail/Error results); 1 otherwise - suitable as a process exit code.</returns>
         /// <exception cref="InvalidOperationException">A named assembly isn't loaded and couldn't be loaded either - almost always means it's not actually linked/referenced into this build.</exception>
-        public static int Run(string platform, IEnumerable<string> assemblyNames, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, string jsonOutputPath = null)
+        public static int Run(string platform, IEnumerable<string> assemblyNames, ConsoleOutputStyle outputStyle = ConsoleOutputStyle.PlainText, Stream jsonOutputStream = null)
         {
             var assemblies = ResolveAssemblies(assemblyNames);
-            return RunCore(platform, assemblies, outputStyle, jsonOutputPath);
+            return RunCore(platform, assemblies, outputStyle, jsonOutputStream);
         }
 
         private static Assembly[] ResolveAssemblies(IEnumerable<string> assemblyNames)
@@ -90,13 +91,23 @@ namespace AnyUnit.Runner.Bootstrap
             return resolved.ToArray();
         }
 
-        private static int RunCore(string platform, Assembly[] assemblies, ConsoleOutputStyle outputStyle, string jsonOutputPath)
+        private static int RunCore(string platform, Assembly[] assemblies, ConsoleOutputStyle outputStyle, Stream jsonOutputStream)
         {
             var file = new RunTests { OutputStyle = outputStyle }.RunAssemblies(platform, assemblies);
 
-            if (jsonOutputPath != null)
+            if (jsonOutputStream != null)
             {
-                File.WriteAllText(jsonOutputPath, file.ToListJson());
+                // leaveOpen: true - this stream is the caller's, not ours to
+                // dispose (they might still want to read it back, e.g. a
+                // MemoryStream, or close it themselves alongside other
+                // cleanup). new UTF8Encoding(false), not Encoding.UTF8 - the
+                // latter's default emits a BOM, which File.WriteAllText (what
+                // this replaced) never did; matching that avoids a real,
+                // if subtle, behavior change for a plain JSON file.
+                using (var writer = new StreamWriter(jsonOutputStream, new UTF8Encoding(false), 1024, leaveOpen: true))
+                {
+                    writer.Write(file.ToListJson());
+                }
             }
 
             return file.HasError ? 1 : 0;
