@@ -33,10 +33,15 @@
     <IsPackable>true</IsPackable>
     <PackageId>AnyUnit.Runner.Bootstrap</PackageId>
     <Description>Static Runner.Run(platform) a consumer's own entry point calls directly - discovers/runs only the calling assembly's own tests, no CLI/argument parsing, no external-assembly support (see anyunit-runner for that).</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

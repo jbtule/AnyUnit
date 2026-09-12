@@ -13,6 +13,7 @@
     <ToolCommandName>anyunit-runner</ToolCommandName>
     <PackageId>AnyUnit.Runner</PackageId>
     <Description>Standalone console runner for AnyUnit test assemblies (`anyunit-runner run [-o|-output file] [-teamcity] assembly.dll...`).</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +26,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

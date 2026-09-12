@@ -4,11 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Description>NUnit-source-compatible attributes and assertions for AnyUnit.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

@@ -59,6 +59,7 @@
     <ToolCommandName>anyunit-browser-wasm</ToolCommandName>
     <PackageId>AnyUnit.Runner.BrowserWasm</PackageId>
     <Description>Standalone browser-wasm runner for AnyUnit test assemblies, no republish per run (`anyunit-browser-wasm run [-o|-output file] [-teamcity] assembly.dll...`).</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <BrowserWasmRunnerHostPublishWwwroot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../browser-wasm-runner-host/bin/Release/net10.0/publish/wwwroot/'))</BrowserWasmRunnerHostPublishWwwroot>
   </PropertyGroup>
@@ -92,6 +93,7 @@
   -->
   <ItemGroup>
     <None Include="$(BrowserWasmRunnerHostPublishWwwroot)**" Pack="true" PackagePath="tools\$(TargetFramework)\any\browser-wasm-host\wwwroot" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

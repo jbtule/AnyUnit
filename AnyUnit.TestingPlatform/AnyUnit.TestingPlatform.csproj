@@ -13,6 +13,7 @@
     <IsTestProject>false</IsTestProject>
     <IsPackable>true</IsPackable>
     <Description>Microsoft.Testing.Platform (MTP) adapter for AnyUnit - property-based opt-in via EnableAnyUnitRunner.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,7 @@
   <ItemGroup>
     <None Include="build\AnyUnit.TestingPlatform.props" Pack="true" PackagePath="build\" />
     <None Include="build\AnyUnit.TestingPlatform.targets" Pack="true" PackagePath="build\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
