@@ -14,19 +14,28 @@ A shared `netstandard2.0` library can run on far more platforms than any
 one full test framework does. AnyUnit's core (`AnyUnit`) targets
 `netstandard2.0` itself, and each "style" package aims for close enough
 syntax compatibility with real NUnit/xUnit/FsUnit that an existing test's
-*logic* - its attributes and assertions - often doesn't need to change,
-even though the full framework isn't reproduced (no `TestContext`, no
-fully-static `Assert`, and other gaps - see each style's own README for
-specifics). Where it holds, moving an existing NUnit test suite onto
-AnyUnit's `AnyUnit.Style.Nunit` is a `PackageReference` swap plus a
-handful of small, mechanical edits - not a rewrite of the tests
-themselves - confirmed by actually doing it on a real, ~140-test NUnit
-suite: swap the `using` directives, have each fixture (and anything else
-that asserts) inherit `AssertionHelper`, and replace the odd real-NUnit-
-specific idiom (`TestContext`, a non-fixture helper class calling a
-static `Assert.Fail`) with its AnyUnit equivalent. Once that's done, it
-actually runs somewhere a real NUnit install can't reach - most
-concretely, browser-wasm today.
+*logic* - its attributes and assertions - often doesn't need to change at
+all: `Assert.That(...)` inside a test method carries over as-is once the
+fixture class inherits `AssertionHelper`, since `Assert` there just
+resolves to that instance automatically, the same identifier real NUnit
+uses. Where it holds, moving an existing NUnit test suite onto AnyUnit's
+`AnyUnit.Style.Nunit` is mostly a `PackageReference` swap plus a `using`
+directive swap - confirmed by actually doing it on a real, ~140-test
+NUnit suite. The other edits that suite needed were real but narrow: a
+few real-NUnit idioms this repo deliberately doesn't reproduce
+(`TestContext`; a fully-static `Assert`, for reasons below) only came up
+in a couple of non-fixture helper classes, not in ordinary test methods.
+Once that's done, it actually runs somewhere a real NUnit install can't
+reach - most concretely, browser-wasm today.
+
+AnyUnit's `Assert` is deliberately an instance a fixture gets (not a
+fully-static class the way real NUnit's is): a shared/global assert can't
+reliably tell a test that made real assertions and passed apart from one
+that made none at all and trivially "passed" by doing nothing - an
+instance scoped to exactly one test's own run tracks that correctly
+(AnyUnit does still offer a global-style escape hatch, `Assert.
+GlobalStyle`, but it's `[Obsolete]` for exactly this reason - it's there
+for genuinely global helper code, not as the default way to assert).
 
 ## Packages
 
