@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -26,7 +27,7 @@ namespace AnyUnit.Style.Xunit
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "This attribute is designed as an extensibility point.")]
-    public class InlineDataAttribute : DataAttribute
+    public class InlineDataAttribute : DataAttribute, IRowInlineParameter
     {
         readonly object[] dataValues;
 
@@ -57,6 +58,17 @@ namespace AnyUnit.Style.Xunit
         public override IEnumerable<object[]> GetData(MethodInfo methodUnderTest, Type[] parameterTypes)
         {
             yield return dataValues;
+        }
+
+        /// <summary>
+        /// Lets any style's primary TestAttributeBase recognize this row
+        /// via IRowInlineParameter alone (see that interface's own
+        /// comment) - explicit implementation so DataValues stays the
+        /// public name.
+        /// </summary>
+        object[] IRowInlineParameter.Arguments
+        {
+            get { return dataValues; }
         }
     }
 }

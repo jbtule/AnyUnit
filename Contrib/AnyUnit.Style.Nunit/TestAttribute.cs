@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
@@ -44,6 +45,20 @@ namespace AnyUnit.Style.Nunit
                                {
                                    list.AddRange(cases.Select(a => new ParameterSet(a.Arguments)));
                                }
+
+                               // Any other style's row attribute (e.g. xUnit's
+                               // InlineDataAttribute) also implementing
+                               // IRowInlineParameter - TestCaseAttribute is
+                               // excluded here since it's already covered above.
+                               var otherRows = method.GetCustomAttributes(true)
+                                   .OfType<IRowInlineParameter>()
+                                   .Where(a => !(a is TestCaseAttribute))
+                                   .ToList();
+                               if (otherRows.Any())
+                               {
+                                   list.AddRange(otherRows.Select(a => new ParameterSet(a.Arguments)));
+                               }
+
                                var values = method.GetParameters().Select(p=> new { Prop = p, Attr=
                                p.GetCustomAttributes(typeof(ParameterDataAttribute), true)
                                .OfType<ParameterDataAttribute>().FirstOrDefault()

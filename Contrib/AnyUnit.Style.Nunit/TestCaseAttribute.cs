@@ -13,9 +13,11 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using AnyUnit.Run.Attributes;
+
 namespace AnyUnit.Style.Nunit
 {
-    public class TestCaseAttribute : TestAttribute
+    public class TestCaseAttribute : TestAttribute, IRowInlineParameter
     {
         public TestCaseAttribute(params object[] arguments)
         {

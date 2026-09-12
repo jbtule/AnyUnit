@@ -17,6 +17,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
@@ -30,12 +31,25 @@ namespace AnyUnit.Style.Xunit
                 return m =>
                            {
                                var data = m.GetCustomAttributes(typeof (DataAttribute), true).OfType<DataAttribute>().ToList();
-                               if (!data.Any())
+                               var dataRows = data.SelectMany(d => d.GetData(m, new Type[] { }));
+
+                               // Any other style's row attribute (e.g. NUnit's
+                               // TestCaseAttribute) also implementing
+                               // IRowInlineParameter - a DataAttribute (InlineData/
+                               // ClassData/PropertyData) is excluded here since its
+                               // richer row(s) already came from the scan above.
+                               var otherRows = m.GetCustomAttributes(true)
+                                   .OfType<IRowInlineParameter>()
+                                   .Where(a => !(a is DataAttribute))
+                                   .Select(a => a.Arguments);
+
+                               var rows = dataRows.Concat(otherRows).ToList();
+                               if (!rows.Any())
                                {
                                    return base.ParameterSets(m);
                                }
 
-                               return data.SelectMany(d => d.GetData(m, new Type[] {})).Select(a => new ParameterSet(a));
+                               return rows.Select(a => new ParameterSet(a));
                            };
             }
         }

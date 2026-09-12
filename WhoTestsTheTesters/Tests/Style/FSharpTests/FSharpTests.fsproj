@@ -21,6 +21,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FSharp\AnyUnit.Style.FSharp.fsproj" />
+    <!-- Only for DataTests.fs's row attribute (AnyUnit.Style.Xunit's own
+         InlineDataAttribute) - Discovery.fs itself has no dependency on
+         this project; it recognizes any style's IRowInlineParameter. -->
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
   </ItemGroup>
 
 </Project>

@@ -26,30 +26,23 @@ let private testProperties (t: Type) =
     t.GetProperties(BindingFlags.Public ||| BindingFlags.Static ||| BindingFlags.FlattenHierarchy)
     |> Seq.filter (fun p -> p.PropertyType = typeof<Test> && p.GetIndexParameters().Length = 0 && p.GetGetMethod() <> null)
 
-/// AnyUnit.Style.FSharp's own data-source attribute - a wholly
-/// independent, self-contained type (no dependency on
-/// AnyUnit.Style.Xunit's DataAttribute/AnyUnit.Style.Nunit's
-/// TestCaseAttribute), matching the same pattern every AnyUnit style
-/// already uses independently for its own parametrization.
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
-type InlineDataAttribute([<ParamArray>] dataValues: obj[]) =
-    inherit Attribute()
-    member _.DataValues = dataValues
-
 /// A parametrized test is an ordinary F# *function* (`let f (x) = test
 /// { ... }`), which - unlike a plain value - takes real parameters and
 /// so compiles to a genuine method, not a property. Qualifies as a data
-/// test only once it also carries at least one InlineDataAttribute -
-/// requiring the attribute for qualification (not just "any method
-/// returning Test") mirrors how a real [Theory] needs
-/// [InlineData]/similar to mean anything.
+/// test only once it also carries at least one IRowInlineParameter row
+/// attribute - any style's (xUnit's InlineData, NUnit's TestCase, or a
+/// user's own implementation), recognized purely via that shared core
+/// interface with no dependency on either style's assembly. Requiring
+/// the attribute for qualification (not just "any method returning
+/// Test") mirrors how a real [Theory] needs [InlineData]/similar to mean
+/// anything.
 let private dataTestMethods (t: Type) =
     t.GetFlattenedMethods()
     |> Seq.filter (fun m ->
         m.ReturnType = typeof<Test>
         && not m.IsSpecialName // excludes property getters/setters
         && m.GetParameters().Length > 0
-        && m.GetCustomAttributes(typeof<InlineDataAttribute>, true).Length > 0)
+        && m.GetCustomAttributes(true) |> Seq.exists (fun a -> a :? IRowInlineParameter))
 
 /// No per-fixture metadata to report (there's no real class-level
 /// attribute for it to come from - a qualifying type is just "some
@@ -87,25 +80,27 @@ type private FSharpTestAttribute() =
 
 /// A data test's invocation is identical to a plain test's (call the
 /// method, run the returned Test's thunk) - only ParameterSets differs,
-/// expanding each InlineDataAttribute found on the method into its own
-/// ParameterSet. Note the row's own values aren't needed for naming:
-/// AnyUnit.Run.Test's constructor already names each row distinctly from
-/// its real reflection args.
+/// expanding each IRowInlineParameter attribute found on the method into
+/// its own ParameterSet, regardless of which style it came from. Note
+/// the row's own values aren't needed for naming: AnyUnit.Run.Test's
+/// constructor already names each row distinctly from its real
+/// reflection args.
 type private DataTestAttribute() =
     inherit FSharpTestAttribute()
     override _.ParameterSets =
         TestParameterSetProducer(fun method ->
-            method.GetCustomAttributes(typeof<InlineDataAttribute>, true)
-            |> Seq.cast<InlineDataAttribute>
-            |> Seq.map (fun a -> ParameterSet(a.DataValues)))
+            method.GetCustomAttributes(true)
+            |> Seq.choose (fun a -> match a with :? IRowInlineParameter as r -> Some r | _ -> None)
+            |> Seq.map (fun r -> ParameterSet(r.Arguments)))
 
 /// A Fixture whose harnesses come from static PROPERTIES of type Test
 /// (an F# module's `let myTest = test { ... }` bindings) and
 /// parametrized data-test METHODS (`let f (x) = test { ... }`, carrying
-/// InlineDataAttribute), not [Test]-attributed instance methods - see
-/// FSharpTestAttribute's/dataTestMethods' own comments for why
-/// GetHarnesses (AnyUnit.Run.Fixture's own default implementation,
-/// method-attribute-based) has to be overridden here instead of reused.
+/// any style's IRowInlineParameter row attribute), not [Test]-attributed
+/// instance methods - see FSharpTestAttribute's/dataTestMethods' own
+/// comments for why GetHarnesses (AnyUnit.Run.Fixture's own default
+/// implementation, method-attribute-based) has to be overridden here
+/// instead of reused.
 type private FSharpFixture(type_: Type) =
     inherit Fixture(FSharpFixtureAttribute(), type_)
     static let plainAttribute = FSharpTestAttribute() :> TestAttributeBase
