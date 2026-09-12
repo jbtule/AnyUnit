@@ -12,11 +12,6 @@
     style choice: an attribute placed on an F# top-level `let value = ...`
     binding lands on the compiler-generated PROPERTY, not the reflectable
     getter MethodInfo every other style's discovery depends on.
-
-    Runner.run (also still available directly) executes a Test list by
-    hand and folds the results into a real ResultsFile - the same
-    machinery FSharpTestAttribute's TestInvoke calls into once a test is
-    discovered, so the two paths produce identical results either way.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -28,7 +23,6 @@
   <ItemGroup>
     <Compile Include="Test.fs" />
     <Compile Include="Discovery.fs" />
-    <Compile Include="Runner.fs" />
   </ItemGroup>
 
   <ItemGroup>

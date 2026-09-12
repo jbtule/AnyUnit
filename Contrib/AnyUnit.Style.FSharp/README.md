@@ -65,14 +65,3 @@ let square (n: int) (expected: int) = test {
 
 Each row runs as its own, separately-reported test - same as `[TestCase]`/
 `[InlineData]` under the attribute-based styles.
-
-## Running directly, without discovery
-
-`AnyUnit.Style.FSharp.Runner.run` executes a plain `(string * Test) list`
-by hand and folds the results into a real `ResultsFile` - useful for a
-host with no reflection-based discovery step at all:
-
-```fsharp
-open AnyUnit.Style.FSharp.Runner
-run "net10" "MyTests" [ "adds two numbers", ``adds two numbers`` ]
-```
