@@ -6,15 +6,15 @@
     Blazor components need the actual ASP.NET Core Components APIs for,
     which only exist for "net" TFMs (not netstandard2.0, unlike
     AnyUnit's own core libraries) - so it can't just live inside
-    wasm-runner-host directly as a plain .razor file.
+    browser-wasm-runner-host directly as a plain .razor file.
 
     Not packed (IsPackable false, unlike the rest of this repo's
     libraries): despite being a real, structurally reusable component,
-    it's internal plumbing for Runner/Platforms/wasm-runner-host (this
-    repo's own, only consumer - a thin host app that references it and
-    dynamically loads whatever test assemblies anyunit-wasm points it
-    at over HTTP), not something meant to be pulled in by someone
-    else's Blazor host app.
+    it's internal plumbing for Runner/Platforms/browser-wasm-runner-host
+    (this repo's own, only consumer - a thin host app that references it
+    and dynamically loads whatever test assemblies anyunit-browser-wasm
+    points it at over HTTP), not something meant to be pulled in by
+    someone else's Blazor host app.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

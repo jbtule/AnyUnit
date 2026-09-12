@@ -18,7 +18,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         // Assembly names are passed via the query string (set by
-        // wasm-runner when it navigates here) rather than being known at
+        // browser-wasm-runner when it navigates here) rather than being known at
         // publish time - this host is generic and published once.
         //   assemblies=Name1,Name2  - the actual test assemblies to run.
         //   extra=Name3,Name4       - their own dependencies (most real
@@ -99,10 +99,10 @@ else
     };
 
     // Console.WriteLine is documented to route to the browser's JS console
-    // under Blazor WASM, and that's normally exactly what wasm-runner's
+    // under Blazor WASM, and that's normally exactly what browser-wasm-runner's
     // Playwright driver listens to (page.Console) - but calls made from
     // inside this component's OnInitializedAsync weren't reliably showing
-    // up there in practice. Posting back to wasm-runner's own Kestrel
+    // up there in practice. Posting back to browser-wasm-runner's own Kestrel
     // host - which is already proven reliable, it's how every test
     // assembly gets served - sidesteps that uncertainty rather than
     // continuing to chase it.

@@ -14,7 +14,7 @@
     means the C# SDK's default globbing never picks up FsUnit.fs's F#
     source in the first place. Either way the actual [Test]-attributed
     classes can't end up compiled directly into this assembly - so
-    anyunit-runner/anyunit-net48-*/anyunit-wasm still can't point
+    anyunit-runner/anyunit-net48-*/anyunit-browser-wasm still can't point
     straight at FsUnitTests.Mtp.dll and find real tests; point them at
     FsUnitTests.dll (which this project's own ProjectReference flattens
     into its output directory anyway) instead. `dotnet test` and

@@ -12,7 +12,7 @@
     relies on works exactly the same regardless, and once loaded,
     AnyUnit.Style.FSharp's own FSharpStyleAttribute discovery (applied
     in FSharpTests' own AssemblyInfo.fs) finds its Test-typed properties
-    the same way anyunit-runner/anyunit-wasm/anyunit-net48-* already do.
+    the same way anyunit-runner/anyunit-browser-wasm/anyunit-net48-* already do.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

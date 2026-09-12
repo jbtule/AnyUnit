@@ -1,6 +1,6 @@
 using ManyConsole.CommandLineUtils;
 
-namespace WasmRunner;
+namespace BrowserWasmRunner;
 
 public class RunCommand : ConsoleCommand
 {

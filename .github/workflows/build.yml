@@ -9,19 +9,19 @@
 # The wasm (browser) target also runs as its own separate job, not part
 # of the OS matrix: it works the same way regardless of host OS (the
 # actual test execution happens inside a headless Chromium PuppeteerSharp
-# drives, not the host's own runtime), and building wasm-runner-host (a
+# drives, not the host's own runtime), and building browser-wasm-runner-host (a
 # Blazor WASM app needing the wasm-tools workload and an Emscripten
 # native-link step) is slow enough that repeating it per matrix OS would
 # be pure waste, same reasoning as the coverage job. build-and-test and
 # coverage build AnyUnit.ci.slnf (a solution filter over AnyUnit.slnx)
-# rather than the solution directly, specifically to exclude wasm-runner/
-# wasm-runner-host from their build - wasm-runner's own build fails
-# outright unless wasm-runner-host has already been published (see
-# wasm-runner.csproj's CheckWasmRunnerHostPublished target), so building
+# rather than the solution directly, specifically to exclude browser-wasm-runner/
+# browser-wasm-runner-host from their build - browser-wasm-runner's own build fails
+# outright unless browser-wasm-runner-host has already been published (see
+# browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished target), so building
 # the full, unfiltered solution here would force that slow Emscripten
-# step onto every one of those jobs too. test-wasm builds the real,
-# unfiltered AnyUnit.slnx (after publishing wasm-runner-host itself),
-# since it's the one job that actually needs wasm-runner built.
+# step onto every one of those jobs too. test-browser-wasm builds the real,
+# unfiltered AnyUnit.slnx (after publishing browser-wasm-runner-host itself),
+# since it's the one job that actually needs browser-wasm-runner built.
 #
 # `pack` builds every NuGet package this repo ships and uploads the
 # .nupkg files as a workflow artifact, on every run - not gated behind
@@ -95,11 +95,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # AnyUnit.ci.slnf builds everything EXCEPT wasm-runner/
-      # wasm-runner-host (see the top-of-file comment: wasm-runner's own
-      # build errors out unless wasm-runner-host is published first, and
+      # AnyUnit.ci.slnf builds everything EXCEPT browser-wasm-runner/
+      # browser-wasm-runner-host (see the top-of-file comment: browser-wasm-runner's own
+      # build errors out unless browser-wasm-runner-host is published first, and
       # that publish - an Emscripten native-link step - is too slow to
-      # repeat across 6 matrix legs + coverage; test-wasm builds the full
+      # repeat across 6 matrix legs + coverage; test-browser-wasm builds the full
       # solution instead, once).
       - name: Build
         run: dotnet build AnyUnit.ci.slnf --configuration Release
@@ -234,14 +234,14 @@ jobs:
           name: coverage
           path: coverage.cobertura.xml
 
-  test-wasm:
+  test-browser-wasm:
     # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
     # unprivileged user namespaces, which GitHub's ubuntu-latest image
     # blocks via AppArmor (confirmed: launch failed there with "No
     # usable sandbox!"). WasmRunAlone.cs now also passes --no-sandbox
     # as a direct fix, but macOS sidesteps the whole class of problem -
-    # no such restriction there - and this exact wasm-runner-host/
-    # wasm-runner pipeline has been the one actually exercised locally
+    # no such restriction there - and this exact browser-wasm-runner-host/
+    # browser-wasm-runner pipeline has been the one actually exercised locally
     # all along, on an arm64 Mac.
     runs-on: macos-latest
     steps:
@@ -256,13 +256,13 @@ jobs:
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
-      # Must come before the solution build below: wasm-runner's own
-      # build fails outright unless wasm-runner-host has already been
-      # published (see wasm-runner.csproj's CheckWasmRunnerHostPublished
-      # target, and wasm-runner-host's own comment on why this can't be
-      # auto-triggered from inside wasm-runner's build instead).
-      - name: Publish wasm-runner-host
-        run: dotnet publish Runner/Platforms/wasm-runner-host -c Release
+      # Must come before the solution build below: browser-wasm-runner's own
+      # build fails outright unless browser-wasm-runner-host has already been
+      # published (see browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished
+      # target, and browser-wasm-runner-host's own comment on why this can't be
+      # auto-triggered from inside browser-wasm-runner's build instead).
+      - name: Publish browser-wasm-runner-host
+        run: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release
 
       - name: Build
         run: dotnet build AnyUnit.slnx --configuration Release
@@ -270,13 +270,13 @@ jobs:
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - no separate install step
       # the way Playwright's `playwright install` needed. If this ever
-      # moves back to a Linux runner, note anyunit-wasm's -no-sandbox
+      # moves back to a Linux runner, note anyunit-browser-wasm's -no-sandbox
       # flag (WasmRunAlone.cs auto-applies it under Linux CI already,
       # detected via the CI env var - the flag is only needed if that
       # heuristic doesn't fire, e.g. a self-hosted/Docker runner).
-      - name: Run tests through anyunit-wasm
+      - name: Run tests through anyunit-browser-wasm
         shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/wasm-runner/bin/Release/net10.0/anyunit-wasm.dll wasm
+        run: .github/scripts/run-tests.sh Runner/Platforms/browser-wasm-runner/bin/Release/net10.0/anyunit-browser-wasm.dll browser-wasm
 
       - name: Verify results match naming convention
         shell: bash
@@ -307,13 +307,13 @@ jobs:
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
-      # Must come before the pack below: wasm-runner's own build (which
+      # Must come before the pack below: browser-wasm-runner's own build (which
       # `dotnet pack` triggers as part of packing it) fails outright
-      # unless wasm-runner-host has already been published - see
-      # wasm-runner.csproj's CheckWasmRunnerHostPublished target, and
-      # test-wasm's own comment for the same prerequisite.
-      - name: Publish wasm-runner-host
-        run: dotnet publish Runner/Platforms/wasm-runner-host -c Release
+      # unless browser-wasm-runner-host has already been published - see
+      # browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished target, and
+      # test-browser-wasm's own comment for the same prerequisite.
+      - name: Publish browser-wasm-runner-host
+        run: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release
 
       # Packs every IsPackable=true project (Directory.Build.props: off
       # by default, opt-in per project) - non-packable projects are

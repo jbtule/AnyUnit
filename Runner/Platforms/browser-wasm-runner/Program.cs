@@ -1,5 +1,5 @@
 using ManyConsole.CommandLineUtils;
-using WasmRunner;
+using BrowserWasmRunner;
 
 var commands = new ConsoleCommand[]
 {

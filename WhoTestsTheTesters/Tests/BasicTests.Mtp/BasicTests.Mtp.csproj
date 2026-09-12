@@ -6,7 +6,7 @@
     directly via an explicit cross-folder Compile Include - not a
     ProjectReference to it. That means the actual [Test]-attributed
     classes live directly in THIS assembly too, so
-    anyunit-runner/anyunit-net48-*/anyunit-wasm can point straight at
+    anyunit-runner/anyunit-net48-*/anyunit-browser-wasm can point straight at
     BasicTests.Mtp.dll and find real tests, not just the MTP entry point
     (confirmed: pointing a runner at an earlier ProjectReference-based
     satellite shape found 0 tests, since the actual test classes only

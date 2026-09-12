@@ -1,13 +1,23 @@
 # Testing under WebAssembly: dynamic loading vs. native dependencies
 
-`anyunit-wasm` (this folder + `../wasm-runner`) is a generic runner: point
-it at any test assembly's `.dll` and it dynamically `Assembly.Load(byte[])`s
-it into this host at runtime, fetched over HTTP, no rebuild needed per test
-assembly. That works well for pure-managed test assemblies - which is all
-of AnyUnit's own self-tests - but it has a real, structural limit: **it
-cannot run a test assembly that needs its own P/Invoke-based native code**
-(a native image processing/OCR/PDF library, anything shipped as a
-`NativeFileReference`/Emscripten static archive, etc.).
+`anyunit-browser-wasm` (this folder + `../browser-wasm-runner`) is a
+generic runner: point it at any test assembly's `.dll` and it dynamically
+`Assembly.Load(byte[])`s it into this host at runtime, fetched over HTTP,
+no rebuild needed per test assembly. That works well for pure-managed test
+assemblies - which is all of AnyUnit's own self-tests - but it has a real,
+structural limit: **it cannot run a test assembly that needs its own
+P/Invoke-based native code** (a native image processing/OCR/PDF library,
+anything shipped as a `NativeFileReference`/Emscripten static archive,
+etc.).
+
+Named "browser-wasm", not just "wasm": there's a second, incompatible wasm
+target, WASI (`wasi-wasm`) - different ABI, different syscall convention,
+can't even link the same native archives (confirmed: `libSkiaSharp.a`
+references `emscripten_*`-prefixed symbols, no `__wasi_*`/
+`wasi_snapshot_preview1` ones at all). "wasm" alone stopped being
+unambiguous the moment a second wasm target existed - everything in this
+folder and `../browser-wasm-runner` specifically means the Emscripten/
+browser one.
 
 ## Why dynamic loading can't do native code
 
@@ -21,16 +31,17 @@ hands it different *managed* code. The test assembly and the runtime
 hosting it have to be compiled together, in the same project, so the
 native linking step actually sees what that assembly needs.
 
-So for a consumer whose tests need native wasm dependencies, `anyunit-wasm`
-genuinely can't help - not a missing feature, a structural mismatch with
-how wasm native linking works.
+So for a consumer whose tests need native wasm dependencies,
+`anyunit-browser-wasm` genuinely can't help - not a missing feature, a
+structural mismatch with how wasm native linking works.
 
 ## The alternative: compile your own host
 
 Reference `AnyUnit`/your style package(s) (e.g. `AnyUnit.Style.FSharp`)
 directly from your own `Sdk.BlazorWebAssembly` project, alongside whatever
 native-dependent packages your tests need, and drive the same
-`AnyUnit.Run.Runner` API `anyunit-wasm`'s own CLI is built on, directly:
+`AnyUnit.Run.Runner` API `anyunit-browser-wasm`'s own CLI is built on,
+directly:
 
 ```fsharp
 [<EntryPoint>]
@@ -73,9 +84,9 @@ real, working example):
   one - confirmed identical results and exit codes under both. This is
   the pleasant surprise: despite using the Blazor SDK (for its correct
   native linking), running the tests needs **no headless browser at all**
-  - unlike `anyunit-wasm` itself, which drives a real (headless) browser
-  via PuppeteerSharp specifically because its own host *is* a real Blazor
-  app.
+  - unlike `anyunit-browser-wasm` itself, which drives a real (headless)
+  browser via PuppeteerSharp specifically because its own host *is* a real
+  Blazor app.
 - **`dotnet build` alone is enough** to produce a runnable
   `wwwroot/_framework/` (the linked runtime + your compiled assemblies) -
   no `dotnet publish` needed for that part. Boot it the same way a plain

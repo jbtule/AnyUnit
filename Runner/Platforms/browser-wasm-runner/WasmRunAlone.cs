@@ -3,21 +3,22 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using PuppeteerSharp;
 
-namespace WasmRunner;
+namespace BrowserWasmRunner;
 
 public static class WasmRunAlone
 {
-    private const string PlatformId = "net10-wasm";
+    private const string PlatformId = "net10-browser-wasm";
 
     // Same layout whether run from source or installed as a packed tool:
-    // wasm-runner.csproj's PublishWasmRunnerHost target lays the host out
-    // at $(OutDir)wasm-host\wwwroot (i.e. right next to this assembly),
-    // and AddWasmRunnerHostToPack embeds that same relative shape as tool
-    // content under tools/<tfm>/any/wasm-host/ - the folder a packed
-    // tool's own assembly runs from too, so AppContext.BaseDirectory
-    // resolves it identically either way.
+    // browser-wasm-runner.csproj's CopyBrowserWasmRunnerHostToOutput target
+    // lays the host out at $(OutDir)browser-wasm-host\wwwroot (i.e. right
+    // next to this assembly), and its own pack Content item embeds that
+    // same relative shape as tool content under
+    // tools/<tfm>/any/browser-wasm-host/ - the folder a packed tool's own
+    // assembly runs from too, so AppContext.BaseDirectory resolves it
+    // identically either way.
     private static string DefaultHostWwwroot =>
-        Path.Combine(AppContext.BaseDirectory, "wasm-host", "wwwroot");
+        Path.Combine(AppContext.BaseDirectory, "browser-wasm-host", "wwwroot");
 
     public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity, bool forceNoSandbox = false)
     {
@@ -67,8 +68,8 @@ public static class WasmRunAlone
         var hostWwwroot = DefaultHostWwwroot;
         if (!Directory.Exists(hostWwwroot))
         {
-            Console.Error.WriteLine($"wasm-runner-host not found at '{hostWwwroot}'.");
-            Console.Error.WriteLine("Publish it first: dotnet publish Runner/Platforms/wasm-runner-host -c Release");
+            Console.Error.WriteLine($"browser-wasm-runner-host not found at '{hostWwwroot}'.");
+            Console.Error.WriteLine("Publish it first: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release");
             return true;
         }
 

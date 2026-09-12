@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <!--
-    The generic, reusable WASM host for the anyunit-wasm CLI tool
-    (../wasm-runner). Deliberately references NO test assemblies at all -
-    it doesn't know what it's going to run. Published exactly ONCE (its
-    wwwroot is bundled into the wasm-runner tool package as content); at
-    invocation time, wasm-runner's own mini webserver serves whichever
-    test assembly files the caller pointed it at, and this host's
+    The generic, reusable WASM host for the anyunit-browser-wasm CLI tool
+    (../browser-wasm-runner). Deliberately references NO test assemblies
+    at all - it doesn't know what it's going to run. Published exactly
+    ONCE (its wwwroot is bundled into the browser-wasm-runner tool package
+    as content); at invocation time, browser-wasm-runner's own mini
+    webserver serves whichever test assembly files the caller pointed it
+    at, and this host's
     App.razor fetches + Assembly.Load(byte[])s them by name at runtime -
     the same dynamic-loading primitive behind Blazor's own lazy-loading
     feature, verified empirically to work for assemblies never referenced
@@ -24,7 +25,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>WasmRunnerHost</RootNamespace>
+    <RootNamespace>BrowserWasmRunnerHost</RootNamespace>
     <!--
       IL trimming (the Release-config default) statically analyzes the
       build's own reference graph to decide what's "unused" - but test
