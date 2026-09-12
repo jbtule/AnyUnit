@@ -403,11 +403,18 @@ jobs:
   # only ever touches the already-packed .nupkg from the `pack` job.
   test-packed-wasm-tool:
     needs: pack
-    # macOS, not ubuntu-latest: same headless-Chromium-sandbox reasoning
-    # as test-browser-wasm's own comment (AppArmor blocks the
-    # unprivileged user namespaces headless Chromium's sandbox needs, on
-    # GitHub's ubuntu-latest image).
-    runs-on: macos-latest
+    # ubuntu-latest, unlike test-browser-wasm's own macos-latest:
+    # WasmRunAlone.cs already auto-applies Chromium's --no-sandbox
+    # whenever it detects Linux + the CI env var (which GitHub Actions
+    # sets on every hosted runner, Linux included) - see its own
+    # comment. That's the actual fix for the AppArmor/unprivileged-
+    # user-namespace sandbox failure test-browser-wasm's comment
+    # describes; macOS there just sidesteps needing it at all, since
+    # that pipeline was what got exercised locally first. This job is
+    # the first to actually run that auto-detected path on real Linux
+    # CI rather than just reasoning about it - if it turns out not to
+    # fire correctly here, that's real, actionable signal on its own.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
