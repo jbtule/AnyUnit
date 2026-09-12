@@ -33,12 +33,13 @@ A shared `netstandard2.0` library can run on far more platforms than any
 one full test framework does. AnyUnit's core (`AnyUnit`) targets
 `netstandard2.0` itself, and each "style" package aims for close enough
 syntax compatibility with real NUnit/xUnit/FsUnit that an existing test's
-*logic* - its attributes and assertions - often doesn't need to change at
-all: `Assert.That(...)` inside a test method carries over as-is once the
-fixture class inherits `AssertionHelper`, since `Assert` there just
-resolves to that instance automatically, the same identifier real NUnit
-uses. Where it holds, moving an existing NUnit test suite onto AnyUnit's
-`AnyUnit.Style.Nunit` is mostly a `PackageReference` swap plus a `using`
+*logic* - its attributes and assertions - often doesn't need to change:
+`Assert.That(...)` inside an ordinary test method usually carries over
+unchanged once the fixture class inherits `AssertionHelper`, since
+`Assert` there resolves to that instance automatically, the same
+identifier real NUnit uses. Where it holds, moving an existing NUnit
+test suite onto AnyUnit's `AnyUnit.Style.Nunit` is mostly a
+`PackageReference` swap plus a `using`
 directive swap - confirmed by actually doing it on a real, ~140-test
 NUnit suite. The other edits that suite needed were real but narrow: a
 few real-NUnit idioms this repo deliberately doesn't reproduce
@@ -69,7 +70,7 @@ this, not just a claim.
 Real test-framework compatibility gaps often only show up on a specific
 platform, not in general - the whole reason to actually run somewhere
 instead of assuming. CI runs AnyUnit's own test suite for real (not just
-compiles it) across every combination that matters:
+compiles it) across the platforms below:
 
 - `net10.0` self-contained on 8 real RIDs (`win-x64`, `win-x86`,
   `win-arm64`, `linux-x64`, `linux-arm64`, `linux-arm` - the 32-bit ARM
@@ -148,19 +149,23 @@ assumed: the discovery/execution engine is genuinely portable (real
 desktop RIDs, browser-wasm, MTP - see "Platform coverage" above), and the
 style mechanism is genuinely extensible (`IRowInlineParameter`/
 `IGeneratingParameter`/`IArgParameter` let one style recognize another's
-own attributes with no reference between them - see "Why" above - and
-adding a wholly new style doesn't touch the core at all).
+own attributes with no reference between them - see "Why" above); adding
+a new style builds on the existing base classes rather than changing how
+they behave, though core does occasionally gain a new extension point
+like those interfaces to make something like that possible in the first
+place.
 
 It's free (Apache-2.0) and useful for what it actually does - reach for
 it when you need tests to run somewhere a real NUnit/xUnit/MTP install
 can't, not as a general NUnit/xUnit replacement for a project that only
 ever targets one desktop platform.
 
-Packages aren't published to nuget.org yet - every push builds and
-uploads them as workflow artifacts (see the `pack` job in
-[`build.yml`](.github/workflows/build.yml)), so a current prerelease
-build is always available to grab and try without waiting on a tagged
-release. Versions follow [MinVer](https://github.com/adamralph/minver)
+Packages aren't published to nuget.org yet - the `pack` job in
+[`build.yml`](.github/workflows/build.yml) builds and uploads them as
+workflow artifacts on push, so a recent prerelease build is normally
+there to grab and try without waiting on a tagged release, subject to
+GitHub Actions' own artifact retention window. Versions follow
+[MinVer](https://github.com/adamralph/minver)
 off `v*` tags (e.g. `v1.0.0-alpha` → `1.0.0-alpha.0.<commits-since>` for
 an untagged build).
 
