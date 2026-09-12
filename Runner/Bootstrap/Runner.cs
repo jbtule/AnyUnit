@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using AnyUnit.Run;
 using SatelliteRunner.Shared;
 
 namespace AnyUnit.Runner.Bootstrap
@@ -92,24 +91,14 @@ namespace AnyUnit.Runner.Bootstrap
 
         private static int RunCore(string platform, Assembly[] assemblies, bool teamCity, string jsonOutputPath)
         {
-            var runner = AnyUnit.Run.Runner.Create(platform, assemblies);
-            var file = new ResultsFile();
-
             // RunTests.TeamCity is a static field (shared with anyunit-runner's
-            // own use of the same PrintOutAlone* methods, see Platforms/shared/
-            // RunAloneCommand.cs) - fine for this library's own contract (one
-            // Run call = one whole test run per process), just not something to
-            // set concurrently from two Run calls in the same process.
+            // own use of RunAssemblies/the same PrintOutAlone* methods, see
+            // Platforms/shared/RunAloneCommand.cs) - fine for this library's own
+            // contract (one Run call = one whole test run per process), just
+            // not something to set concurrently from two Run calls in the same
+            // process.
             RunTests.TeamCity = teamCity;
-            var printer = new RunTests();
-
-            printer.PrintOutAloneStart(platform);
-            runner.RunAll(result =>
-            {
-                file.Add(result);
-                printer.PrintOutAloneResults(result);
-            });
-            printer.PrintOutAloneEnd(platform, file);
+            var file = new RunTests().RunAssemblies(platform, assemblies);
 
             if (jsonOutputPath != null)
             {
