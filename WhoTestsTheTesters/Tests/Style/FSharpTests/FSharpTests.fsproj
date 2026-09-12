@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Basic.fs" />
+    <Compile Include="DataTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
