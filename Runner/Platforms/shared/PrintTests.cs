@@ -14,14 +14,15 @@ public partial class RunTests{
         // RunAloneCommand.cs's own -teamcity option still has to record the
         // flag on itself first (ManyConsole's HasOption callback fires while
         // parsing options, before RunAloneCommand.Run ever constructs a
-        // RunTests to pass it into) - only that one, real ordering constraint,
+        // RunTests to set it on) - only that one, real ordering constraint,
         // not a reason for this field itself to be static.
+        //
+        // Plain settable field, not a constructor parameter: TeamCity mode is
+        // legacy (still real, still might be useful to someone), not core to
+        // what this class does - `new RunTests { TeamCity = ... }` keeps that
+        // optional without giving it a permanent seat in the constructor
+        // signature every future caller has to know about.
         public bool TeamCity;
-
-        public RunTests(bool teamCity = false)
-        {
-            TeamCity = teamCity;
-        }
 
         public void PrintOutAloneStart(string id)
         {

@@ -91,7 +91,7 @@ namespace AnyUnit.Runner.Bootstrap
 
         private static int RunCore(string platform, Assembly[] assemblies, bool teamCity, string jsonOutputPath)
         {
-            var file = new RunTests(teamCity).RunAssemblies(platform, assemblies);
+            var file = new RunTests { TeamCity = teamCity }.RunAssemblies(platform, assemblies);
 
             if (jsonOutputPath != null)
             {
