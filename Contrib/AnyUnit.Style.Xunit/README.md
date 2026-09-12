@@ -1,11 +1,12 @@
 # AnyUnit.Style.Xunit
 
-xUnit-source-compatible attributes and assertions for
-[AnyUnit](https://github.com/jbtule/AnyUnit) - write tests the same way
-you would against real xUnit.net (v1-shaped API), run them anywhere
-AnyUnit's core reaches (including browser-wasm). Ported from real xUnit's
-own source (see [`Contributors.md`](../../Contributors.md) for
-attribution).
+Roughly xUnit-compatible attributes and assertions for
+[AnyUnit](https://github.com/jbtule/AnyUnit) - close enough to real
+xUnit.net's own syntax (v1-shaped API) that a test's logic often doesn't
+need to change, run anywhere AnyUnit's core reaches (including
+browser-wasm) - not a full reimplementation of xUnit's API. Ported from
+real xUnit's own source (see [`Contributors.md`](../../Contributors.md)
+for attribution).
 
 An assembly opts in with `[assembly: XunitStyle]`
 ([`XunitStyleAttribute`](XunitStyleAttribute.cs)) so this style's

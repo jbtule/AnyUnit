@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
-    <Description>xUnit-source-compatible attributes and assertions for AnyUnit.</Description>
+    <Description>Roughly xUnit-compatible attributes and assertions for AnyUnit.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

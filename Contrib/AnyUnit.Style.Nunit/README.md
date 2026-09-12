@@ -1,10 +1,12 @@
 # AnyUnit.Style.Nunit
 
-NUnit-source-compatible attributes and assertions for
-[AnyUnit](https://github.com/jbtule/AnyUnit) - write tests the same way
-you would against real NUnit, run them anywhere AnyUnit's core reaches
-(including browser-wasm). Ported from real NUnit's own source (see
-[`Contributors.md`](../../Contributors.md) for attribution).
+Roughly NUnit-compatible attributes and assertions for
+[AnyUnit](https://github.com/jbtule/AnyUnit) - close enough to real
+NUnit's own syntax that a test's logic often doesn't need to change, run
+anywhere AnyUnit's core reaches (including browser-wasm) - not a full
+reimplementation of NUnit's API (see "Not covered" below). Ported from
+real NUnit's own source (see [`Contributors.md`](../../Contributors.md)
+for attribution).
 
 Moving an existing NUnit test project onto this is usually a
 `PackageReference` swap, not a source rewrite - `using NUnit.Framework;`

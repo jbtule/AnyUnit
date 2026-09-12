@@ -1,11 +1,10 @@
 # AnyUnit
 
-Write tests once against a small, source-compatible core - run them under
-whichever test style your codebase already uses (NUnit, xUnit, FsUnit, or
-F#'s own value-based style), on whichever platform actually needs to run
-them (desktop .NET, `dotnet test`/Microsoft.Testing.Platform, or
-browser-wasm) - without a separate test framework or test project per
-platform.
+Write tests in roughly the syntax your codebase already uses (NUnit,
+xUnit, FsUnit, or F#'s own value-based style) against a small, shared
+core, and run them on whichever platform actually needs them (desktop
+.NET, `dotnet test`/Microsoft.Testing.Platform, or browser-wasm) -
+without a separate test framework or test project per platform.
 
 [![build](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml/badge.svg)](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml)
 
@@ -13,12 +12,15 @@ platform.
 
 A shared `netstandard2.0` library can run on far more platforms than any
 one full test framework does. AnyUnit's core (`AnyUnit`) targets
-`netstandard2.0` itself, and each "style" package layers real NUnit/xUnit/
-FsUnit source compatibility on top of it - so an existing NUnit test suite
-can often move to AnyUnit's `AnyUnit.Style.Nunit` with only its
-`PackageReference`s changed, not its test source, and then actually run
-somewhere a real NUnit/xUnit install can't reach - most concretely,
-browser-wasm today.
+`netstandard2.0` itself, and each "style" package aims for close enough
+syntax compatibility with real NUnit/xUnit/FsUnit that an existing test's
+*logic* - its attributes and assertions - often doesn't need to change,
+even though the full framework isn't reproduced (no `TestContext`, no
+fully-static `Assert`, and other gaps - see each style's own README for
+specifics). Where it holds, an existing NUnit test suite can move to
+AnyUnit's `AnyUnit.Style.Nunit` with just its `PackageReference`s changed,
+and then actually run somewhere a real NUnit/xUnit install can't reach -
+most concretely, browser-wasm today.
 
 ## Packages
 
@@ -26,8 +28,8 @@ browser-wasm today.
 |---|---|
 | [`AnyUnit`](AnyUnit) | Core: attribute base classes, assertion helper, test discovery/execution engine. Every style package builds on this. |
 | [`AnyUnit.Constraints`](Contrib/AnyUnit.Constraints) | NUnit-style fluent `Is`/`Has`/`Does`/`Throws` constraint syntax. |
-| [`AnyUnit.Style.Nunit`](Contrib/AnyUnit.Style.Nunit) | NUnit-source-compatible attributes (`[Test]`, `[TestCase]`, `[SetUp]`, `[TestFixture]`, ...) and assertions. |
-| [`AnyUnit.Style.Xunit`](Contrib/AnyUnit.Style.Xunit) | xUnit-source-compatible attributes (`[Fact]`, `[Theory]`, `[InlineData]`, ...) and assertions. |
+| [`AnyUnit.Style.Nunit`](Contrib/AnyUnit.Style.Nunit) | Roughly NUnit-compatible attributes (`[Test]`, `[TestCase]`, `[SetUp]`, `[TestFixture]`, ...) and assertions - close enough syntax to often keep a test's logic unchanged, not a full reimplementation. |
+| [`AnyUnit.Style.Xunit`](Contrib/AnyUnit.Style.Xunit) | Roughly xUnit-compatible attributes (`[Fact]`, `[Theory]`, `[InlineData]`, ...) and assertions - same caveat. |
 | [`AnyUnit.Style.FSharp`](Contrib/AnyUnit.Style.FSharp) | F#'s own idiomatic value-based test style (`test { }`), for when a `[Test]`-attributed method doesn't fit F# as well as a top-level `let` does. |
 | [`AnyUnit.Style.FsUnit`](Contrib/AnyUnit.Style.FsUnit) | FsUnit-style F# assertions. |
 | [`AnyUnit.TestingPlatform`](AnyUnit.TestingPlatform) | Microsoft.Testing.Platform (MTP) adapter - opt in with one MSBuild property (`EnableAnyUnitRunner`) to get a real `dotnet test`/`dotnet run` entry point generated for you. |
@@ -43,8 +45,11 @@ browser-wasm today.
   engine (`Runner`, `Fixture`, `Test`, `ParameterSet`).
 - **`Contrib`** - the style packages (`AnyUnit.Constraints`,
   `AnyUnit.Style.Nunit`, `AnyUnit.Style.Xunit`, `AnyUnit.Style.FSharp`,
-  `AnyUnit.Style.FsUnit`) - each one layers a specific, real test
-  framework's source-level API on top of `AnyUnit`'s core attributes.
+  `AnyUnit.Style.FsUnit`) - each one gets close enough to a specific,
+  real test framework's own syntax that an existing test's logic often
+  doesn't need to change to move onto `AnyUnit`'s core - not a full
+  reimplementation of that framework's API (see each style's own README
+  for what's actually covered).
 - **`AnyUnit.TestingPlatform`** - the Microsoft.Testing.Platform adapter.
 - **`Runner`** - every runner *except* the MTP adapter above:
   - **`Runner/Bootstrap`** - the minimal `Runner.Run(platform)` library

@@ -1,14 +1,16 @@
 ## Contrib
 
-Style packages - each one layers a specific, real test framework's
-source-level API on top of [`AnyUnit`](../AnyUnit)'s core attributes. See
-each package's own README for what it covers and how to use it:
+Style packages - each one gets close enough to a specific, real test
+framework's own syntax that an existing test's logic often doesn't need
+to change, on top of [`AnyUnit`](../AnyUnit)'s core attributes - not a
+full reimplementation of that framework's API. See each package's own
+README for what it actually covers and how to use it:
 
 - [**AnyUnit.Constraints**](AnyUnit.Constraints) - NUnit-style
   `Is`/`Has`/`Does`/`Throws` fluent constraint syntax.
-- [**AnyUnit.Style.Nunit**](AnyUnit.Style.Nunit) - NUnit-source-compatible
+- [**AnyUnit.Style.Nunit**](AnyUnit.Style.Nunit) - roughly NUnit-compatible
   attributes and assertions.
-- [**AnyUnit.Style.Xunit**](AnyUnit.Style.Xunit) - xUnit-source-compatible
+- [**AnyUnit.Style.Xunit**](AnyUnit.Style.Xunit) - roughly xUnit-compatible
   attributes and assertions.
 - [**AnyUnit.Style.FSharp**](AnyUnit.Style.FSharp) - F#'s own idiomatic
   value-based test style.
