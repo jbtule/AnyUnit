@@ -72,12 +72,15 @@ platform, not in general - the whole reason to actually run somewhere
 instead of assuming. CI runs AnyUnit's own test suite for real (not just
 compiles it) across the platforms below:
 
-- `net10.0` self-contained on 8 real RIDs (`win-x64`, `win-x86`,
-  `win-arm64`, `linux-x64`, `linux-arm64`, `linux-arm` - the 32-bit ARM
-  RID a Raspberry Pi 2 needs - `osx-arm64`, `osx-x64`), so a
-  platform-specific edge case (a 32-bit-only bug, an ARM-vs-x64
-  difference) has somewhere to actually surface instead of only ever
-  running on whatever the CI host happens to be.
+- `net10.0` self-contained on 7 real RIDs actually executed in CI
+  (`win-x64`, `win-x86`, `win-arm64`, `linux-x64`, `linux-arm64`,
+  `osx-arm64`, `osx-x64`), so a platform-specific edge case (a
+  32-bit-only bug, an ARM-vs-x64 difference) has somewhere to actually
+  surface instead of only ever running on whatever the CI host happens
+  to be. `linux-arm` (32-bit ARM, what a Raspberry Pi 2 needs) is still
+  built and published for every release - it just isn't executed in CI
+  itself, since a 32-bit armhf binary can't run on the aarch64 host CI
+  uses for ARM without extra emulation setup not currently in place.
 - `browser-wasm`, via a real headless browser (see
   `AnyUnit.Runner.BrowserWasm`) - Mono/wasm's single-threaded runtime
   and reflection quirks are a genuinely different execution environment,
