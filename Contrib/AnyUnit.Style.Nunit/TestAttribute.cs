@@ -43,7 +43,7 @@ namespace AnyUnit.Style.Nunit
                                    .OfType<TestCaseAttribute>().ToList();
                                if (cases.Any())
                                {
-                                   list.AddRange(cases.Select(a => new ParameterSet(a.Arguments)));
+                                   list.AddRange(cases.Select(a => new ParameterSet(a.Arguments) { IgnoreReason = a.Ignore }));
                                }
 
                                // Any other style's row attribute (e.g. xUnit's
@@ -100,7 +100,10 @@ namespace AnyUnit.Style.Nunit
         }
 
 
-        private IEnumerable<IEnumerable<Object>> CombineHelper(IEnumerable<IEnumerable<Object>> accum, IEnumerable<Object> sequence)
+        // protected, not private: TheoryAttribute (a subclass) reuses this
+        // same per-parameter combinatorial accumulation for its own
+        // auto-enum-values fallback.
+        protected IEnumerable<IEnumerable<Object>> CombineHelper(IEnumerable<IEnumerable<Object>> accum, IEnumerable<Object> sequence)
         {
             var list = new List<IEnumerable<object>>();
 

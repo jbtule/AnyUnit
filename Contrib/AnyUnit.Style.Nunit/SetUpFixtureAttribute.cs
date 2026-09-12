@@ -16,6 +16,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 
@@ -27,6 +28,16 @@ namespace AnyUnit.Style.Nunit
     /// sub-namespaces) - not just this one class's own tests, unlike the
     /// same attributes on a [TestFixture]. See AnyUnit.Run.NamespaceScope
     /// for how that's tracked.
+    ///
+    /// Unlike a per-test fixture (see Test.RunHelper), nothing previously
+    /// injected Assert/Log into an instance-based [SetUpFixture] - if it
+    /// implemented IAssertionHelper, Assert/Log just stayed null. Now
+    /// mirrors the per-test pattern: a real Assert/Log get set before
+    /// invoking, and since there's no per-test Result for one-time setup
+    /// to attach a captured Log to, it's flushed straight to Console
+    /// immediately after (a one-time, suite-startup print, not a per-test
+    /// one - the same "no Result to attach to" reasoning that makes plain
+    /// console output the right call here, not a limitation).
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class SetUpFixtureAttribute : SetUpFixtureAttributeBase
@@ -42,7 +53,26 @@ namespace AnyUnit.Style.Nunit
                                    return null;
 
                                object instance = method.IsStatic ? null : Activator.CreateInstance(type);
-                               method.Invoke(instance, null);
+                               var helper = instance as IAssertionHelper;
+                               Log log = null;
+                               if (helper != null)
+                               {
+                                   log = new Log();
+                                   helper.Assert = new Assert();
+                                   helper.Log = log;
+                               }
+                               try
+                               {
+                                   method.Invoke(instance, null);
+                               }
+                               finally
+                               {
+                                   var written = log?.ToString();
+                                   if (!string.IsNullOrEmpty(written))
+                                   {
+                                       Console.WriteLine(written);
+                                   }
+                               }
                                return instance;
                            };
             }

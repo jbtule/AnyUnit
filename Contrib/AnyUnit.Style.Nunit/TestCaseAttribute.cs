@@ -21,10 +21,29 @@ namespace AnyUnit.Style.Nunit
     {
         public TestCaseAttribute(params object[] arguments)
         {
-            this.Arguments = arguments;
+            // [TestCase(null)] - a single null-literal argument - is a real, common
+            // pattern (asserting how a method handles a null argument). C#'s params
+            // rule for a single argument whose type converts directly to the array
+            // type (object[], which a null literal does) passes it AS the array
+            // itself rather than wrapping it - so `arguments` here is null, not
+            // new object[] { null }, even though the intent is clearly "one argument,
+            // which is null". Left uncorrected, Arguments (and the ParameterSet built
+            // from it) would end up null instead of a one-element array, silently
+            // turning a one-argument test into a zero-argument one - or worse,
+            // throwing downstream wherever a null Parameters array wasn't expected.
+            this.Arguments = arguments ?? new object[] { null };
         }
 
         public object[] Arguments { get; set; }
+
+        /// <summary>
+        /// Non-null skips just this one row, with this reason - real
+        /// NUnit's per-case Ignore (e.g.
+        /// [TestCase(4, Ignore = "4bpp not supported")]), distinct from
+        /// a whole-method [Ignore]. Read by TestAttribute.ParameterSets
+        /// into ParameterSet.IgnoreReason.
+        /// </summary>
+        public string Ignore { get; set; }
 
     }
 }

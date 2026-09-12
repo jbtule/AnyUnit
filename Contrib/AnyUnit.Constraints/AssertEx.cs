@@ -81,5 +81,69 @@ namespace AnyUnit.Constraints
                 assert.Fail(writer.ToString(), ExcludeFromStack);
             }
         }
+
+        /// <summary>
+        /// Real NUnit's Assert.That(TestDelegate, Throws...) form - a real,
+        /// separate overload (not left to fall through to the object one
+        /// above) because without it, a parameterless void lambda like
+        /// Assert.That(() => engine.Process(...), Throws.InstanceOf(...))
+        /// has no delegate-typed parameter to bind against here, so the
+        /// compiler falls back to its own natural-type inference for the
+        /// object overload and picks System.Action - a different, unrelated
+        /// delegate TYPE from ThrowsConstraint's own TestDelegate, which
+        /// ThrowsConstraint.Matches only ever recognized via `as TestDelegate`,
+        /// so it threw ArgumentException on literally every real usage of
+        /// this NUnit idiom instead of ever attempting the constraint.
+        /// </summary>
+        public static void That(this IAssert assert, TestDelegate actual, IResolveConstraint expression, string message = null)
+        {
+            Constraint constraint = expression.Resolve();
+
+            if (constraint.Matches((object)actual))
+            {
+                assert.Okay();
+                return;
+            }
+            using (MessageWriter writer = new TextMessageWriter(message))
+            {
+                constraint.WriteMessageTo(writer);
+                assert.Fail(writer.ToString(), ExcludeFromStack);
+            }
+        }
+
+        /// <summary>
+        /// Same as the plain-message overload above, but with real NUnit's
+        /// printf-style trailing args - a separate overload (not just
+        /// giving that one a params array) so an existing 3-arg call
+        /// (actual, expression) still binds to the message=null default
+        /// there rather than this one's non-optional message.
+        /// </summary>
+        public static void That(this IAssert assert, object actual, IResolveConstraint expression, string message, params object[] args)
+        {
+            assert.That(actual, expression, FormatMessage(message, args));
+        }
+
+        /// <summary>
+        /// Asserts that a condition is true, without a constraint - real
+        /// NUnit's plain Assert.That(bool) / Assert.That(bool, string).
+        /// </summary>
+        public static void That(this IAssert assert, bool condition, string message = null, params object[] args)
+        {
+            assert.True(condition, FormatMessage(message, args));
+        }
+
+        /// <summary>
+        /// Real NUnit's classic-model shorthand for
+        /// That(actual, Is.EqualTo(expected)) - just delegates there.
+        /// </summary>
+        public static void AreEqual(this IAssert assert, object expected, object actual, string message = null)
+        {
+            assert.That(actual, Is.EqualTo(expected), message);
+        }
+
+        private static string FormatMessage(string message, object[] args)
+        {
+            return (args != null && args.Length > 0) ? string.Format(message, args) : message;
+        }
     }
 }

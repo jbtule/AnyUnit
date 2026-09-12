@@ -67,9 +67,14 @@ namespace AnyUnit.Run
             UniqueName = string.Format("M:{0}.{1}", harness.Method.DeclaringType.Namespace, harness.Method.DeclaringType.Name);
 
             Name = String.Empty;
+            // it?.ToString() ?? "null": a real, common test case (e.g. NUnit's
+            // [TestCase(null)], testing how a method handles a null argument)
+            // has a genuinely null element in Parameters - ToString() on it
+            // directly used to NRE building this test's display name, before
+            // the test itself ever got a chance to run.
             if (constructorArgs.Parameters.Any())
             {
-                var nameArgs = constructorArgs.Parameters.Select(it => it.ToString()).ToList();
+                var nameArgs = constructorArgs.Parameters.Select(it => it?.ToString() ?? "null").ToList();
 
                 UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
@@ -83,7 +88,7 @@ namespace AnyUnit.Run
 
             if (methodArgs.Parameters.Any())
             {
-                var nameArgs = methodArgs.Parameters.Select(it => it.ToString());
+                var nameArgs = methodArgs.Parameters.Select(it => it?.ToString() ?? "null");
 
                 UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
@@ -202,6 +207,11 @@ namespace AnyUnit.Run
 
                 try
                 {
+                    if (_methodArgs.IgnoreReason != null)
+                    {
+                        throw new IgnoreException(_methodArgs.IgnoreReason);
+                    }
+
                     var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
