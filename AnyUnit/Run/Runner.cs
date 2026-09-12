@@ -31,7 +31,14 @@ namespace AnyUnit.Run
         {
             get
             {
-                return a => a.GetExportedTypes()
+                // GetTypes(), not GetExportedTypes(): an internal [TestFixture] class is a
+                // real, common pattern (nothing outside the assembly needs to see a test
+                // fixture - only this reflection-based discovery does), and real NUnit/xUnit
+                // both discover internal test classes just fine. GetExportedTypes() silently
+                // skipped every one of them - confirmed by a genuine ported test project
+                // (Tesseract.Tests) whose internal [SetUpFixture] simply never ran at all,
+                // not a hypothetical.
+                return a => a.GetTypes()
                              .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
                              .Where(f => f.Attribute != null);
             }
@@ -126,6 +133,34 @@ namespace AnyUnit.Run
                             }
                         }
                     }
+                }
+
+                // [SetUpFixture]-equivalent discovery: unconditional, same
+                // as the default per-class Fixture scan above, so any style
+                // can define its own SetUpFixtureAttributeBase subclass
+                // with no assembly-level opt-in needed. Registered after
+                // this assembly's fixtures/tests are fully built, so each
+                // scope's test count (for NamespaceScope's fire-teardown-
+                // at-zero bookkeeping) can be computed exactly once, up
+                // front - see NamespaceScope's own comment for why that
+                // doesn't require those tests to be contiguous in
+                // runner.Tests.
+                // GetTypes(), not GetExportedTypes() - see DefaultDiscovery's own comment;
+                // an internal [SetUpFixture] is if anything more common than an internal
+                // [TestFixture] (this repo's own GlobalTestSetup is a real example: nothing
+                // outside the assembly should construct it directly).
+                var setUpFixtures = assembly.GetTypes()
+                    .Select(t => new { Type = t, Attr = t.GetTopMostCustomAttribute<SetUpFixtureAttributeBase>() })
+                    .Where(x => x.Attr != null);
+
+                foreach (var setUpFixture in setUpFixtures)
+                {
+                    var ns = setUpFixture.Type.Namespace ?? string.Empty;
+                    var count = assemblyMeta.Fixtures.OfType<Fixture>()
+                        .Where(f => NamespaceScope.IsUnderNamespace(f.Type.Namespace ?? string.Empty, ns))
+                        .SelectMany(f => f.Tests)
+                        .Count();
+                    assemblyMeta.NamespaceScopes.Add(new NamespaceScope(ns, setUpFixture.Type, setUpFixture.Attr, count));
                 }
             }
 

@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Separate project/folder (own default obj/bin, no collision risk with
+    BasicTests.csproj), but compiles BasicTests.csproj's own source
+    directly via an explicit cross-folder Compile Include - not a
+    ProjectReference to it. That means the actual [Test]-attributed
+    classes live directly in THIS assembly too, so
+    anyunit-runner/anyunit-net48-*/anyunit-browser-wasm can point straight at
+    BasicTests.Mtp.dll and find real tests, not just the MTP entry point
+    (confirmed: pointing a runner at an earlier ProjectReference-based
+    satellite shape found 0 tests, since the actual test classes only
+    ever lived in the separately-referenced BasicTests.dll).
+
+    This also sidesteps the reason a ProjectReference-based satellite
+    couldn't just enable EnableAnyUnitRunner on BasicTests.csproj itself:
+    BasicTests.csproj is ProjectReference'd by WhoTestsTheTesters/RoughRunner
+    (non-self-contained), and a self-contained MTP executable can't
+    ProjectReference a non-self-contained one (NETSDK1150, confirmed by
+    hitting it) - with no ProjectReference between the two projects at
+    all, that conflict can't arise.
+
+    No <AnyUnitTestAssembly> override needed either: with none set, the
+    generated Main defaults to testing its own entry assembly - exactly
+    right now that the real test classes are compiled directly into it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <Compile Include="..\BasicTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>

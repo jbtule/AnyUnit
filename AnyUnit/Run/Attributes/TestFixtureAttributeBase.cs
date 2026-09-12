@@ -20,6 +20,19 @@ using AnyUnit.Util;
 
 namespace AnyUnit.Run.Attributes
 {
+    // Runs once before the first test of a fixture actually executes (see
+    // Fixture.EnsureOneTimeSetUp). Whatever it returns is threaded through
+    // to the matching FixtureOneTimeTearDownAction call as `state` - a style
+    // that needs a shared instance for instance-level one-time methods (as
+    // opposed to static ones) can construct it here and hand it back.
+    public delegate object FixtureOneTimeSetUpAction(Type type);
+
+    // Runs once after the last test of a fixture finishes (see
+    // Fixture.NotifyTestFinished). `state` is whatever the fixture's
+    // FixtureOneTimeSetUpAction returned, or null if there wasn't one/it
+    // returned null.
+    public delegate void FixtureOneTimeTearDownAction(Type type, object state);
+
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,
                    Inherited = true)]
     public abstract class TestFixtureAttributeBase : Attribute
@@ -30,6 +43,11 @@ namespace AnyUnit.Run.Attributes
         }
         public virtual FixtureParameterSetProducer ParameterSets { get { return ParameterSet.GetDefaultParameterSet; } }
 
+        // Both default to no hook (null) - styles that don't have a
+        // one-time-setup concept (e.g. AnyUnit's own default style,
+        // AnyUnit.Style.Xunit) don't need to override either.
+        public virtual FixtureOneTimeSetUpAction OneTimeSetUp { get { return null; } }
+        public virtual FixtureOneTimeTearDownAction OneTimeTearDown { get { return null; } }
 
         public abstract IList<string> GetCategories(Type type);
         public abstract string GetDescription(Type type);

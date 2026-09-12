@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>FsUnit-style F# assertions for AnyUnit.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\AnyUnit.Constraints\AnyUnit.Constraints.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

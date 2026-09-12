@@ -58,9 +58,62 @@ namespace AnyUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
+                               var platform = type.GetAttributes<PlatformAttribute>()
+                                                .FirstOrDefault();
+
+                               string platformReason;
+                               if (platform != null && !platform.IsSupported(out platformReason))
+                               {
+                                   throw new IgnoreException(platformReason);
+                               }
+
                                return base.FixtureInit(type, args);
                            };
             }
+        }
+
+        public override Run.Attributes.FixtureOneTimeSetUpAction OneTimeSetUp
+        {
+            get
+            {
+                return type =>
+                           {
+                               var method = GetOneTimeMethod(type, typeof (OneTimeSetUpAttribute));
+                               if (method == null)
+                                   return null;
+
+                               // Instance methods run against a plain, parameterless-constructed
+                               // instance dedicated to the one-time calls - separate from the
+                               // fresh-per-test instances every other test gets. If OneTimeTearDown
+                               // is also an instance method, it gets this same instance back (see
+                               // Fixture.EnsureOneTimeSetUp's `state` threading).
+                               object instance = method.IsStatic ? null : Activator.CreateInstance(type);
+                               method.Invoke(instance, null);
+                               return instance;
+                           };
+            }
+        }
+
+        public override Run.Attributes.FixtureOneTimeTearDownAction OneTimeTearDown
+        {
+            get
+            {
+                return (type, state) =>
+                           {
+                               var method = GetOneTimeMethod(type, typeof (OneTimeTearDownAttribute));
+                               if (method == null)
+                                   return;
+
+                               object instance = method.IsStatic ? null : (state ?? Activator.CreateInstance(type));
+                               method.Invoke(instance, null);
+                           };
+            }
+        }
+
+        private static MethodInfo GetOneTimeMethod(Type type, Type attributeType)
+        {
+            return type.GetFlattenedMethods(includeNonPublic: true)
+                .FirstOrDefault(m => m.GetCustomAttributes(attributeType, true).Any());
         }
 
         public override IList<string> GetCategories(Type type)

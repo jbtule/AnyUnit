@@ -95,7 +95,14 @@ namespace AnyUnit.Run
         public ResultKind GetResult(IAssertionHelper helper)
         {
 
-            if (Test.OfType<IgnoreException>().Any())
+            // An IgnoreException can come from fixture construction (a
+            // class-level [Ignore]/[Platform]), [SetUp], an ITestAction's
+            // BeforeTest, the test body itself, or teardown-side hooks -
+            // wherever it's thrown from, it means the test was skipped,
+            // not that something errored.
+            if (Setup.OfType<IgnoreException>().Any()
+                || Test.OfType<IgnoreException>().Any()
+                || Teardown.OfType<IgnoreException>().Any())
                 return ResultKind.Ignore;
 
             if(Setup.Any()
@@ -167,7 +174,7 @@ namespace AnyUnit.Run
                 helper.Log.WriteLine(ex.Message);
                 helper.Log.WriteLine(ex.StackTrace);
                 if (ex.InnerException != null)
-                    WriteOutFullExceptionHelper(helper, ex);
+                    WriteOutFullExceptionHelper(helper, ex.InnerException);
             }
         }
     }

@@ -41,6 +41,7 @@ namespace AnyUnit.Run
             WaitHandle.WaitAll(new[] { new ManualResetEvent(false) }, milliseconds);
         }
 
+        private readonly Fixture _fixture;
         private readonly FixtureInitializer _init;
         private readonly Type _type;
         private readonly TestInvoker _invoke;
@@ -66,9 +67,14 @@ namespace AnyUnit.Run
             UniqueName = string.Format("M:{0}.{1}", harness.Method.DeclaringType.Namespace, harness.Method.DeclaringType.Name);
 
             Name = String.Empty;
+            // it?.ToString() ?? "null": a real, common test case (e.g. NUnit's
+            // [TestCase(null)], testing how a method handles a null argument)
+            // has a genuinely null element in Parameters - ToString() on it
+            // directly used to NRE building this test's display name, before
+            // the test itself ever got a chance to run.
             if (constructorArgs.Parameters.Any())
             {
-                var nameArgs = constructorArgs.Parameters.Select(it => it.ToString()).ToList();
+                var nameArgs = constructorArgs.Parameters.Select(it => it?.ToString() ?? "null").ToList();
 
                 UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
@@ -82,13 +88,14 @@ namespace AnyUnit.Run
 
             if (methodArgs.Parameters.Any())
             {
-                var nameArgs = methodArgs.Parameters.Select(it => it.ToString());
+                var nameArgs = methodArgs.Parameters.Select(it => it?.ToString() ?? "null");
 
                 UniqueName += string.Format("({0})[{1}]", String.Join(",", nameArgs.ToArray()), constructorArgs.Index);
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
 
+            _fixture = fixture;
             _init = fixture.Attribute.FixtureInit;
             _type = fixture.Type;
             _invoke = harness.Attribute.TestInvoke;
@@ -170,6 +177,14 @@ namespace AnyUnit.Run
             Result finalResult = null;
             try
             {
+                // Outermost-first: a namespace-scoped [SetUpFixture] wraps
+                // its own fixture-level OneTimeSetUp.
+                foreach (var scope in _fixture.ApplicableNamespaceScopes)
+                {
+                    scope.EnsureOneTimeSetUp();
+                }
+
+                _fixture.EnsureOneTimeSetUp();
 
                 fixture = _init(_type, _constructorArgs.Parameters);
                 var helpertemp = fixture as IAssertionHelper;
@@ -192,6 +207,11 @@ namespace AnyUnit.Run
 
                 try
                 {
+                    if (_methodArgs.IgnoreReason != null)
+                    {
+                        throw new IgnoreException(_methodArgs.IgnoreReason);
+                    }
+
                     var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
 
                     //If the test method returns a boolean, true increments assertion
@@ -234,6 +254,29 @@ namespace AnyUnit.Run
                 catch (Exception ex)
                 {
                     exceptions.Add(TestCycle.Teardown, ex);
+                }
+                try
+                {
+                    _fixture.NotifyTestFinished();
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(TestCycle.Teardown, ex);
+                }
+                // Innermost-first: the reverse of the setup-side order above.
+                // Each scope is notified independently - one throwing must
+                // not stop the others from being notified too, or their
+                // own countdowns would never reach zero.
+                for (var i = _fixture.ApplicableNamespaceScopes.Count - 1; i >= 0; i--)
+                {
+                    try
+                    {
+                        _fixture.ApplicableNamespaceScopes[i].NotifyTestFinished();
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(TestCycle.Teardown, ex);
+                    }
                 }
                 exceptions.WriteOutExceptions(helper);
                 state.Result = finalResult ?? new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);

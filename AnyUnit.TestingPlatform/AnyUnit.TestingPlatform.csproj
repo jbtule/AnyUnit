@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <!--
+      This is the MTP adapter library itself, not a test project - but its
+      PackageReference to Microsoft.Testing.Platform is enough for editor
+      test-discovery (e.g. VS Code's C# extension) to list it as one
+      anyway. IsTestProject=false is the standard opt-out flag the MTP/VS
+      tooling honors for exactly this.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <IsPackable>true</IsPackable>
+    <Description>Microsoft.Testing.Platform (MTP) adapter for AnyUnit - property-based opt-in via EnableAnyUnitRunner.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Platform" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <!--
+    build/*.props,*.targets already carry the NuGet auto-import
+    convention name (build\<PackageId>.props/.targets) - just need to
+    actually land in the package's build\ folder, which isn't automatic.
+  -->
+  <ItemGroup>
+    <None Include="build\AnyUnit.TestingPlatform.props" Pack="true" PackagePath="build\" />
+    <None Include="build\AnyUnit.TestingPlatform.targets" Pack="true" PackagePath="build\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

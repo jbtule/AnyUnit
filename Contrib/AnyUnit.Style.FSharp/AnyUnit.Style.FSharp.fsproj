@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Not built on method-attribute discovery the way Style.Nunit/.Xunit/
+    .FsUnit are (all three discover [Test]-attributed methods) - this
+    style's unit is a VALUE (Test, see Test.fs), built with the `test { }`
+    computation expression, so there's no method to attribute in the
+    first place. Discovery.fs's FSharpStyleAttribute (the
+    [<assembly: FSharpStyle>] opt-in, same shape as AnyUnit.Style.Xunit's
+    XunitStyleAttribute) finds fixtures by property TYPE instead
+    (any static property of type Test) - confirmed necessary, not just a
+    style choice: an attribute placed on an F# top-level `let value = ...`
+    binding lands on the compiler-generated PROPERTY, not the reflectable
+    getter MethodInfo every other style's discovery depends on.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Value-based, computation-expression F# test style for AnyUnit - an alternative to reflection-discovered [Test] instance methods, for F#'s own idiomatic top-level `let` test style.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Test.fs" />
+    <Compile Include="Discovery.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

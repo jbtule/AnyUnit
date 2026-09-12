@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    Proves AnyUnit.Runner.Bootstrap works under WebAssembly too, not just
+    desktop - same recipe worked out testing qr-link-pdf's own
+    PDFium/Skia/Tesseract-dependent suite this session (see
+    QrLinkPdf.Tests.Wasm in that repo, and
+    Runner/Platforms/browser-wasm-runner-host/Readme.md here for the full
+    story). This particular self-test has no native dependencies at all
+    (AnyUnit core's own [TestFixture]/[Test], nothing else) - Sdk.
+    BlazorWebAssembly is used anyway for consistency with that recipe,
+    not because anything here specifically needs its native-linking
+    machinery.
+
+    Compiles BootstrapTests's own Basic.cs directly (not a
+    ProjectReference - that project targets desktop net10.0) - same
+    reasoning QrLinkPdf.Tests.Wasm's own comment gives for source-including
+    its sibling desktop test project's files. Program.cs is its own,
+    separate plain console entry point (no WebAssemblyHostBuilder/Razor
+    components - see that file's own comment).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <RootNamespace>BootstrapTests</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../BootstrapTests/Basic.cs" Link="Tests/Basic.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\Runner\Bootstrap\AnyUnit.Runner.Bootstrap.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Needed to satisfy Sdk.BlazorWebAssembly's own build requirements,
+         even though Program.cs never actually builds a
+         WebAssemblyHostBuilder - same as QrLinkPdf.Tests.Wasm's own
+         identical reference. -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot/index.html" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/index.html" />
+    <None Include="wwwroot/runtests.mjs" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/runtests.mjs" />
+    <None Include="wwwroot/package.json" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/package.json" />
+  </ItemGroup>
+
+</Project>

@@ -1,35 +1,55 @@
 <Solution>
   <Folder Name="/Contrib/">
     <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
+    <Project Path="Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
   </Folder>
   <Folder Name="/Runner/" />
-  <Folder Name="/Runner/Platforms/">
-    <Project Path="Runner/Platforms/browser-host/browser-host.csproj" />
-  </Folder>
-  <Folder Name="/Runner/Platforms/browser/">
-    <Project Path="Runner/Platforms/browser/browser-runner.csproj" />
-  </Folder>
+  <Folder Name="/Runner/Platforms/" />
   <Folder Name="/Runner/Platforms/net10/">
     <Project Path="Runner/Platforms/net10/net10-runner.csproj" />
   </Folder>
   <Folder Name="/Runner/Platforms/net48/">
     <Project Path="Runner/Platforms/net48/net48-runner.csproj" />
   </Folder>
+  <Folder Name="/Runner/Platforms/browser-wasm-runner/">
+    <Project Path="Runner/Platforms/browser-wasm-runner/browser-wasm-runner.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/support/">
+    <Project Path="Runner/Platforms/support/AnyUnit.BrowserRunner/AnyUnit.BrowserRunner.csproj" />
+  </Folder>
+  <Folder Name="/Runner/Platforms/browser-wasm-runner-host/">
+    <Project Path="Runner/Platforms/browser-wasm-runner-host/browser-wasm-runner-host.csproj" />
+  </Folder>
   <Folder Name="/WhoTestsTheTesters/">
     <Project Path="WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj" />
     <Project Path="WhoTestsTheTesters/RoughRunner/RoughRunner.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/">
+    <Project Path="WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/BootstrapTests.Wasm/BootstrapTests.Wasm.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/BootstrapTests/BootstrapTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests.Mtp/ConstraintsTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/Style/">
+    <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests.FSharp.Mtp/ComboTests.FSharp.Mtp.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests.FSharp/ComboTests.FSharp.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests.Mtp/ComboTests.Mtp.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests/ComboTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests.Mtp/NunitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests/NunitTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests.Mtp/XunitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj" />
   </Folder>
   <Project Path="AnyUnit/AnyUnit.csproj" />
+  <Project Path="Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
+  <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
 </Solution>

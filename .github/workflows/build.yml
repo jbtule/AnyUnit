@@ -1,67 +1,197 @@
-# Note: the browser (net10-browser, WASM) target is intentionally not run
-# here yet. Runner/Platforms/browser-host drives it headlessly via
-# Microsoft.Playwright against a `dotnet publish` of Runner/Platforms/browser
-# -- see that project's Program.cs for usage -- but automating that in CI is
-# left for a follow-up once it's been proven out on a real runner.
+# Coverage runs as its own separate job (not part of the build-and-test
+# matrix): the managed code under test is the same regardless of which OS
+# it happens to run on, so measuring coverage three times over (once per
+# matrix OS) would just be the same numbers three times, not three
+# different pieces of information the way the matrix's actual pass/fail
+# results are. See that job's own comment for why coverlet.console
+# specifically.
 #
-# Coverage: uses coverlet.console (successor to the old CoverageRunner
-# project, which never actually collected coverage itself -- see
-# WhoTestsTheTesters/Readme.md's history -- it just gave an external
-# profiler something simple to launch). Tried Microsoft's dotnet-coverage
-# global tool first, which works by injecting a live CLR profiler into the
-# target process; that failed locally with "Profiler was not initialized"
-# on macOS with System Integrity Protection enabled (SIP blocks that kind
-# of runtime injection into signed processes -- a known category of
-# limitation for profiler-based tools there, not a bug in this setup).
-# coverlet.console instruments the target assembly's IL statically before
-# running it, so it doesn't need live process injection at all -- verified
-# working end-to-end locally on the same machine (real, non-zero coverage
-# numbers). Should also work fine on Linux/Windows runners, where
-# dotnet-coverage likely would have too, but coverlet needed no live-runner
-# verification gap to ship.
+# The wasm (browser) target also runs as its own separate job, not part
+# of the OS matrix: it works the same way regardless of host OS (the
+# actual test execution happens inside a headless Chromium PuppeteerSharp
+# drives, not the host's own runtime), and building browser-wasm-runner-host (a
+# Blazor WASM app needing the wasm-tools workload and an Emscripten
+# native-link step) is slow enough that repeating it per matrix OS would
+# be pure waste, same reasoning as the coverage job. build-and-test and
+# coverage build AnyUnit.ci.slnf (a solution filter over AnyUnit.slnx)
+# rather than the solution directly, specifically to exclude browser-wasm-runner/
+# browser-wasm-runner-host from their build - browser-wasm-runner's own build fails
+# outright unless browser-wasm-runner-host has already been published (see
+# browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished target), so building
+# the full, unfiltered solution here would force that slow Emscripten
+# step onto every one of those jobs too. test-browser-wasm builds the real,
+# unfiltered AnyUnit.slnx (after publishing browser-wasm-runner-host itself),
+# since it's the one job that actually needs browser-wasm-runner built.
+#
+# `pack` builds every NuGet package this repo ships and uploads the
+# .nupkg files as a workflow artifact, on every run - not gated behind
+# a release tag, specifically so a prerelease package (MinVer versions
+# an untagged build as e.g. 1.0.0-alpha.0.<height>) is always available
+# to grab and test without cutting a release first. See that job's own
+# comment for why it also covers the real, tagged-release version with
+# no separate job needed for that case.
 name: build
 
 on:
   push:
+    # Not every branch: a branch with an open PR would otherwise run
+    # this workflow twice for the same commit - once for the push
+    # event, once for the pull_request event's synchronize. Restricting
+    # push to the default branch means a feature branch's own pushes
+    # are covered by pull_request alone (once a PR exists), and master
+    # still gets its own push-triggered run after a PR merges. tags is
+    # additive here (branches/tags combine with OR, not AND) - needed
+    # so pushing a release tag still triggers this workflow (in
+    # particular the pack job, so a tagged release gets the real
+    # MinVer-computed version, not just the untagged/prerelease one).
+    branches:
+      - master
+    tags:
+      - 'v*'
   pull_request:
+
+# For a pull_request event, actions/checkout defaults to the synthetic
+# refs/pull/<PR>/merge commit (this branch merged into its base), not
+# this branch's own tip - its history includes the base branch's, which
+# throws off MinVer's git-tag-based versioning (pack job): a tag that's
+# only reachable via the base branch becomes reachable through the
+# merge commit too, and if it happens to be closer than any tag on this
+# branch's own history, MinVer computes the version from THAT tag
+# instead - different, not reproducible locally, and liable to shift on
+# its own if the base branch moves, with no new commits on this branch
+# at all (confirmed: happened for real - a PR run produced
+# 1.0.0-alpha.0.2 off v0.9.0-wip, a tag that only exists on master,
+# while every local build off this branch's own tip computed
+# 1.0.0-alpha.0.<much higher>, off v0.8.0-alpha instead). Checking out
+# the actual PR head commit instead sidesteps this for every job, not
+# just pack - matching what actually gets tested to the commit a
+# reviewer is looking at, not a preview merge nothing else reproduces.
+env:
+  CHECKOUT_REF: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   build-and-test:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # Real hosted runners for every arch .NET actually ships a
+        # runtime for (see release.yml for the RIDs that have no hosted
+        # runner at all - win-x86, linux-arm - and so can only ever be
+        # cross-published, never executed in CI).
+        os:
+          - ubuntu-latest      # linux-x64
+          - ubuntu-24.04-arm   # linux-arm64
+          - windows-latest     # win-x64
+          - windows-11-arm     # win-arm64
+          - macos-latest       # osx-arm64 (Apple Silicon)
+          - macos-15-intel     # osx-x64
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
+      # AnyUnit.ci.slnf builds everything EXCEPT browser-wasm-runner/
+      # browser-wasm-runner-host (see the top-of-file comment: browser-wasm-runner's own
+      # build errors out unless browser-wasm-runner-host is published first, and
+      # that publish - an Emscripten native-link step - is too slow to
+      # repeat across 6 matrix legs + coverage; test-browser-wasm builds the full
+      # solution instead, once).
       - name: Build
-        run: dotnet build AnyUnit.slnx --configuration Release
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
 
-      - name: Run tests through the net10 console runner, with coverage
+      - name: Run tests through the net10 console runner
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10
+
+      # net48-runner needs an explicit -p:Platform build per bitness
+      # (classic .NET Framework has no RuntimeIdentifier/self-contained
+      # deployment model - bitness is a PE-header PlatformTarget, not
+      # something one build can produce both variants of). The generic
+      # solution-wide build step above still also produces an unused,
+      # unsuffixed net48-runner.exe (falls through both platform-
+      # conditioned property groups when no Platform is specified) -
+      # harmless, just not one of these two. Runs on windows-11-arm too
+      # (runner.os == 'Windows' covers both) - .NET Framework itself only
+      # ships x86/x64 builds, but Windows-on-ARM's built-in x64 emulation
+      # should run them; not independently verified on real ARM64 Windows.
+      - name: Build net48 console runner (both bitnesses, Windows only)
+        if: runner.os == 'Windows'
+        run: |
+          dotnet build Runner/Platforms/net48/net48-runner.csproj --configuration Release -p:Platform=x86
+          dotnet build Runner/Platforms/net48/net48-runner.csproj --configuration Release -p:Platform=x64
+
+      - name: Run tests through the net48 console runner, x86 (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x86/Release/net48/anyunit-net48-runner-win32.exe net48-x86
+
+      - name: Run tests through the net48 console runner, x64 (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/x64/Release/net48/anyunit-net48-runner-win64.exe net48-x64
+
+      # Same RID/host split as release.yml (see its own comment): each
+      # matrix leg here publishes whichever self-contained, single-file
+      # RID build(s) are "theirs" - a 32-bit RID with no hosted runner
+      # of its own rides along on its 64-bit counterpart's leg
+      # (win-x86 here, linux-arm on ubuntu-24.04-arm). Actually running
+      # the self-test suite through each one - not just release.yml's
+      # plain `dotnet publish` - is a real functional check that the
+      # self-contained/single-file publish itself works, not just that
+      # the framework-dependent build above does. Uploaded as workflow
+      # artifacts so they're downloadable straight from this run, same
+      # exe names release.yml produces.
+      #
+      # linux-arm is publish-and-upload only, never actually executed
+      # here: confirmed via a real CI failure ("cannot execute: required
+      # file not found") that ubuntu-24.04-arm's own aarch64 kernel/
+      # userspace can't run a 32-bit armhf binary at all without extra
+      # multiarch/qemu-user setup this job doesn't do - unlike win-x86 on
+      # windows-latest (x64), where WOW64 runs a 32-bit x86 binary
+      # natively with nothing extra needed, so that one still gets the
+      # real functional check. The publish/package step itself is still
+      # exercised (cross-compiling from any host works fine, per
+      # release.yml's own comment) - only the "run it for real" check is
+      # skipped, and only for this one RID.
+      - name: Publish, test, and upload self-contained RID build(s)
         shell: bash
         run: |
           set -e
-          dotnet tool install --global coverlet.console
-          coverlet Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll \
-            --target "bash" \
-            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/net10-runner.dll net10" \
-            --output coverage --format cobertura
+          case "${{ matrix.os }}" in
+            windows-latest)   rids="win-x64 win-x86" ;;
+            windows-11-arm)   rids="win-arm64" ;;
+            ubuntu-latest)    rids="linux-x64" ;;
+            ubuntu-24.04-arm) rids="linux-arm64 linux-arm" ;;
+            macos-latest)     rids="osx-arm64" ;;
+            macos-15-intel)   rids="osx-x64" ;;
+          esac
+          for rid in $rids; do
+            dotnet publish Runner/Platforms/net10/net10-runner.csproj -c Release -r "$rid" --self-contained true -p:PublishSingleFile=true -o "publish/$rid"
+            if [ -f "publish/$rid/anyunit-runner.exe" ]; then
+              exe="publish/$rid/anyunit-runner-$rid.exe"
+              mv "publish/$rid/anyunit-runner.exe" "$exe"
+            else
+              exe="publish/$rid/anyunit-runner-$rid"
+              mv "publish/$rid/anyunit-runner" "$exe"
+              chmod +x "$exe"
+            fi
+            if [ "$rid" = "linux-arm" ]; then
+              echo "Skipping execution of $exe: 32-bit armhf can't run on this aarch64 host without multiarch/qemu-user support."
+            else
+              .github/scripts/run-tests.sh "$exe" "net10-$rid"
+            fi
+          done
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Upload self-contained RID build(s)
+        uses: actions/upload-artifact@v7
         with:
-          name: coverage-${{ matrix.os }}
-          path: coverage.cobertura.xml
-
-      - name: Run tests through the net48 console runner (Windows only)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: .github/scripts/run-tests.sh Runner/Platforms/net48/bin/Release/net48/net48-runner.exe net48
+          name: anyunit-runner-${{ matrix.os }}
+          path: publish/*/anyunit-runner-*
 
       # AnyUnit's self-test assemblies deliberately contain failing/erroring/
       # ignored tests (a "_Fail"-suffixed test is supposed to fail, an
@@ -69,6 +199,281 @@ jobs:
       # WhoTestsTheTesters/ConventionTestProcessor). This is the real
       # pass/fail gate: it checks every result's actual outcome against what
       # its own name declares, rather than eyeballing raw counts.
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # Uses coverlet.console (successor to the old CoverageRunner project,
+      # which never actually collected coverage itself -- see
+      # WhoTestsTheTesters/Readme.md's history -- it just gave an external
+      # profiler something simple to launch). Tried Microsoft's
+      # dotnet-coverage global tool first, which works by injecting a live
+      # CLR profiler into the target process; that failed locally with
+      # "Profiler was not initialized" on macOS with System Integrity
+      # Protection enabled (SIP blocks that kind of runtime injection into
+      # signed processes -- a known category of limitation for
+      # profiler-based tools there, not a bug in this setup). coverlet.
+      # console instruments the target assembly's IL statically before
+      # running it, so it doesn't need live process injection at all --
+      # verified working end-to-end locally (real, non-zero coverage
+      # numbers), and being platform-agnostic static instrumentation is
+      # exactly why it doesn't matter which single OS runs this job.
+      - name: Run tests through the net10 console runner, with coverage
+        shell: bash
+        run: |
+          set -e
+          dotnet tool install --global coverlet.console
+          coverlet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll \
+            --target "bash" \
+            --targetargs ".github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10" \
+            --output coverage --format cobertura
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage.cobertura.xml
+
+  test-browser-wasm:
+    # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
+    # unprivileged user namespaces, which GitHub's ubuntu-latest image
+    # blocks via AppArmor (confirmed: launch failed there with "No
+    # usable sandbox!"). WasmRunAlone.cs now also passes --no-sandbox
+    # as a direct fix, but macOS sidesteps the whole class of problem -
+    # no such restriction there - and this exact browser-wasm-runner-host/
+    # browser-wasm-runner pipeline has been the one actually exercised locally
+    # all along, on an arm64 Mac.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Must come before the solution build below: browser-wasm-runner's own
+      # build fails outright unless browser-wasm-runner-host has already been
+      # published (see browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished
+      # target, and browser-wasm-runner-host's own comment on why this can't be
+      # auto-triggered from inside browser-wasm-runner's build instead).
+      - name: Publish browser-wasm-runner-host
+        run: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release
+
+      - name: Build
+        run: dotnet build AnyUnit.slnx --configuration Release
+
+      # PuppeteerSharp downloads its own headless Chrome on first use
+      # (BrowserFetcher, cached after that) - no separate install step
+      # the way Playwright's `playwright install` needed. If this ever
+      # moves back to a Linux runner, note anyunit-browser-wasm's -no-sandbox
+      # flag (WasmRunAlone.cs auto-applies it under Linux CI already,
+      # detected via the CI env var - the flag is only needed if that
+      # heuristic doesn't fire, e.g. a self-hosted/Docker runner).
+      - name: Run tests through anyunit-browser-wasm
+        shell: bash
+        run: .github/scripts/run-tests.sh Runner/Platforms/browser-wasm-runner/bin/Release/net10.0/anyunit-browser-wasm.dll browser-wasm
+
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+          # MinVer (Directory.Build.props) computes each package's
+          # version from git tags - actions/checkout's default shallow
+          # clone (fetch-depth 1) doesn't fetch tag history, which would
+          # make MinVer fall back to its untagged-build version scheme
+          # even on an actual tag push. Full history so it sees the
+          # real tag when there is one, and the real commit height
+          # otherwise (for the prerelease-version case this job exists
+          # for in the first place).
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Must come before the pack below: browser-wasm-runner's own build (which
+      # `dotnet pack` triggers as part of packing it) fails outright
+      # unless browser-wasm-runner-host has already been published - see
+      # browser-wasm-runner.csproj's CheckBrowserWasmRunnerHostPublished target, and
+      # test-browser-wasm's own comment for the same prerequisite.
+      - name: Publish browser-wasm-runner-host
+        run: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release
+
+      # Packs every IsPackable=true project (Directory.Build.props: off
+      # by default, opt-in per project) - non-packable projects are
+      # skipped automatically, nothing to filter here.
+      - name: Pack
+        run: dotnet pack AnyUnit.slnx --configuration Release -o packages
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages/*.nupkg
+
+  # Every other job runs AnyUnit's own code straight from source
+  # (ProjectReference) - this is the one job that actually installs the
+  # packed AnyUnit.Runner nupkg itself (`pack`'s own output, not
+  # source), the same way a real consumer would: `dotnet tool install`
+  # against the local feed, then the resulting `anyunit-runner` command
+  # on PATH, catching a packaging mistake (a file missing from the
+  # nupkg, a bad PackAsTool/ToolCommandName setting, ...) that a
+  # ProjectReference-based job would never see, since it never touches
+  # the packed artifact at all. Verified locally before writing this
+  # job: `dotnet tool install --global AnyUnit.Runner --add-source
+  # <packed dir> --version <version>` followed by a real `anyunit-runner
+  # run` against a built self-test assembly, both worked end to end.
+  test-packed-tool:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # The self-test assemblies themselves are still built from source
+      # (ProjectReference) - only the runner that executes them is the
+      # packed one below. Same build-and-test does; AnyUnit.ci.slnf
+      # excludes browser-wasm-runner/browser-wasm-runner-host (see
+      # top-of-file comment), neither of which this job needs anyway.
+      - name: Build self-test payload assemblies
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # AnyUnit.Runner.Bootstrap also ships as a nupkg (AnyUnit.Runner.Bootstrap.*),
+      # but it's a library a consumer references at build time, not
+      # something installed - "AnyUnit.Runner.[0-9]*" (a digit right
+      # after the second dot) is what picks the CLI tool's own
+      # AnyUnit.Runner.<version>.nupkg out from beside it without
+      # matching AnyUnit.Runner.Bootstrap.<version>.nupkg too.
+      - name: Install the packed anyunit-runner tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Runner.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Runner\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Runner $version"
+          dotnet tool install --global AnyUnit.Runner --add-source packages --version "$version"
+
+      - name: Run tests through the installed anyunit-runner tool
+        shell: bash
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          .github/scripts/run-tests.sh anyunit-runner packed-tool
+
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  # Same idea as test-packed-tool, for AnyUnit.Runner.BrowserWasm
+  # (anyunit-browser-wasm) - arguably the more important of the two to
+  # cover this way: its own packed wwwroot content (browser-wasm-runner-host's
+  # published output, embedded as pack content under
+  # tools/$(TargetFramework)/any/browser-wasm-host/wwwroot/) has already gone
+  # silently empty in a real `dotnet pack` once this session (see
+  # browser-wasm-runner.csproj's own CheckBrowserWasmRunnerHostPublished
+  # comment) - a bug an unpacked/ProjectReference-based job would never
+  # have caught, and exactly the class of bug this job exists to catch
+  # for real, on a real installed copy, going forward. No wasm-tools
+  # workload install or browser-wasm-runner-host publish needed here -
+  # unlike test-browser-wasm, which builds+runs from source, this job
+  # only ever touches the already-packed .nupkg from the `pack` job.
+  test-packed-wasm-tool:
+    needs: pack
+    # ubuntu-latest, unlike test-browser-wasm's own macos-latest:
+    # WasmRunAlone.cs already auto-applies Chromium's --no-sandbox
+    # whenever it detects Linux + the CI env var (which GitHub Actions
+    # sets on every hosted runner, Linux included) - see its own
+    # comment. That's the actual fix for the AppArmor/unprivileged-
+    # user-namespace sandbox failure test-browser-wasm's comment
+    # describes; macOS there just sidesteps needing it at all, since
+    # that pipeline was what got exercised locally first. This job is
+    # the first to actually run that auto-detected path on real Linux
+    # CI rather than just reasoning about it - if it turns out not to
+    # fire correctly here, that's real, actionable signal on its own.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # AnyUnit.ci.slnf (not the full AnyUnit.slnx) - same reasoning as
+      # test-packed-tool: only the self-test payload assemblies need
+      # building from source here, and ci.slnf is specifically the
+      # filter that excludes browser-wasm-runner/browser-wasm-runner-host
+      # (which this job has no use for - it never builds that pair from
+      # source at all, only installs its already-packed output).
+      - name: Build self-test payload assemblies
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # "AnyUnit.Runner.BrowserWasm.[0-9]*" (a digit right after the
+      # third dot) picks this tool's own
+      # AnyUnit.Runner.BrowserWasm.<version>.nupkg out from beside
+      # AnyUnit.Runner.<version>.nupkg/AnyUnit.Runner.Bootstrap.<version>.nupkg,
+      # same reasoning as test-packed-tool's own version-extraction step.
+      - name: Install the packed anyunit-browser-wasm tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Runner.BrowserWasm.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Runner\.BrowserWasm\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Runner.BrowserWasm $version"
+          dotnet tool install --global AnyUnit.Runner.BrowserWasm --add-source packages --version "$version"
+
+      # PuppeteerSharp downloads its own headless Chrome on first use
+      # (BrowserFetcher, cached after that) - same as test-browser-wasm.
+      - name: Run tests through the installed anyunit-browser-wasm tool
+        shell: bash
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool
+
       - name: Verify results match naming convention
         shell: bash
         run: |

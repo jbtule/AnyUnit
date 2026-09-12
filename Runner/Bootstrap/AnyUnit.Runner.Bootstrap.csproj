@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Functionally like anyunit-runner (Runner/Platforms/net10 + shared),
+    but deliberately narrower: it only ever discovers/runs tests in the
+    CALLING assembly (Assembly.GetCallingAssembly() - whichever assembly's
+    own entry point invoked this), never an arbitrary list of external
+    .dll paths the way anyunit-runner's own CLI takes them. No ManyConsole/
+    argument parsing, no "point this at any .dll" support - just a static
+    method a consumer's own entry point calls directly, in place of a
+    generated/hand-rolled Main:
+
+      [<EntryPoint>]
+      let main _ = AnyUnit.Runner.Bootstrap.Runner.Run("net10")
+
+    This is the library form of the pattern hand-rolled this session for
+    both QrLinkPdf.Tests.fsproj's own desktop Program.fs (AnyUnit.
+    TestingPlatform's own EnableAnyUnitRunner codegen is C#-only, so an
+    .fsproj needs its own hand-written MTP entry point) and
+    QrLinkPdf.Tests.Wasm's Program.fs (a plain console entry point run
+    under node/bun, no Blazor hosting/headless browser needed - see
+    Runner/Platforms/browser-wasm-runner-host/Readme.md) - formalized so
+    neither of those needs to hand-roll Runner.Create/RunAll and its own
+    console-output formatting again.
+
+    netstandard2.0 (not a specific TFM): needs to work under whichever
+    host actually calls it - desktop CLR, Mono/browser-wasm interpreter,
+    or (should AnyUnit ever add it) WASI - same reasoning as AnyUnit's own
+    core libraries.
+
+    Lives under Runner/ (not the repo root) alongside Platforms/net10 and
+    Platforms/browser-wasm-runner - a third runner flavor (library-
+    embedded rather than a standalone CLI or wasm host), not core. Its
+    own console/TeamCity output formatting AND its create/discover/run
+    core are Platforms/shared's own PrintTests.cs/RunTests.cs,
+    Compile-Included directly (not a ProjectReference - they're plain
+    dependency-free files, and this project's own netstandard2.0 TFM
+    can't reference net10-runner's net10.0 one anyway): neither has a
+    ManyConsole dependency of its own (only Commands.cs/RunAloneCommand.cs/
+    Program.cs there do, for the actual CLI argument parsing/assembly-
+    LoadFrom-from-file-paths this project deliberately has none of -
+    Runner.cs's own Run overloads resolve already-loaded Assembly objects
+    instead) - real duplicate implementations of the exact same output
+    format and Runner.Create/RunAll loop once existed here and in
+    Platforms/shared before this, kept in sync only by hand.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>AnyUnit.Runner.Bootstrap</PackageId>
+    <Description>Static Runner.Run(platform) a consumer's own entry point calls directly - discovers/runs only the calling assembly's own tests, no CLI/argument parsing, no external-assembly support (see anyunit-runner for that).</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Platforms\shared\PrintTests.cs" Link="PrintTests.cs" />
+    <Compile Include="..\Platforms\shared\RunTests.cs" Link="RunTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

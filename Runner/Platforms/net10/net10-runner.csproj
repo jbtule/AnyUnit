@@ -4,7 +4,16 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>SatelliteRunner.Shared</RootNamespace>
-    <AssemblyName>net10-runner</AssemblyName>
+    <!-- Matches ToolCommandName below, so the raw executable is called the
+         same thing whether run from source or as the installed tool. -->
+    <AssemblyName>anyunit-runner</AssemblyName>
+
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>anyunit-runner</ToolCommandName>
+    <PackageId>AnyUnit.Runner</PackageId>
+    <Description>Standalone console runner for AnyUnit test assemblies (`anyunit-runner run [-o|-output file] [-teamcity] assembly.dll...`).</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,15 +22,14 @@
 
   <ItemGroup>
     <PackageReference Include="ManyConsole.CommandLineUtils" Version="1.1.8-alpha" />
-    <!-- Not a direct dependency of this runner - here so it's present in
-         the output directory for test assemblies that need it at runtime
-         (e.g. FsUnitTests, via AnyUnit.Style.FsUnit), since Assembly.LoadFrom
-         won't otherwise find it (see RunTests.cs's AssemblyResolve hook). -->
-    <PackageReference Include="FSharp.Core" Version="10.1.400" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

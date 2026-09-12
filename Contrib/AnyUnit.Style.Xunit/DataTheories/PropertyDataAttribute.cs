@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Style.Xunit.Util;
 using AnyUnit.Util;
 
@@ -30,7 +31,7 @@ namespace AnyUnit.Style.Xunit
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "This attribute is designed as an extensibility point.")]
-    public class PropertyDataAttribute : DataAttribute
+    public class PropertyDataAttribute : DataAttribute, IGeneratingParameter
     {
         readonly string propertyName;
 

@@ -1,5 +1,0 @@
-﻿<TestRunner>
-	<FriendlyName>AnyUnit {0}.{1}.{2}.{3}</FriendlyName>
-	<AssemblyPath>AnyUnit.TestDriven.NetOnly.dll</AssemblyPath>
-	<TypeName>AnyUnit.TestDriven.NetOnly.AnyUnitRunner</TypeName>
-</TestRunner>

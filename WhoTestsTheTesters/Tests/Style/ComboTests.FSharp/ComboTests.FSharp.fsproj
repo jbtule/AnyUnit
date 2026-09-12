@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deliberately the ONE FSharp-style project that references
+    AnyUnit.Style.Xunit AND AnyUnit.Style.Nunit alongside AnyUnit.Style.
+    FSharp - it exists specifically to exercise Discovery.fs's
+    IGeneratingParameter/IArgParameter recognition against both other
+    styles' own attributes at once. FSharpTests.fsproj stays down to its
+    one baseline InlineData-based case (AnyUnit.Style.FSharp has no data
+    attribute of its own by design, so it needs at least one other
+    style's row attribute to test parametrization at all).
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Needed for both FSharp.Core.dll and AnyUnit.Style.FSharp.dll to
+         actually be copied into this project's own output directory - a
+         plain Library-output project doesn't copy its PackageReference/
+         ProjectReference-of-a-library dependencies locally by default,
+         only an Exe-output project does (see FSharpTests.fsproj's
+         identical property). -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="RicherGenerators.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FSharp\AnyUnit.Style.FSharp.fsproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
+  </ItemGroup>
+
+</Project>

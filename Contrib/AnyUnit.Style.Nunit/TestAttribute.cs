@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
@@ -42,14 +43,46 @@ namespace AnyUnit.Style.Nunit
                                    .OfType<TestCaseAttribute>().ToList();
                                if (cases.Any())
                                {
-                                   list.AddRange(cases.Select(a => new ParameterSet(a.Arguments)));
+                                   list.AddRange(cases.Select(a => new ParameterSet(a.Arguments) { IgnoreReason = a.Ignore }));
                                }
+
+                               // Any other style's row attribute (e.g. xUnit's
+                               // InlineDataAttribute) also implementing
+                               // IRowInlineParameter - TestCaseAttribute is
+                               // excluded here since it's already covered above.
+                               var otherRows = method.GetCustomAttributes(true)
+                                   .OfType<IRowInlineParameter>()
+                                   .Where(a => !(a is TestCaseAttribute))
+                                   .ToList();
+                               if (otherRows.Any())
+                               {
+                                   list.AddRange(otherRows.Select(a => new ParameterSet(a.Arguments)));
+                               }
+
+                               // Any other style's method-level generating attribute
+                               // (e.g. xUnit's ClassDataAttribute/PropertyDataAttribute)
+                               // implementing IGeneratingParameter - no NUnit type
+                               // implements this today, so nothing to exclude.
+                               var generatedRows = method.GetCustomAttributes(true)
+                                   .OfType<IGeneratingParameter>()
+                                   .SelectMany(g => g.GetData(method, new Type[] { }))
+                                   .ToList();
+                               if (generatedRows.Any())
+                               {
+                                   list.AddRange(generatedRows.Select(a => new ParameterSet(a)));
+                               }
+
+                               // Per-parameter combinatorial values: NUnit's own
+                               // ValuesAttribute/ValueSourceAttribute/RandomAttribute,
+                               // or any other style's own IArgParameter, generalized
+                               // from the concrete ParameterDataAttribute type so a
+                               // future style's own attribute is recognized too.
                                var values = method.GetParameters().Select(p=> new { Prop = p, Attr=
-                               p.GetCustomAttributes(typeof(ParameterDataAttribute), true)
-                               .OfType<ParameterDataAttribute>().FirstOrDefault()
+                               p.GetCustomAttributes(true)
+                               .OfType<IArgParameter>().FirstOrDefault()
                                }).ToList();
-                               
-                               if (values.All(v => v.Attr != null))
+
+                               if (values.Any() && values.All(v => v.Attr != null))
                                {
                                    var sets = values.Select(v => v.Attr.GetData(v.Prop).Cast<object>().ToList());
                                    var accum = Enumerable.Empty<IEnumerable<Object>>();
@@ -67,7 +100,10 @@ namespace AnyUnit.Style.Nunit
         }
 
 
-        private IEnumerable<IEnumerable<Object>> CombineHelper(IEnumerable<IEnumerable<Object>> accum, IEnumerable<Object> sequence)
+        // protected, not private: TheoryAttribute (a subclass) reuses this
+        // same per-parameter combinatorial accumulation for its own
+        // auto-enum-values fallback.
+        protected IEnumerable<IEnumerable<Object>> CombineHelper(IEnumerable<IEnumerable<Object>> accum, IEnumerable<Object> sequence)
         {
             var list = new List<IEnumerable<object>>();
 
@@ -105,12 +141,33 @@ namespace AnyUnit.Style.Nunit
                                    throw new IgnoreException(ignore.Reason);
                                }
 
+                               var platform = method.GetCustomAttributes(typeof (PlatformAttribute), true)
+                                     .OfType<PlatformAttribute>()
+                                     .FirstOrDefault();
+
+                               string platformReason;
+                               if (platform != null && !platform.IsSupported(out platformReason))
+                               {
+                                   throw new IgnoreException(platformReason);
+                               }
+
                                var setUpMethod = GetMethodForAttribute(target, typeof (SetUpAttribute));
                                var teardownMethod = GetMethodForAttribute(target, typeof (TearDownAttribute));
+
+                               // Class-level actions wrap method-level ones: BeforeTest runs
+                               // class-level first, AfterTest runs method-level first.
+                               var targetType = target as Type ?? target.GetType();
+                               var testActions = targetType.GetCustomAttributes(true).OfType<ITestAction>()
+                                   .Concat(method.GetCustomAttributes(true).OfType<ITestAction>())
+                                   .ToList();
+
                                TestCycleExceptions te = null;
                                Func<TestCycleExceptions> exceptions = () => te ?? (te = new TestCycleExceptions());
                                try //TryCatch Setup Errors
                                {
+                                   foreach (var action in testActions)
+                                       action.BeforeTest(method);
+
                                    if (setUpMethod != null)
                                        setUpMethod.Invoke(target, null);
                                    try //TryCatch Test Errors
@@ -132,6 +189,16 @@ namespace AnyUnit.Style.Nunit
                                    {
                                        if (teardownMethod != null)
                                            teardownMethod.Invoke(target, null);
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                       exceptions().Add(TestCycle.Teardown, ex);
+                                   }
+
+                                   try //TryCatch Test Action Errors
+                                   {
+                                       foreach (var action in Enumerable.Reverse(testActions))
+                                           action.AfterTest(method);
                                    }
                                    catch (Exception ex)
                                    {

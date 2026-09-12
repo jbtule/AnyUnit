@@ -44,7 +44,23 @@ namespace SatelliteRunner.Shared
 
             var am = dllList.Select(Assembly.LoadFrom).ToList();
 
-            var runner = Runner.Create(id, am);
+            return RunAssemblies(id, am);
+        }
+
+        /// <summary>
+        /// The actual create/discover/run/print core both RunAlone above
+        /// (CLI use: assemblies come from LoadFrom'd file paths) and
+        /// AnyUnit.Runner.Bootstrap's own Runner.RunCore (library use:
+        /// assemblies are already resolved - the calling assembly, or a
+        /// caller-named already-loaded one) share - only how the assembly
+        /// list gets built, and what the caller does with the returned
+        /// ResultsFile afterward (WriteResults.ToFiles's multi-format
+        /// output here vs. a single JSON path there), differs between the
+        /// two.
+        /// </summary>
+        public ResultsFile RunAssemblies(string id, IEnumerable<Assembly> assemblies)
+        {
+            var runner = Runner.Create(id, assemblies);
             PrintOutAloneStart(id);
             var file = new ResultsFile();
             runner.RunAll(r =>

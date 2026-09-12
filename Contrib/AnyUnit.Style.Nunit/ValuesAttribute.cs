@@ -7,12 +7,13 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 
 namespace AnyUnit.Style.Nunit
 {
     /// <summary>
-    /// Abstract base class for attributes that apply to parameters 
+    /// Abstract base class for attributes that apply to parameters
     /// and supply data for the parameter.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
@@ -29,7 +30,7 @@ namespace AnyUnit.Style.Nunit
     /// an individual parameter of a test.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public class ValuesAttribute : ParameterDataAttribute
+    public class ValuesAttribute : ParameterDataAttribute, IArgParameter
     {
         /// <summary>
         /// The collection of data to be returned. Must

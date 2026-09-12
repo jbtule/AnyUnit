@@ -48,9 +48,31 @@ namespace AnyUnit
 
         public int Index { get; set; }
 
+        /// <summary>
+        /// Non-null means this particular row should be skipped rather than
+        /// invoked - the value is the ignore reason. Set by a style's own
+        /// row attribute (e.g. NUnit's TestCaseAttribute.Ignore, a
+        /// per-case skip real NUnit supports that a whole-method [Ignore]
+        /// can't express) when building this row's ParameterSet; Test.Run
+        /// throws IgnoreException for it before invoking, same as a
+        /// method-level ignore does.
+        /// </summary>
+        public string IgnoreReason { get; set; }
+
         public ParameterSet(params object[] parameters)
         {
-            _parameters = parameters;
+            // Defensive, not just belt-and-suspenders: a style's row attribute
+            // (e.g. NUnit's TestCaseAttribute) can end up passing null here
+            // even when its own author wrote a single non-null-seeming
+            // argument - [TestCase(null)]'s single null literal converts
+            // directly to the params array type, so C# passes it AS the
+            // array rather than wrapping it in one. TestCaseAttribute now
+            // guards against that itself (a null argument list there means
+            // "one argument, which is null" - a real, common test case -
+            // not "zero arguments"), but Parameters/DisposeParams below
+            // assume a non-null array regardless of which style (or a
+            // future one) got this wrong, so fall back to empty here too.
+            _parameters = parameters ?? new object[0];
         }
 
         public ParameterSet Retain()

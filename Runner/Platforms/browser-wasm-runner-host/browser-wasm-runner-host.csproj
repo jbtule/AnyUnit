@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    The generic, reusable WASM host for the anyunit-browser-wasm CLI tool
+    (../browser-wasm-runner). Deliberately references NO test assemblies
+    at all - it doesn't know what it's going to run. Published exactly
+    ONCE (its wwwroot is bundled into the browser-wasm-runner tool package
+    as content); at invocation time, browser-wasm-runner's own mini
+    webserver serves whichever test assembly files the caller pointed it
+    at, and this host's
+    App.razor fetches + Assembly.Load(byte[])s them by name at runtime -
+    the same dynamic-loading primitive behind Blazor's own lazy-loading
+    feature, verified empirically to work for assemblies never referenced
+    at publish time. See AnyUnit.BrowserRunner for the actual results
+    UI/test-running component this just supplies assemblies to.
+
+    Dynamic loading only works for pure-managed test assemblies - it
+    structurally cannot run one with its own native wasm dependencies
+    (P/Invoke into a statically-linked NativeFileReference). See this
+    folder's own Readme.md for why, and the alternative (compile your own
+    Sdk.BlazorWebAssembly host directly against AnyUnit) for consumers who
+    hit that wall.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BrowserWasmRunnerHost</RootNamespace>
+    <!--
+      IL trimming (the Release-config default) statically analyzes the
+      build's own reference graph to decide what's "unused" - but test
+      assemblies here are dynamically Assembly.Load(byte[])ed at runtime,
+      completely invisible to that analysis. Left trimmed, BCL methods
+      those test assemblies call (but nothing in the static graph does)
+      get stripped, surfacing as MissingMethodException at runtime even
+      though the containing assembly (e.g. System.Linq) is still present.
+      Must stay off for a host that runs arbitrary, unknown-at-publish-
+      time test assemblies.
+    -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <RunAOTCompilation>false</RunAOTCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\support\AnyUnit.BrowserRunner\AnyUnit.BrowserRunner.csproj" />
+  </ItemGroup>
+
+</Project>

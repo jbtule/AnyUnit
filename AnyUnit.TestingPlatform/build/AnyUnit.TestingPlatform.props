@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <EnableAnyUnitRunner Condition="'$(EnableAnyUnitRunner)' == ''">false</EnableAnyUnitRunner>
+  </PropertyGroup>
+</Project>

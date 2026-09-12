@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+    Strong-naming only the packable projects (one shared key - previously
+    two different keys on two different projects, neither applied
+    consistently). This has to live in .targets, not .props: Directory.
+    Build.props is imported before a project's own body sets
+    IsPackable=true, so a condition on it there would only ever see the
+    default (false) from Directory.Build.props itself. Directory.Build.
+    targets is imported after the project body, so the condition here
+    sees the real, per-project value.
+
+    Modern .NET doesn't need strong-naming for its own sake (no GAC/COM
+    interop here), but since the repo already had it on some projects,
+    applying it consistently to all packable ones beats leaving it half
+    done - and NOT applying it to internal runner/test-payload projects
+    avoids CS8002 warnings from unsigned third-party dependencies like
+    ManyConsole.CommandLineUtils.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(AnyUnitStrongNameKeyFile)</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+</Project>

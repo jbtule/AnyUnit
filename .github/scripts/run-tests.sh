@@ -1,11 +1,14 @@
 #!/bin/bash
-# Runs all 5 self-test assemblies through a built runner, writing each
+# Runs all 8 self-test assemblies through a built runner, writing each
 # result set to /tmp/<name>-<suffix>.json.
 #
 # Usage: run-tests.sh <runner-path> <suffix>
-#   runner-path  path to a built net10-runner.dll or net48-runner.exe -
-#                a .dll is launched via the dotnet host, anything else
-#                (e.g. a net48 .exe) is invoked directly
+#   runner-path  path to a built anyunit-runner.dll (net10), anyunit-browser-wasm.dll
+#                (browser-wasm, via PuppeteerSharp/headless Chrome), or
+#                anyunit-net48-runner-win32.exe / anyunit-net48-runner-win64.exe
+#                (net48, Windows only, one build per bitness) - a .dll is
+#                launched via the dotnet host, anything else (e.g. a
+#                net48 .exe) is invoked directly
 #   suffix       tag appended to each output filename, e.g. net10 or net48
 #
 # Deliberately does not `set -e` around the individual test runs: the
@@ -24,7 +27,34 @@ case "$runner_path" in
 esac
 
 run() {
-  "${runner_cmd[@]}" run -o "/tmp/$1-$suffix.json" "WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll" || true
+  local dll="WhoTestsTheTesters/Tests/$2/bin/Release/netstandard2.0/$1.dll"
+  # Fail loudly, not silently: a missing dll here means the payload
+  # assembly never got built (e.g. a project missing from
+  # AnyUnit.ci.slnf - confirmed to happen for real: ComboTests/
+  # ComboTests.FSharp were missing from it, so this script tried to run
+  # them anyway, got a browser-wasm-runner 404/net10-runner file-not-
+  # found, and ConventionTestProcessor's own gate never noticed, since
+  # it only checks whichever /tmp/*.json files happen to exist, not
+  # that all 8 were actually produced). The `|| true` below is only for
+  # the runner's own exit code (expected non-zero: these self-test
+  # assemblies always contain real Fail/Error cases by design) - it must
+  # never also swallow "the assembly wasn't even found".
+  if [ ! -f "$dll" ]; then
+    echo "run-tests.sh: expected test assembly not found: $dll" >&2
+    exit 1
+  fi
+  local out="/tmp/$1-$suffix.json"
+  "${runner_cmd[@]}" run -o "$out" "$dll" || true
+  # Belt and suspenders alongside the dll check above: the dll existing
+  # doesn't guarantee the runner actually got as far as writing its
+  # output (a genuine crash mid-run would also leave nothing behind for
+  # ConventionTestProcessor's own /tmp/*.json glob to ever see) - same
+  # "fail loudly instead of silently disappearing from the gate"
+  # reasoning.
+  if [ ! -f "$out" ]; then
+    echo "run-tests.sh: '$1' produced no output file at $out" >&2
+    exit 1
+  fi
 }
 
 run BasicTests BasicTests
@@ -32,3 +62,6 @@ run ConstraintsTests ConstraintsTests
 run NunitTests Style/NunitTests
 run XunitTests Style/XunitTests
 run FsUnitTests Style/FsUnitTests
+run FSharpTests Style/FSharpTests
+run ComboTests Style/ComboTests
+run ComboTests.FSharp Style/ComboTests.FSharp

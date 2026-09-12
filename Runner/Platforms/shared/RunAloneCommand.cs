@@ -17,7 +17,7 @@ namespace SatelliteRunner.Shared
         {
             Console.WriteLine(RunnerId);
             var dlls = args.Select(Path.GetFullPath);
-            var results = new RunTests().RunAlone(RunnerId, dlls);
+            var results = new RunTests { OutputStyle = _outputStyle }.RunAlone(RunnerId, dlls);
 
             WriteResults.ToFiles(results, _outputs);
 

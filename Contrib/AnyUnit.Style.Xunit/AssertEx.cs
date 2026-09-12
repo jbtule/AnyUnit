@@ -34,6 +34,76 @@ namespace AnyUnit.Style.Xunit
     {
 
         /// <summary>
+        /// Verifies that all items in the collection pass when executed against
+        /// action.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to be verified</typeparam>
+        /// <param name="collection">The collection</param>
+        /// <param name="action">The action to test each item against</param>
+        /// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+        public static void All<T>(this IAssert assert, IEnumerable<T> collection, Action<T> action)
+        {
+            assert.All(collection, (item, index) => action(item));
+        }
+
+        /// <summary>
+        /// Verifies that all items in the collection pass when executed against
+        /// action. The item index is provided to the action, in addition to the item.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to be verified</typeparam>
+        /// <param name="collection">The collection</param>
+        /// <param name="action">The action to test each item against</param>
+        /// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+        public static void All<T>(this IAssert assert, IEnumerable<T> collection, Action<T, int> action)
+        {
+            Guard.ArgumentNotNull("collection", collection);
+            Guard.ArgumentNotNull("action", action);
+
+            var errors = new List<KeyValuePair<int, Exception>>();
+            var totalItems = 0;
+
+            foreach (var item in collection)
+            {
+                try
+                {
+                    action(item, totalItems);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new KeyValuePair<int, Exception>(totalItems, ex));
+                }
+                ++totalItems;
+            }
+
+            if (errors.Count > 0)
+                assert.Fail(new AllException(totalItems, errors));
+
+            assert.Okay();
+        }
+
+        /// <summary>
+        /// Verifies that a collection contains at least one object matching a predicate.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to be verified</typeparam>
+        /// <param name="collection">The collection to be inspected</param>
+        /// <param name="predicate">The predicate an item in the collection must match</param>
+        /// <exception cref="ContainsException">Thrown when no item in the collection matches the predicate</exception>
+        public static void Contains<T>(this IAssert assert, IEnumerable<T> collection, Predicate<T> predicate)
+        {
+            Guard.ArgumentNotNull("predicate", predicate);
+
+            if (collection != null)
+                foreach (T item in collection)
+                    if (predicate(item))
+                    {
+                        assert.Okay();
+                        return;
+                    }
+
+            assert.Fail(new ContainsException("(filter expression)"));
+        }
+
+        /// <summary>
         /// Verifies that a collection contains a given object.
         /// </summary>
         /// <typeparam name="T">The type of the object to be verified</typeparam>

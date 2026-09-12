@@ -1,5 +1,15 @@
 ﻿namespace AnyUnit.Style.FsUnit
 
+// `should`/`shouldFail` below are deliberately marked [<Obsolete>] themselves
+// (steering callers toward the newer `this.should`/`this.shouldFail`
+// instance-style API), but still need to reference the also-Obsolete
+// AnyUnit.Run.Assert.GlobalStyle internally to keep working during the
+// deprecation period. C# auto-suppresses an Obsolete-member warning when
+// the calling member is itself Obsolete; F# doesn't have that suppression,
+// so FS0044 still fires here even though the usage is intentional and
+// already flagged at the call site by the containing function's own
+// attribute.
+#nowarn "44"
 
 open AnyUnit
 open AnyUnit.Constraints

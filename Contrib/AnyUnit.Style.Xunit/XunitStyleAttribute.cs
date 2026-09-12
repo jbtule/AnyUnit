@@ -35,7 +35,27 @@ namespace AnyUnit.Style.Xunit
                            {
                                var types = a.AllTypes();
 
-                               return types.Where(t =>t.AllMethods()
+                               // GetFlattenedMethods(), not AllMethods(): the
+                               // latter is Instance-only, which would silently
+                               // exclude any type whose [Fact] methods are
+                               // static - including, notably, an F# module's
+                               // compiler-generated class, since F#'s own
+                               // idiomatic top-level `[<Fact>] let name () = ...`
+                               // compiles to a static method. Fixture.GetHarnesses()'s
+                               // own default already uses GetFlattenedMethods()
+                               // (Instance+Static) for the actual harness list -
+                               // this just matches that same net for the
+                               // fixture-qualification check itself, so a
+                               // type isn't filtered out here only to have
+                               // GetHarnesses() find its static [Fact] methods
+                               // anyway. TestFixtureAttributeBase.FixtureInit's
+                               // default already handles a static type
+                               // correctly too (returns null, so TestInvoke's
+                               // method.Invoke(null, args) - a static call -
+                               // just works), so no further change is needed
+                               // for static [Fact] methods to run correctly
+                               // once discovered.
+                               return types.Where(t => t.GetFlattenedMethods()
                                                        .Any(m => m.GetTopMostCustomAttribute<FactAttribute>() != null))
                                            .Select(t => new Fixture(new UnlabeledFixtureAttribute(), t));
                            };

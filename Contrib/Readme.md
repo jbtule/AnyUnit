@@ -1,27 +1,21 @@
 ## Contrib
 
-**AnyUnit.Constraints**: Port of NUnit Constraint based Assertions
+Style packages - each one gets close enough to a specific, real test
+framework's own syntax that an existing test's logic often doesn't need
+to change, on top of [`AnyUnit`](../AnyUnit)'s core attributes - not a
+full reimplementation of that framework's API. See each package's own
+README for what it actually covers and how to use it:
 
-    Portions Copyright � 2002-2012 Charlie Poole or Copyright � 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright � 2000-2002 Philip A. Craig`
+- [**AnyUnit.Constraints**](AnyUnit.Constraints) - NUnit-style
+  `Is`/`Has`/`Does`/`Throws` fluent constraint syntax.
+- [**AnyUnit.Style.Nunit**](AnyUnit.Style.Nunit) - roughly NUnit-compatible
+  attributes and assertions.
+- [**AnyUnit.Style.Xunit**](AnyUnit.Style.Xunit) - roughly xUnit-compatible
+  attributes and assertions.
+- [**AnyUnit.Style.FSharp**](AnyUnit.Style.FSharp) - F#'s own idiomatic
+  value-based test style.
+- [**AnyUnit.Style.FsUnit**](AnyUnit.Style.FsUnit) - FsUnit-style F#
+  assertions.
 
-**AnyUnit.Style.Nunit**: Port of NUnit Test Discovery Attributes,
-
-    Portions Copyright � 2002-2012 Charlie Poole or Copyright � 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov or Copyright � 2000-2002 Philip A. Craig`
-
-**AnyUnit.Style.Xunit**: Port of xUnit Test Discovery Attributes and Assertions
-
-    Portions Copyright 2013 Outercurve Foundation
-    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    
-      http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-**TestDriven**: Solution for building a TestDriven.net Adapter
+Real NUnit/xUnit source this repo ports from is attributed in
+[`Contributors.md`](../Contributors.md).

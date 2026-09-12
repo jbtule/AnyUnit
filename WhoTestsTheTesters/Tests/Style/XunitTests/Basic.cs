@@ -39,7 +39,9 @@ namespace XunitTests
         [Fact]
         public void Test_NoError()
         {
-            var test = "lala..la..lala";
+            // Deliberately empty: no assertions made, exercising the
+            // NoError result kind (see the "_NoError" naming convention
+            // WhoTestsTheTesters/ConventionTestProcessor checks).
         }
 
         [Fact]

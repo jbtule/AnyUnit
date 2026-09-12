@@ -4,15 +4,41 @@ using AnyUnit.Run;
 
 namespace SatelliteRunner.Shared
 {
+    /// <summary>
+    /// How RunTests prints to the console. TeamCity is legacy (still real,
+    /// still might be useful to someone - kept rather than removed) - an
+    /// enum, not a bool, since it's naming a *choice of format*, not an
+    /// on/off switch, and leaves room for a future format (e.g. GitHub
+    /// Actions annotations) without another bool alongside this one.
+    /// </summary>
+    public enum ConsoleOutputStyle
+    {
+        PlainText,
+        TeamCity
+    }
 
 public partial class RunTests{
 
-
-        public static bool TeamCity;
+        // Instance, not static: this class is constructed fresh per run (once
+        // by RunAloneCommand.Run, once per AnyUnit.Runner.Bootstrap.Runner.Run
+        // call) - no reason for one run's OutputStyle setting to leak into
+        // another's, or to need "don't call Run twice concurrently" caveats.
+        // RunAloneCommand.cs's own -teamcity option still has to record the
+        // choice on itself first (ManyConsole's HasOption callback fires while
+        // parsing options, before RunAloneCommand.Run ever constructs a
+        // RunTests to set it on) - only that one, real ordering constraint,
+        // not a reason for this field itself to be static.
+        //
+        // Plain settable field, not a constructor parameter: TeamCity mode is
+        // legacy, not core to what this class does - `new RunTests
+        // { OutputStyle = ... }` keeps that optional without giving it a
+        // permanent seat in the constructor signature every future caller has
+        // to know about.
+        public ConsoleOutputStyle OutputStyle;
 
         public void PrintOutAloneStart(string id)
         {
-            if (TeamCity)
+            if (OutputStyle == ConsoleOutputStyle.TeamCity)
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", id);
             }
@@ -24,7 +50,7 @@ public partial class RunTests{
 
         public void PrintOutAloneEnd(string id, ResultsFile file)
         {
-            if (TeamCity)
+            if (OutputStyle == ConsoleOutputStyle.TeamCity)
             {
                 Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", id);
             }
@@ -43,7 +69,7 @@ public partial class RunTests{
 
         public void PrintOutAloneResults(Result result)
         {
-            if (TeamCity)
+            if (OutputStyle == ConsoleOutputStyle.TeamCity)
             {
                 Console.WriteLine("##teamcity[testStarted name='{2}.{1}.{0}' captureStandardOutput='true']",
                                   result.Test.Name, result.Test.Fixture.Name, result.Test.Fixture.Assembly.Name);
@@ -53,14 +79,14 @@ public partial class RunTests{
                 Console.Write(result.Test.Fixture.Assembly.Name + ".");
                 Console.Write(result.Test.Fixture.Name + ".");
             }
-          
+
             Console.Write(result.Test.Name);
             Console.WriteLine("[{0}]", result.Platform);
             Console.Write(result.Kind);
             Console.WriteLine(" ({0})", result.EndTime - result.StartTime);
             Console.WriteLine(result.Output);
 
-            if (TeamCity)
+            if (OutputStyle == ConsoleOutputStyle.TeamCity)
             {
                 Console.WriteLine("##teamcity[testFinished name='{2}.{1}.{0}' duration='{3}']",
                     result.Test.Name,
