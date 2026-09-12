@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
     <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
 

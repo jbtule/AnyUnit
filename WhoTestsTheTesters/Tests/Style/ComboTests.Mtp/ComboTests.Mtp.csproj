@@ -2,10 +2,10 @@
 
   <!--
     Separate project/folder, same reasoning as BasicTests.Mtp.csproj:
-    compiles NunitTests.csproj's own source directly via an explicit
+    compiles ComboTests.csproj's own source directly via an explicit
     cross-folder Compile Include - not a ProjectReference to it - so
-    the real [Test]-attributed classes live directly in this assembly
-    too.
+    the real [Test]/[Theory]-attributed classes live directly in this
+    assembly too.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -15,11 +15,12 @@
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
-    <Compile Include="..\NunitTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <Compile Include="..\ComboTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
     <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>

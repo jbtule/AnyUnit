@@ -8,6 +8,11 @@
 /// Body is the same `test { }` builder used throughout Basic.fs - no
 /// separate CE needed. All rows pass, so each is suffixed _Success per
 /// WhoTestsTheTesters/ConventionTestProcessor's substring convention.
+///
+/// Cross-style combo scenarios (IGeneratingParameter/IArgParameter, and
+/// tests mixing multiple styles' attributes) live in
+/// WhoTestsTheTesters/Tests/Style/ComboTests(.FSharp) instead, keeping
+/// this project's own dependencies to a single other style.
 module FSharpTests.DataTests
 
 open AnyUnit.Style.FSharp.Test

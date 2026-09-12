@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -27,7 +28,7 @@ namespace AnyUnit.Style.Xunit
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "This attribute is designed as an extensibility point.")]
-    public class ClassDataAttribute : DataAttribute
+    public class ClassDataAttribute : DataAttribute, IGeneratingParameter
     {
         readonly Type @class;
 

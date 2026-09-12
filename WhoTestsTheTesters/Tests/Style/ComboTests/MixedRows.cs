@@ -1,7 +1,7 @@
 using AnyUnit.Style.Xunit;
 using AnyUnit.Style.Nunit;
 
-namespace XunitTests
+namespace ComboTests
 {
     /// <summary>
     /// Covers AnyUnit.Run.Attributes.IRowInlineParameter: a [Theory] method
@@ -19,7 +19,7 @@ namespace XunitTests
     /// before [TestCase(...)] the same way) - [Theory] first makes it the
     /// primary, with TestCase's row folded in as data only.
     /// </summary>
-    public class MixedRows : TestClass
+    public class XunitPrimary : TestClass
     {
         [AnyUnit.Style.Xunit.Theory]
         [InlineData(1, Expected._Success)]
@@ -28,6 +28,26 @@ namespace XunitTests
         public void InlineAndTestCase(int i, Expected result)
         {
             Assert.InRange(i, 0, 2);
+        }
+    }
+
+    /// <summary>
+    /// Covers AnyUnit.Run.Attributes.IRowInlineParameter, the other
+    /// direction: a method carrying only NUnit's own [TestCase(...)] (no
+    /// separate [Test] needed - TestCaseAttribute is already a full
+    /// primary attribute in its own right, see TestCaseAttribute.cs)
+    /// mixed with xUnit's [InlineData(...)] rows - confirms
+    /// Nunit.TestAttribute.ParameterSets unions rows from both.
+    /// </summary>
+    [TestFixture]
+    public class NunitPrimary : AssertionHelper
+    {
+        [TestCase(1, Expected._Success)]
+        [InlineData(2, Expected._Success)]
+        [TestCase(3, Expected._Fail)]
+        public void TestCaseAndInline(int i, Expected expected)
+        {
+            Assert.True(i <= 2, string.Format("expected {0} to be at most 2", i));
         }
     }
 }

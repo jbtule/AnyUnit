@@ -59,12 +59,30 @@ namespace AnyUnit.Style.Nunit
                                    list.AddRange(otherRows.Select(a => new ParameterSet(a.Arguments)));
                                }
 
+                               // Any other style's method-level generating attribute
+                               // (e.g. xUnit's ClassDataAttribute/PropertyDataAttribute)
+                               // implementing IGeneratingParameter - no NUnit type
+                               // implements this today, so nothing to exclude.
+                               var generatedRows = method.GetCustomAttributes(true)
+                                   .OfType<IGeneratingParameter>()
+                                   .SelectMany(g => g.GetData(method, new Type[] { }))
+                                   .ToList();
+                               if (generatedRows.Any())
+                               {
+                                   list.AddRange(generatedRows.Select(a => new ParameterSet(a)));
+                               }
+
+                               // Per-parameter combinatorial values: NUnit's own
+                               // ValuesAttribute/ValueSourceAttribute/RandomAttribute,
+                               // or any other style's own IArgParameter, generalized
+                               // from the concrete ParameterDataAttribute type so a
+                               // future style's own attribute is recognized too.
                                var values = method.GetParameters().Select(p=> new { Prop = p, Attr=
-                               p.GetCustomAttributes(typeof(ParameterDataAttribute), true)
-                               .OfType<ParameterDataAttribute>().FirstOrDefault()
+                               p.GetCustomAttributes(true)
+                               .OfType<IArgParameter>().FirstOrDefault()
                                }).ToList();
-                               
-                               if (values.All(v => v.Attr != null))
+
+                               if (values.Any() && values.All(v => v.Attr != null))
                                {
                                    var sets = values.Select(v => v.Attr.GetData(v.Prop).Cast<object>().ToList());
                                    var accum = Enumerable.Empty<IEnumerable<Object>>();

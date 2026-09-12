@@ -7,10 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
-    <!-- Only for MixedRows.cs's cross-style [InlineData(...)] row -
-         exercises AnyUnit.Run.Attributes.IRowInlineParameter, Nunit's
-         TestAttribute itself has no dependency on this project. -->
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
   </ItemGroup>
 
 </Project>

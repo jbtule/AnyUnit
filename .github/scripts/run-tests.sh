@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs all 6 self-test assemblies through a built runner, writing each
+# Runs all 8 self-test assemblies through a built runner, writing each
 # result set to /tmp/<name>-<suffix>.json.
 #
 # Usage: run-tests.sh <runner-path> <suffix>
@@ -36,3 +36,5 @@ run NunitTests Style/NunitTests
 run XunitTests Style/XunitTests
 run FsUnitTests Style/FsUnitTests
 run FSharpTests Style/FSharpTests
+run ComboTests Style/ComboTests
+run ComboTests.FSharp Style/ComboTests.FSharp

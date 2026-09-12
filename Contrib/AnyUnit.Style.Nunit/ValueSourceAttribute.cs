@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using AnyUnit.Run.Attributes;
 
 namespace AnyUnit.Style.Nunit
 {
@@ -27,7 +28,7 @@ namespace AnyUnit.Style.Nunit
     /// (or evaluate to) an IEnumerable.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public class ValueSourceAttribute : ParameterDataAttribute
+    public class ValueSourceAttribute : ParameterDataAttribute, IArgParameter
     {
         private readonly Type _sourceType;
         private readonly string _sourceName;
