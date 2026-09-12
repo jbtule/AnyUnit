@@ -31,7 +31,14 @@ namespace AnyUnit.Run
         {
             get
             {
-                return a => a.GetExportedTypes()
+                // GetTypes(), not GetExportedTypes(): an internal [TestFixture] class is a
+                // real, common pattern (nothing outside the assembly needs to see a test
+                // fixture - only this reflection-based discovery does), and real NUnit/xUnit
+                // both discover internal test classes just fine. GetExportedTypes() silently
+                // skipped every one of them - confirmed by a genuine ported test project
+                // (Tesseract.Tests) whose internal [SetUpFixture] simply never ran at all,
+                // not a hypothetical.
+                return a => a.GetTypes()
                              .Select(t => new Fixture(t.GetTopMostCustomAttribute<TestFixtureAttributeBase>(), t))
                              .Where(f => f.Attribute != null);
             }
@@ -138,7 +145,11 @@ namespace AnyUnit.Run
                 // front - see NamespaceScope's own comment for why that
                 // doesn't require those tests to be contiguous in
                 // runner.Tests.
-                var setUpFixtures = assembly.GetExportedTypes()
+                // GetTypes(), not GetExportedTypes() - see DefaultDiscovery's own comment;
+                // an internal [SetUpFixture] is if anything more common than an internal
+                // [TestFixture] (this repo's own GlobalTestSetup is a real example: nothing
+                // outside the assembly should construct it directly).
+                var setUpFixtures = assembly.GetTypes()
                     .Select(t => new { Type = t, Attr = t.GetTopMostCustomAttribute<SetUpFixtureAttributeBase>() })
                     .Where(x => x.Attr != null);
 
