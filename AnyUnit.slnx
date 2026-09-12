@@ -31,6 +31,8 @@
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
   </Folder>
   <Folder Name="/WhoTestsTheTesters/Tests/Style/">
+    <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests.Mtp/NunitTests.Mtp.csproj" />

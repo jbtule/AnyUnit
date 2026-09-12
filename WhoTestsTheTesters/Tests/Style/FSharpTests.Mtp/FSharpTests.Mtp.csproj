@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Separate satellite (ProjectReference), same reasoning as
+    FsUnitTests.Mtp.csproj's own comment: FSharpTests.fsproj's source is
+    F# (.fs files), but the generated MTP entry point
+    AnyUnit.TestingPlatform.targets writes is a C# (.g.cs) file added
+    via <Compile Include> - fine for a .csproj, but an .fsproj uses the
+    F# compiler, which can't compile a .cs file at all. `dotnet test`
+    and `dotnet run` on this project itself are unaffected - the
+    Assembly.Load("FSharpTests") indirection this satellite shape
+    relies on works exactly the same regardless, and once loaded,
+    AnyUnit.Style.FSharp's own FSharpStyleAttribute discovery (applied
+    in FSharpTests' own AssemblyInfo.fs) finds its Test-typed properties
+    the same way anyunit-runner/anyunit-wasm/anyunit-net48-* already do.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSharpTests\FSharpTests.fsproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AnyUnitTestAssembly Include="FSharpTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>

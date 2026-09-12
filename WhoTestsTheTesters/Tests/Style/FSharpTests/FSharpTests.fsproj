@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Needed for both FSharp.Core.dll and AnyUnit.Style.FSharp.dll to
+         actually be copied into this project's own output directory - a
+         plain Library-output project doesn't copy its PackageReference/
+         ProjectReference-of-a-library dependencies locally by default,
+         only an Exe-output project does (see the console runners' own
+         FSharp.Core PackageReference comment, and FsUnitTests.fsproj's
+         identical property). -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Basic.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FSharp\AnyUnit.Style.FSharp.fsproj" />
+  </ItemGroup>
+
+</Project>
