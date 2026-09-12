@@ -11,7 +11,6 @@ using System.Collections.Generic;
 
 namespace AnyUnit.Constraints.Pieces
 {
-	// TODO Needs tests
 	/// <summary>
 	/// ContainsConstraint tests a whether a string contains a substring
 	/// or a collection contains an object. It postpones the decision of

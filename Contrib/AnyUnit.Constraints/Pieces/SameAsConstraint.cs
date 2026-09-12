@@ -33,13 +33,7 @@ namespace AnyUnit.Constraints.Pieces
         public override bool Matches(object actual)
         {
             this.actual = actual;
-
-#if NETCF_1_0
-            // TODO: THis makes it compile, now make it work.
-            return expected.Equals(actual);
-#else
             return Object.ReferenceEquals(expected, actual);
-#endif
         }
 
         /// <summary>
