@@ -37,6 +37,37 @@ instance scoped to exactly one test's own run tracks that correctly
 GlobalStyle`, but it's `[Obsolete]` for exactly this reason - it's there
 for genuinely global helper code, not as the default way to assert).
 
+Styles can also be mixed in one project, not just chosen between: a
+single assembly can have both NUnit-style and xUnit-style fixtures side
+by side, and even one `[Theory]` method combining NUnit's `[TestCase]`
+rows with xUnit's `[InlineData]` rows, or NUnit's `[Values]` driving an
+xUnit `[Theory]`'s own parameters. `WhoTestsTheTesters/Tests/Style/ComboTests`
+(and its F# counterpart, `ComboTests.FSharp`) is real, running proof of
+this, not just a claim.
+
+## Platform coverage
+
+Real test-framework compatibility gaps often only show up on a specific
+platform, not in general - the whole reason to actually run somewhere
+instead of assuming. CI runs AnyUnit's own test suite for real (not just
+compiles it) across every combination that matters:
+
+- `net10.0` self-contained on 8 real RIDs (`win-x64`, `win-x86`,
+  `win-arm64`, `linux-x64`, `linux-arm64`, `linux-arm` - the 32-bit ARM
+  RID a Raspberry Pi 2 needs - `osx-arm64`, `osx-x64`), so a
+  platform-specific edge case (a 32-bit-only bug, an ARM-vs-x64
+  difference) has somewhere to actually surface instead of only ever
+  running on whatever the CI host happens to be.
+- `browser-wasm`, via a real headless browser (see
+  `AnyUnit.Runner.BrowserWasm`) - Mono/wasm's single-threaded runtime
+  and reflection quirks are a genuinely different execution environment,
+  not just "the same .NET on a different OS."
+- `net48`, for a legacy .NET Framework target still in real use.
+
+See [`build.yml`](.github/workflows/build.yml) for exactly which RID
+runs on which real hosted runner (an ARM RID gets a real ARM host where
+one exists, not just cross-compiled and assumed to work).
+
 ## Packages
 
 | Package | What it is |
