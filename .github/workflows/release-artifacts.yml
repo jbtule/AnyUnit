@@ -1,18 +1,22 @@
 # Builds self-contained, single-file, RID-suffixed anyunit-runner
-# executables for every RID that makes sense as a release download,
-# and uploads them all as workflow artifacts. NuGet packing itself still
-# happens in build.yml, on every push (not just a release tag,
-# specifically so prerelease packages are always available to grab and
-# test without needing to cut a release first) - publish-nuget below
+# executables for every RID that makes sense as a release download, and
+# uploads them all as both workflow artifacts and (create-release, once
+# every RID job succeeds) real GitHub Release assets. NuGet packing
+# itself still happens in build.yml, on every push (not just a release
+# tag, specifically so prerelease packages are always available to grab
+# and test without needing to cut a release first) - publish-nuget below
 # pushes THAT SAME job's own nupkg artifact to nuget.org, rather than
 # packing a second time here, so what actually gets published is
 # guaranteed to be the exact bits build.yml's pack job produced and its
 # own test-packed-tool/test-packed-wasm-tool jobs already installed and
 # ran for real - not a second, separately-produced (if in practice
 # almost certainly identical) set of nupkgs that never went through
-# either. Actually attaching these RID executables to a GitHub Release
-# is still separate, deliberate, outward-facing action not done here
-# (not yet built at all, in fact) - only the nuget.org push is.
+# either. publish-nuget also attaches the two packed CLI tools'
+# nupkgs (AnyUnit.Runner/AnyUnit.Runner.BrowserWasm - not every library
+# package, just the ones a person would actually want to grab directly
+# off a Release page rather than restore via PackageReference) to that
+# same Release, for the same reason: a real download link straight to
+# the exact tested bits, not just something on nuget.org.
 #
 # publish-nuget uses nuget.org's Trusted Publishing (OIDC): no long-lived
 # API key stored as a secret, just NUGET_USER (a plain username, not a
@@ -182,6 +186,58 @@ jobs:
           name: anyunit-runner-osx-x64
           path: publish/osx-x64/anyunit-runner-osx-x64
 
+  # Creates (or reuses, if it already exists - see below) the GitHub
+  # Release for this tag and attaches every RID executable to it.
+  # workflow_dispatch is excluded here (github.event_name != 'workflow_run'
+  # is the SAME guard every RID job above uses, but this job additionally
+  # needs an actual tag to create a release for, which a manual
+  # workflow_dispatch run may not have): only a real tag push creates/
+  # updates a release.
+  #
+  # `gh release view` first, create only if missing, rather than always
+  # `gh release create`: publish-nuget (a separate, workflow_run-
+  # triggered job below) may run before or after this one with no
+  # ordering guarantee between them (two independently-triggered flows
+  # off the same tag push - see that job's own comment), and whichever
+  # runs second needs to attach its own assets to a release the other
+  # one may have already created, not fail on "already exists".
+  create-release:
+    if: github.event_name != 'workflow_run'
+    needs:
+      - publish-windows-x64
+      - publish-windows-arm64
+      - publish-linux-x64
+      - publish-linux-arm64
+      - publish-macos-arm64
+      - publish-macos-x64
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      # pattern+merge-multiple: every publish-<os> job above uploaded
+      # its own RID executable(s) under its own artifact name
+      # (anyunit-runner-<rid>) - this pulls all of them into one flat
+      # directory instead of one subfolder per artifact.
+      - name: Download every RID executable
+        uses: actions/download-artifact@v7
+        with:
+          pattern: anyunit-runner-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create the release (if it doesn't already exist) and upload RID executables
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          tag="${GITHUB_REF_NAME}"
+          if ! gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release create "$tag" --repo "${{ github.repository }}" --title "$tag" --generate-notes
+          fi
+          gh release upload "$tag" --repo "${{ github.repository }}" --clobber release-assets/*
+
   # Pushes build.yml's own already-packed, already-installed-and-run
   # nuget-packages artifact to nuget.org, once that workflow run
   # finishes - not a repack. Triggered by workflow_run rather than the
@@ -214,7 +270,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
     steps:
       - uses: actions/setup-dotnet@v6
         with:
@@ -253,3 +309,31 @@ jobs:
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
           done
+
+      # Just the two packed CLI tools, not every library package - a
+      # download link straight off the Release page is useful for
+      # something a person installs/runs directly (anyunit-runner/
+      # anyunit-browser-wasm), not for a library meant to be restored
+      # via PackageReference from nuget.org instead. Same glob reasoning
+      # as build.yml's test-packed-tool/test-packed-wasm-tool jobs use
+      # to tell AnyUnit.Runner.<version>.nupkg apart from
+      # AnyUnit.Runner.Bootstrap.<version>.nupkg (a digit right after
+      # the id) and AnyUnit.Runner.BrowserWasm.<version>.nupkg from
+      # both.
+      #
+      # gh release view/create first, same "don't fail if create-release
+      # (a separate, push-triggered job in this same workflow file) got
+      # there first, or hasn't yet" reasoning as that job's own comment -
+      # there's no ordering guarantee between the two.
+      - name: Upload the packed CLI tool nupkgs to the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          tag="${{ github.event.workflow_run.head_branch }}"
+          if ! gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release create "$tag" --repo "${{ github.repository }}" --title "$tag" --generate-notes
+          fi
+          gh release upload "$tag" --repo "${{ github.repository }}" --clobber \
+            packages/AnyUnit.Runner.[0-9]*.nupkg \
+            packages/AnyUnit.Runner.BrowserWasm.[0-9]*.nupkg
