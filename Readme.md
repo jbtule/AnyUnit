@@ -17,10 +17,16 @@ syntax compatibility with real NUnit/xUnit/FsUnit that an existing test's
 *logic* - its attributes and assertions - often doesn't need to change,
 even though the full framework isn't reproduced (no `TestContext`, no
 fully-static `Assert`, and other gaps - see each style's own README for
-specifics). Where it holds, an existing NUnit test suite can move to
-AnyUnit's `AnyUnit.Style.Nunit` with just its `PackageReference`s changed,
-and then actually run somewhere a real NUnit/xUnit install can't reach -
-most concretely, browser-wasm today.
+specifics). Where it holds, moving an existing NUnit test suite onto
+AnyUnit's `AnyUnit.Style.Nunit` is a `PackageReference` swap plus a
+handful of small, mechanical edits - not a rewrite of the tests
+themselves - confirmed by actually doing it on a real, ~140-test NUnit
+suite: swap the `using` directives, have each fixture (and anything else
+that asserts) inherit `AssertionHelper`, and replace the odd real-NUnit-
+specific idiom (`TestContext`, a non-fixture helper class calling a
+static `Assert.Fail`) with its AnyUnit equivalent. Once that's done, it
+actually runs somewhere a real NUnit install can't reach - most
+concretely, browser-wasm today.
 
 ## Packages
 
