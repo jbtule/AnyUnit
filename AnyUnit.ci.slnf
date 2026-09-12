@@ -3,6 +3,7 @@
     "path": "AnyUnit.slnx",
     "projects": [
       "AnyUnit/AnyUnit.csproj",
+      "AnyUnit.Runner.Bootstrap/AnyUnit.Runner.Bootstrap.csproj",
       "AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj",
       "Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj",
       "Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj",
@@ -15,6 +16,8 @@
       "WhoTestsTheTesters/RoughRunner/RoughRunner.csproj",
       "WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj",
       "WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj",
+      "WhoTestsTheTesters/Tests/BootstrapTests.Wasm/BootstrapTests.Wasm.csproj",
+      "WhoTestsTheTesters/Tests/BootstrapTests/BootstrapTests.csproj",
       "WhoTestsTheTesters/Tests/ConstraintsTests.Mtp/ConstraintsTests.Mtp.csproj",
       "WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj",
       "WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.csproj",

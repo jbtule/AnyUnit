@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Functionally like anyunit-runner (Runner/Platforms/net10 + shared),
+    but deliberately narrower: it only ever discovers/runs tests in the
+    CALLING assembly (Assembly.GetCallingAssembly() - whichever assembly's
+    own entry point invoked this), never an arbitrary list of external
+    .dll paths the way anyunit-runner's own CLI takes them. No ManyConsole/
+    argument parsing, no "point this at any .dll" support - just a static
+    method a consumer's own entry point calls directly, in place of a
+    generated/hand-rolled Main:
+
+      [<EntryPoint>]
+      let main _ = AnyUnit.Runner.Bootstrap.Runner.Run("net10")
+
+    This is the library form of the pattern hand-rolled this session for
+    both QrLinkPdf.Tests.fsproj's own desktop Program.fs (AnyUnit.
+    TestingPlatform's own EnableAnyUnitRunner codegen is C#-only, so an
+    .fsproj needs its own hand-written MTP entry point) and
+    QrLinkPdf.Tests.Wasm's Program.fs (a plain console entry point run
+    under node/bun, no Blazor hosting/headless browser needed - see
+    Runner/Platforms/browser-wasm-runner-host/Readme.md) - formalized so
+    neither of those needs to hand-roll Runner.Create/RunAll and its own
+    console-output formatting again.
+
+    netstandard2.0 (not a specific TFM): needs to work under whichever
+    host actually calls it - desktop CLR, Mono/browser-wasm interpreter,
+    or (should AnyUnit ever add it) WASI - same reasoning as AnyUnit's own
+    core libraries.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>AnyUnit.Runner.Bootstrap</PackageId>
+    <Description>Static Runner.Run(platform) a consumer's own entry point calls directly - discovers/runs only the calling assembly's own tests, no CLI/argument parsing, no external-assembly support (see anyunit-runner for that).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+</Project>

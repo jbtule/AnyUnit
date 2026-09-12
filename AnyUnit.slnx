@@ -27,6 +27,8 @@
   <Folder Name="/WhoTestsTheTesters/Tests/">
     <Project Path="WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/BootstrapTests.Wasm/BootstrapTests.Wasm.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/BootstrapTests/BootstrapTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests.Mtp/ConstraintsTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/ConstraintsTests/ConstraintsTests.csproj" />
   </Folder>
@@ -46,5 +48,6 @@
   </Folder>
   <Project Path="AnyUnit/AnyUnit.csproj" />
   <Project Path="AnyUnit.BrowserRunner/AnyUnit.BrowserRunner.csproj" />
+  <Project Path="AnyUnit.Runner.Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
   <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
 </Solution>
