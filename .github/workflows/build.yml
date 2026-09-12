@@ -325,3 +325,134 @@ jobs:
         with:
           name: nuget-packages
           path: packages/*.nupkg
+
+  # Every other job runs AnyUnit's own code straight from source
+  # (ProjectReference) - this is the one job that actually installs the
+  # packed AnyUnit.Runner nupkg itself (`pack`'s own output, not
+  # source), the same way a real consumer would: `dotnet tool install`
+  # against the local feed, then the resulting `anyunit-runner` command
+  # on PATH, catching a packaging mistake (a file missing from the
+  # nupkg, a bad PackAsTool/ToolCommandName setting, ...) that a
+  # ProjectReference-based job would never see, since it never touches
+  # the packed artifact at all. Verified locally before writing this
+  # job: `dotnet tool install --global AnyUnit.Runner --add-source
+  # <packed dir> --version <version>` followed by a real `anyunit-runner
+  # run` against a built self-test assembly, both worked end to end.
+  test-packed-tool:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # The self-test assemblies themselves are still built from source
+      # (ProjectReference) - only the runner that executes them is the
+      # packed one below. Same build-and-test does; AnyUnit.ci.slnf
+      # excludes browser-wasm-runner/browser-wasm-runner-host (see
+      # top-of-file comment), neither of which this job needs anyway.
+      - name: Build self-test payload assemblies
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # AnyUnit.Runner.Bootstrap also ships as a nupkg (AnyUnit.Runner.Bootstrap.*),
+      # but it's a library a consumer references at build time, not
+      # something installed - "AnyUnit.Runner.[0-9]*" (a digit right
+      # after the second dot) is what picks the CLI tool's own
+      # AnyUnit.Runner.<version>.nupkg out from beside it without
+      # matching AnyUnit.Runner.Bootstrap.<version>.nupkg too.
+      - name: Install the packed anyunit-runner tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Runner.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Runner\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Runner $version"
+          dotnet tool install --global AnyUnit.Runner --add-source packages --version "$version"
+
+      - name: Run tests through the installed anyunit-runner tool
+        shell: bash
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          .github/scripts/run-tests.sh anyunit-runner packed-tool
+
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  # Same idea as test-packed-tool, for AnyUnit.Runner.BrowserWasm
+  # (anyunit-browser-wasm) - arguably the more important of the two to
+  # cover this way: its own packed wwwroot content (browser-wasm-runner-host's
+  # published output, embedded as pack content under
+  # tools/$(TargetFramework)/any/browser-wasm-host/wwwroot/) has already gone
+  # silently empty in a real `dotnet pack` once this session (see
+  # browser-wasm-runner.csproj's own CheckBrowserWasmRunnerHostPublished
+  # comment) - a bug an unpacked/ProjectReference-based job would never
+  # have caught, and exactly the class of bug this job exists to catch
+  # for real, on a real installed copy, going forward. No wasm-tools
+  # workload install or browser-wasm-runner-host publish needed here -
+  # unlike test-browser-wasm, which builds+runs from source, this job
+  # only ever touches the already-packed .nupkg from the `pack` job.
+  test-packed-wasm-tool:
+    needs: pack
+    # macOS, not ubuntu-latest: same headless-Chromium-sandbox reasoning
+    # as test-browser-wasm's own comment (AppArmor blocks the
+    # unprivileged user namespaces headless Chromium's sandbox needs, on
+    # GitHub's ubuntu-latest image).
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # AnyUnit.ci.slnf (not the full AnyUnit.slnx) - same reasoning as
+      # test-packed-tool: only the self-test payload assemblies need
+      # building from source here, and ci.slnf is specifically the
+      # filter that excludes browser-wasm-runner/browser-wasm-runner-host
+      # (which this job has no use for - it never builds that pair from
+      # source at all, only installs its already-packed output).
+      - name: Build self-test payload assemblies
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # "AnyUnit.Runner.BrowserWasm.[0-9]*" (a digit right after the
+      # third dot) picks this tool's own
+      # AnyUnit.Runner.BrowserWasm.<version>.nupkg out from beside
+      # AnyUnit.Runner.<version>.nupkg/AnyUnit.Runner.Bootstrap.<version>.nupkg,
+      # same reasoning as test-packed-tool's own version-extraction step.
+      - name: Install the packed anyunit-browser-wasm tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Runner.BrowserWasm.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Runner\.BrowserWasm\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Runner.BrowserWasm $version"
+          dotnet tool install --global AnyUnit.Runner.BrowserWasm --add-source packages --version "$version"
+
+      # PuppeteerSharp downloads its own headless Chrome on first use
+      # (BrowserFetcher, cached after that) - same as test-browser-wasm.
+      - name: Run tests through the installed anyunit-browser-wasm tool
+        shell: bash
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool
+
+      - name: Verify results match naming convention
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
