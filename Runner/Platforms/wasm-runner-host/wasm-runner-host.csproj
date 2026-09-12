@@ -12,6 +12,13 @@
     feature, verified empirically to work for assemblies never referenced
     at publish time. See AnyUnit.BrowserRunner for the actual results
     UI/test-running component this just supplies assemblies to.
+
+    Dynamic loading only works for pure-managed test assemblies - it
+    structurally cannot run one with its own native wasm dependencies
+    (P/Invoke into a statically-linked NativeFileReference). See this
+    folder's own Readme.md for why, and the alternative (compile your own
+    Sdk.BlazorWebAssembly host directly against AnyUnit) for consumers who
+    hit that wall.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
