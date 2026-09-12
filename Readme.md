@@ -103,6 +103,24 @@ one exists, not just cross-compiled and assumed to work).
 | [`AnyUnit.Runner`](Runner/Platforms/net10) | Standalone CLI (`anyunit-runner`) that discovers and runs tests in one or more assemblies you point it at. |
 | [`AnyUnit.Runner.BrowserWasm`](Runner/Platforms/browser-wasm-runner) | Same CLI shape as `AnyUnit.Runner`, but runs the target assemblies inside a real headless-browser-driven browser-wasm host - for test assemblies with native (P/Invoke) dependencies that only build for the browser-wasm target. |
 
+Every package above is on [nuget.org](https://www.nuget.org) once a tagged
+release goes out (see "Status" below for where things stand before then):
+
+```bash
+dotnet add package AnyUnit
+dotnet add package AnyUnit.Style.Nunit   # or .Style.Xunit / .Style.FSharp / .Style.FsUnit / .Constraints
+dotnet add package AnyUnit.TestingPlatform  # for a dotnet test/dotnet run entry point
+dotnet add package AnyUnit.Runner.Bootstrap # or write your own Main directly
+
+dotnet tool install --global AnyUnit.Runner            # anyunit-runner
+dotnet tool install --global AnyUnit.Runner.BrowserWasm # anyunit-browser-wasm
+```
+
+A tagged release's own [GitHub Release](https://github.com/jbtule/AnyUnit/releases)
+page also carries both CLI tools' `.nupkg` files and a self-contained,
+single-file `anyunit-runner` executable for every RID in "Platform
+coverage" above, if you'd rather download one directly than install it.
+
 ## Layout
 
 - **`AnyUnit`** - the core library every style and runner depends on:
@@ -160,14 +178,17 @@ it when you need tests to run somewhere a real NUnit/xUnit/MTP install
 can't, not as a general NUnit/xUnit replacement for a project that only
 ever targets one desktop platform.
 
-Packages aren't published to nuget.org yet - the `pack` job in
-[`build.yml`](.github/workflows/build.yml) builds and uploads them as
-workflow artifacts on push, so a recent prerelease build is normally
-there to grab and try without waiting on a tagged release, subject to
-GitHub Actions' own artifact retention window. Versions follow
-[MinVer](https://github.com/adamralph/minver)
-off `v*` tags (e.g. `v1.0.0-alpha` → `1.0.0-alpha.0.<commits-since>` for
-an untagged build).
+A tagged release pushes every package to nuget.org (real Trusted
+Publishing, no long-lived credential involved) and attaches the CLI
+tools' `.nupkg` files and every RID's `anyunit-runner` executable
+directly to that release. Before (or between) tags, the `pack` job in
+[`build.yml`](.github/workflows/build.yml) still builds and uploads
+the same packages as workflow artifacts on every push, so a recent
+prerelease build is normally there to grab and try without waiting on
+a release, subject to GitHub Actions' own artifact retention window.
+Versions follow [MinVer](https://github.com/adamralph/minver) off `v*`
+tags (e.g. `v1.0.0-alpha` → `1.0.0-alpha.0.<commits-since>` for an
+untagged build).
 
 ## License
 
