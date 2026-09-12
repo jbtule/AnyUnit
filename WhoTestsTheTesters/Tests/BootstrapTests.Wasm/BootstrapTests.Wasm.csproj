@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
-    <ProjectReference Include="..\..\..\AnyUnit.Runner.Bootstrap\AnyUnit.Runner.Bootstrap.csproj" />
+    <ProjectReference Include="..\..\..\Runner\Bootstrap\AnyUnit.Runner.Bootstrap.csproj" />
   </ItemGroup>
 
   <ItemGroup>

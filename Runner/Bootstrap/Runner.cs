@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using AnyUnit.Run;
+using SatelliteRunner.Shared;
 
 namespace AnyUnit.Runner.Bootstrap
 {
@@ -94,13 +95,21 @@ namespace AnyUnit.Runner.Bootstrap
             var runner = AnyUnit.Run.Runner.Create(platform, assemblies);
             var file = new ResultsFile();
 
-            PrintStart(platform, teamCity);
+            // RunTests.TeamCity is a static field (shared with anyunit-runner's
+            // own use of the same PrintOutAlone* methods, see Platforms/shared/
+            // RunAloneCommand.cs) - fine for this library's own contract (one
+            // Run call = one whole test run per process), just not something to
+            // set concurrently from two Run calls in the same process.
+            RunTests.TeamCity = teamCity;
+            var printer = new RunTests();
+
+            printer.PrintOutAloneStart(platform);
             runner.RunAll(result =>
             {
                 file.Add(result);
-                PrintResult(result, teamCity);
+                printer.PrintOutAloneResults(result);
             });
-            PrintEnd(platform, file, teamCity);
+            printer.PrintOutAloneEnd(platform, file);
 
             if (jsonOutputPath != null)
             {
@@ -108,88 +117,6 @@ namespace AnyUnit.Runner.Bootstrap
             }
 
             return file.HasError ? 1 : 0;
-        }
-
-        private static void PrintStart(string platform, bool teamCity)
-        {
-            if (teamCity)
-            {
-                Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", platform);
-            }
-            else
-            {
-                Console.WriteLine("Starting Tests for '{0}'", platform);
-            }
-        }
-
-        private static void PrintResult(Result result, bool teamCity)
-        {
-            if (teamCity)
-            {
-                Console.WriteLine("##teamcity[testStarted name='{2}.{1}.{0}' captureStandardOutput='true']",
-                    result.Test.Name, result.Test.Fixture.Name, result.Test.Fixture.Assembly.Name);
-            }
-            else
-            {
-                Console.Write(result.Test.Fixture.Assembly.Name + ".");
-                Console.Write(result.Test.Fixture.Name + ".");
-            }
-
-            Console.Write(result.Test.Name);
-            Console.WriteLine("[{0}]", result.Platform);
-            Console.Write(result.Kind);
-            Console.WriteLine(" ({0})", result.EndTime - result.StartTime);
-            Console.WriteLine(result.Output);
-
-            if (teamCity)
-            {
-                Console.WriteLine("##teamcity[testFinished name='{2}.{1}.{0}' duration='{3}']",
-                    result.Test.Name,
-                    result.Test.Fixture.Name,
-                    result.Test.Fixture.Assembly.Name,
-                    (result.EndTime - result.StartTime).TotalMilliseconds);
-            }
-            else
-            {
-                switch (result.Kind)
-                {
-                    case ResultKind.Success:
-                        Console.WriteLine("-------------------------");
-                        break;
-                    case ResultKind.Error:
-                        Console.WriteLine("EEEEEEEEEEEEEEEEEEEEEEEEE");
-                        break;
-                    case ResultKind.Fail:
-                        Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        break;
-                    case ResultKind.NoError:
-                        Console.WriteLine(".........................");
-                        break;
-                    case ResultKind.Ignore:
-                        Console.WriteLine("?????????????????????????");
-                        break;
-                }
-
-                Console.WriteLine(string.Empty);
-            }
-        }
-
-        private static void PrintEnd(string platform, ResultsFile file, bool teamCity)
-        {
-            if (teamCity)
-            {
-                Console.WriteLine("##teamcity[testSuiteFinished name='{0}']", platform);
-            }
-            else
-            {
-                Console.WriteLine("Finished");
-                Console.WriteLine();
-                foreach (var kv in file.ResultCount.OrderBy(it => it.Key))
-                {
-                    Console.WriteLine("  {0,-15}{1,4}", kv.Key, kv.Value);
-                }
-                Console.WriteLine("{0,-17}{1,4}", "Total", file.ResultCount.Select(r => r.Value).Sum());
-            }
         }
     }
 }

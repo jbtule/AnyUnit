@@ -3,7 +3,7 @@
     "path": "AnyUnit.slnx",
     "projects": [
       "AnyUnit/AnyUnit.csproj",
-      "AnyUnit.Runner.Bootstrap/AnyUnit.Runner.Bootstrap.csproj",
+      "Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj",
       "AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj",
       "Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj",
       "Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj",

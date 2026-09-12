@@ -48,6 +48,6 @@
   </Folder>
   <Project Path="AnyUnit/AnyUnit.csproj" />
   <Project Path="AnyUnit.BrowserRunner/AnyUnit.BrowserRunner.csproj" />
-  <Project Path="AnyUnit.Runner.Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
+  <Project Path="Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
   <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
 </Solution>

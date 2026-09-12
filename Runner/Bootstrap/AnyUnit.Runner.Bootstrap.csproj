@@ -27,6 +27,20 @@
     host actually calls it - desktop CLR, Mono/browser-wasm interpreter,
     or (should AnyUnit ever add it) WASI - same reasoning as AnyUnit's own
     core libraries.
+
+    Lives under Runner/ (not the repo root) alongside Platforms/net10 and
+    Platforms/browser-wasm-runner - a third runner flavor (library-
+    embedded rather than a standalone CLI or wasm host), not core. Its
+    own console/TeamCity output formatting is Platforms/shared's own
+    PrintTests.cs, Compile-Included directly (not a ProjectReference -
+    it's a single dependency-free file, and this project's own
+    netstandard2.0 TFM can't reference net10-runner's net10.0 one
+    anyway): that file has no ManyConsole dependency of its own (only
+    Commands.cs/RunAloneCommand.cs/Program.cs there do, for the actual
+    CLI argument parsing this project deliberately has none of) - real
+    duplicate implementations of the exact same output format once
+    existed here and in Platforms/shared before this, kept in sync only
+    by hand.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -37,7 +51,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Platforms\shared\PrintTests.cs" Link="PrintTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -31,7 +31,7 @@ browser-wasm today.
 | [`AnyUnit.Style.FSharp`](Contrib/AnyUnit.Style.FSharp) | F#'s own idiomatic value-based test style (`test { }`), for when a `[Test]`-attributed method doesn't fit F# as well as a top-level `let` does. |
 | [`AnyUnit.Style.FsUnit`](Contrib/AnyUnit.Style.FsUnit) | FsUnit-style F# assertions. |
 | [`AnyUnit.TestingPlatform`](AnyUnit.TestingPlatform) | Microsoft.Testing.Platform (MTP) adapter - opt in with one MSBuild property (`EnableAnyUnitRunner`) to get a real `dotnet test`/`dotnet run` entry point generated for you. |
-| [`AnyUnit.Runner.Bootstrap`](AnyUnit.Runner.Bootstrap) | A single static `Runner.Run(platform)` a consumer's own `Main` calls directly - the smallest way to get a real, runnable test entry point (desktop or browser-wasm) without MTP or a CLI. |
+| [`AnyUnit.Runner.Bootstrap`](Runner/Bootstrap) | A single static `Runner.Run(platform)` a consumer's own `Main` calls directly - the smallest way to get a real, runnable test entry point (desktop or browser-wasm) without MTP or a CLI. |
 | [`AnyUnit.Runner`](Runner/Platforms/net10) | Standalone CLI (`anyunit-runner`) that discovers and runs tests in one or more assemblies you point it at. |
 | [`AnyUnit.Runner.BrowserWasm`](Runner/Platforms/browser-wasm-runner) | Same CLI shape as `AnyUnit.Runner`, but runs the target assemblies inside a real headless-browser-driven browser-wasm host - for test assemblies with native (P/Invoke) dependencies that only build for the browser-wasm target. |
 
@@ -46,13 +46,15 @@ browser-wasm today.
   `AnyUnit.Style.FsUnit`) - each one layers a specific, real test
   framework's source-level API on top of `AnyUnit`'s core attributes.
 - **`AnyUnit.TestingPlatform`** - the Microsoft.Testing.Platform adapter.
-- **`AnyUnit.Runner.Bootstrap`** - the minimal `Runner.Run(platform)`
-  library form of a runner, for a consumer that wants a real entry point
-  with no CLI/MTP involved (an F# project's own hand-written `Program.fs`,
-  for example - see its own README for why).
-- **`Runner`** - the standalone CLI runners (`anyunit-runner`,
-  `anyunit-browser-wasm`) and the shared argument-parsing/output-formatting
-  code (`Runner/Platforms/shared`) they both build on.
+- **`Runner`** - every runner *except* the MTP adapter above:
+  - **`Runner/Bootstrap`** - the minimal `Runner.Run(platform)` library
+    form, for a consumer that wants a real entry point with no CLI/MTP
+    involved (an F# project's own hand-written `Program.fs`, for example
+    - see its own README for why).
+  - **`Runner/Platforms`** - the standalone CLI runners (`anyunit-runner`,
+    `anyunit-browser-wasm`) and the shared argument-parsing/output-
+    formatting code (`Runner/Platforms/shared`) all three of these
+    (including `Runner/Bootstrap`) build on.
 - **`AnyUnit.BrowserRunner`** - the Razor component (results table, log)
   `browser-wasm-runner-host` (the actual Blazor WASM app
   `anyunit-browser-wasm` drives headlessly) is built from. Internal

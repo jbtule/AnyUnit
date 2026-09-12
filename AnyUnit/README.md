@@ -30,7 +30,7 @@ browser-wasm.
   `Test` per parameter-set combination; `RunAll` executes them and reports
   a `Result` (`Success`/`Fail`/`Error`/`Ignore`/`NoError`) for each.
 
-See [`AnyUnit.Runner.Bootstrap`](../AnyUnit.Runner.Bootstrap) for the
+See [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the
 smallest way to actually call `Runner.Create`/`RunAll` from your own
 entry point, or [`AnyUnit.TestingPlatform`](../AnyUnit.TestingPlatform)
 for a generated `dotnet test`-compatible one.

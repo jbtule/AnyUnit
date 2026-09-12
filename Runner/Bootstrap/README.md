@@ -5,7 +5,7 @@ The smallest way to get a real, runnable entry point for
 `Runner.Run(platform)` your own `Main` calls directly, in place of a
 generated (MTP) or hand-rolled one.
 
-Functionally like [`AnyUnit.Runner`](../Runner/Platforms/net10)
+Functionally like [`AnyUnit.Runner`](../Platforms/net10)
 (`anyunit-runner`), but deliberately narrower: no CLI, no argument
 parsing, and no "point this at an arbitrary list of external .dll paths"
 support - it only ever discovers and runs tests in the calling assembly

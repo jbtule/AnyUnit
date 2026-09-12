@@ -40,6 +40,6 @@ explicitly, by simple assembly name:
 The generated entry point is plain C#, and this package's own code-
 generation target only knows how to inject a `.cs` file into the build -
 an F# project needs its own hand-written entry point instead. See
-[`AnyUnit.Runner.Bootstrap`](../AnyUnit.Runner.Bootstrap) for the smallest
+[`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the smallest
 way to write one (`AnyUnit.Runner.Bootstrap.Runner.Run(platform)`), which
 also works from C# if you'd rather not generate a `Main` at all.
