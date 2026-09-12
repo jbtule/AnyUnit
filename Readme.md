@@ -4,7 +4,8 @@ Write tests in roughly the syntax your codebase already uses (NUnit,
 xUnit, FsUnit, or F#'s own value-based style) against a small, shared
 core, and run them on whichever platform actually needs them (desktop
 .NET, `dotnet test`/Microsoft.Testing.Platform, or browser-wasm) -
-without a separate test framework or test project per platform.
+without a separate test framework, and without rewriting or duplicating
+the tests themselves per platform.
 
 [![build](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml/badge.svg)](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml)
 
@@ -136,13 +137,32 @@ one exists, not just cross-compiled and assumed to work).
 
 ## Status
 
-Pre-1.0, actively developed. Packages aren't published to nuget.org yet -
-every push builds and uploads them as workflow artifacts (see the `pack`
-job in [`build.yml`](.github/workflows/build.yml)), so a current
-prerelease build is always available to grab and try without waiting on a
-tagged release. Versions follow [MinVer](https://github.com/adamralph/minver)
-off `v*` tags (e.g. `v1.0.0-alpha` → `1.0.0-alpha.0.<commits-since>` for an
-untagged build).
+Heading toward 1.0. This is a genuinely old project - the core ideas here
+go back 13 years, to a PCL/Silverlight-era predecessor (see
+[`Changes.md`](Changes.md)) - and getting to 1.0 has meant catching up a
+lot of that history in one pass, so expect some rough edges: a style
+covering less of its real framework than you'd want, docs that lag a
+recent change, a corner nothing's exercised for real yet. Two things are
+solid, though, because they've actually been exercised this pass, not
+assumed: the discovery/execution engine is genuinely portable (real
+desktop RIDs, browser-wasm, MTP - see "Platform coverage" above), and the
+style mechanism is genuinely extensible (`IRowInlineParameter`/
+`IGeneratingParameter`/`IArgParameter` let one style recognize another's
+own attributes with no reference between them - see "Why" above - and
+adding a wholly new style doesn't touch the core at all).
+
+It's free (Apache-2.0) and useful for what it actually does - reach for
+it when you need tests to run somewhere a real NUnit/xUnit/MTP install
+can't, not as a general NUnit/xUnit replacement for a project that only
+ever targets one desktop platform.
+
+Packages aren't published to nuget.org yet - every push builds and
+uploads them as workflow artifacts (see the `pack` job in
+[`build.yml`](.github/workflows/build.yml)), so a current prerelease
+build is always available to grab and try without waiting on a tagged
+release. Versions follow [MinVer](https://github.com/adamralph/minver)
+off `v*` tags (e.g. `v1.0.0-alpha` → `1.0.0-alpha.0.<commits-since>` for
+an untagged build).
 
 ## License
 
