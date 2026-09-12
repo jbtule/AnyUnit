@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Razor Class Library, not an app: this holds the AnyUnitRunnerPage
+    component (results table, log, and headless-scrape hooks) that
+    Blazor components need the actual ASP.NET Core Components APIs for,
+    which only exist for "net" TFMs (not netstandard2.0, unlike
+    AnyUnit's own core libraries) - so it can't just live inside
+    ..\..\browser-wasm-runner-host directly as a plain .razor file.
+
+    Lives under Runner/Platforms/support/ - grouped with Platforms/shared
+    as "not a runnable platform itself, just plumbing a real one needs" -
+    NOT nested inside browser-wasm-runner-host's own project directory
+    (tried that first: a plain Sdk-style project's default item globs
+    sweep up everything under its own directory tree except bin/obj, so
+    nesting this there got its own .razor files double-compiled - once by
+    this project, once again by browser-wasm-runner-host's own glob - a
+    real, confirmed CS0579 duplicate-attribute build failure, not a
+    hypothetical). It's internal plumbing for that one project regardless
+    of exactly where it sits (this repo's own, only consumer - a thin
+    host app that references it and dynamically loads whatever test
+    assemblies anyunit-browser-wasm points it at over HTTP), not
+    something meant to be pulled in by someone else's Blazor host app.
+    Not packed (IsPackable false, unlike the rest of this repo's
+    libraries) for the same reason.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+</Project>

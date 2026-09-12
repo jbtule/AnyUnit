@@ -17,6 +17,9 @@
   <Folder Name="/Runner/Platforms/browser-wasm-runner/">
     <Project Path="Runner/Platforms/browser-wasm-runner/browser-wasm-runner.csproj" />
   </Folder>
+  <Folder Name="/Runner/Platforms/support/">
+    <Project Path="Runner/Platforms/support/AnyUnit.BrowserRunner/AnyUnit.BrowserRunner.csproj" />
+  </Folder>
   <Folder Name="/Runner/Platforms/browser-wasm-runner-host/">
     <Project Path="Runner/Platforms/browser-wasm-runner-host/browser-wasm-runner-host.csproj" />
   </Folder>
@@ -47,7 +50,6 @@
     <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests/XunitTests.csproj" />
   </Folder>
   <Project Path="AnyUnit/AnyUnit.csproj" />
-  <Project Path="AnyUnit.BrowserRunner/AnyUnit.BrowserRunner.csproj" />
   <Project Path="Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
   <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
 </Solution>

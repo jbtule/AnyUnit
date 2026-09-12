@@ -47,7 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AnyUnit.BrowserRunner\AnyUnit.BrowserRunner.csproj" />
+    <ProjectReference Include="..\support\AnyUnit.BrowserRunner\AnyUnit.BrowserRunner.csproj" />
   </ItemGroup>
 
 </Project>

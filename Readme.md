@@ -54,11 +54,11 @@ browser-wasm today.
   - **`Runner/Platforms`** - the standalone CLI runners (`anyunit-runner`,
     `anyunit-browser-wasm`) and the shared argument-parsing/output-
     formatting code (`Runner/Platforms/shared`) all three of these
-    (including `Runner/Bootstrap`) build on.
-- **`AnyUnit.BrowserRunner`** - the Razor component (results table, log)
-  `browser-wasm-runner-host` (the actual Blazor WASM app
-  `anyunit-browser-wasm` drives headlessly) is built from. Internal
-  plumbing for that one host, not published as its own package.
+    (including `Runner/Bootstrap`) build on. `Runner/Platforms/support/AnyUnit.BrowserRunner`
+    is the Razor component (results table, log) `browser-wasm-runner-host`'s
+    Blazor WASM app is built from - internal plumbing for that one host,
+    not published as its own package, grouped under `support/` alongside
+    `shared` rather than as a directly-runnable platform itself.
 - **`WhoTestsTheTesters`** - AnyUnit's own test suite: tests for the core
   library and each style, written *in* that style, run through the real
   runners - so a regression in discovery/execution shows up the same way

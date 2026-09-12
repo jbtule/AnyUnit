@@ -36,6 +36,16 @@
     it - sidesteps that whole class of problem.) CI runs the publish
     step explicitly before packing (see the publish workflow).
 
+    Tried a second, narrower time (BeforeTargets="Build" only, plain
+    Exec with no custom -o) - see CheckBrowserWasmRunnerHostPublished's
+    own comment for the different, real failure this reproduced (a
+    silently-empty wwwroot in the packed .nupkg, confirmed via an actual
+    dotnet pack + unzip). Two independent, confirmed reasons now, not
+    one - this isn't getting a third attempt without a genuinely
+    different mechanism (e.g. a target-scoped Pack item list, mirroring
+    how CopyBrowserWasmRunnerHostToOutput's own Copy already avoids this
+    exact trap for the build path).
+
     Below, the standard publish output (bin/Release/net10.0/publish/
     wwwroot) is copied into this project's own $(OutDir)browser-wasm-host/wwwroot
     for local dotnet build/run, and declared as pack content under
@@ -69,6 +79,24 @@
     <PackageReference Include="PuppeteerSharp" Version="25.10.0" />
   </ItemGroup>
 
+  <!--
+    A BeforeTargets="Build"-only auto-publish target was tried again here
+    (per explicit request, after the class of problem above) and
+    reverted again after actually reproducing a real, different failure
+    mode, not just the original one: the packaging <None Include=
+    "...PublishWwwroot**" Pack="true"> item below is a plain top-level
+    ItemGroup, evaluated once when MSBuild loads the project - before
+    any target (including that auto-publish one) ever runs. Since the
+    wwwroot files didn't exist yet at that moment (the whole point of
+    auto-publishing), the glob captured nothing, and the resulting
+    .nupkg silently shipped with zero wwwroot content - confirmed via a
+    real `dotnet pack` + unzip -l, not assumed. (`dotnet build` alone
+    worked fine: CopyBrowserWasmRunnerHostToOutput's own Copy task
+    builds its file list in a target-scoped ItemGroup, evaluated at
+    execution time, so it saw the freshly-published files just fine -
+    only the pack-time static ItemGroup didn't.) Confirms the original
+    decision below was correct for a second, independent reason.
+  -->
   <Target Name="CheckBrowserWasmRunnerHostPublished" BeforeTargets="Build;_GetPackageFiles">
     <Error Condition="!Exists('$(BrowserWasmRunnerHostPublishWwwroot)index.html')"
            Text="browser-wasm-runner-host hasn't been published. Run: dotnet publish Runner/Platforms/browser-wasm-runner-host -c Release" />
