@@ -8,6 +8,13 @@ without a separate test framework or test project per platform.
 
 [![build](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml/badge.svg)](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml)
 
+**Design philosophy:** keep the tests you already have, not rewrite them
+- write them once, and don't have to keep rewriting them as the platforms
+you need to run on change over time - and run those same tests on every
+platform you need without extra per-platform work: no separate test
+project, no separate test framework, no hand-maintained duplicate suite
+per target.
+
 ## Why
 
 A shared `netstandard2.0` library can run on far more platforms than any
