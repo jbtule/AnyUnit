@@ -41,6 +41,31 @@ gets the test's `ILog` (captured output) the same way.
 A test is discovered by its own `let` binding name - there's no separate
 description string to also keep in sync.
 
+## Parameterized tests
+
+This style has no data attribute of its own by design (a `Test` is a
+value, not a method with parameters an attribute could sit on) - a real
+F# *function* (with real parameters, so it compiles to a genuine method,
+not a property) carrying another style's row attribute works instead,
+since `Test`-typed function discovery recognizes any attribute
+implementing `AnyUnit.Run.Attributes.IRowInlineParameter`:
+
+```fsharp
+open AnyUnit.Style.FSharp.Test
+open AnyUnit.Style.Xunit // for InlineDataAttribute - any style's own row attribute works the same way
+
+[<InlineData(1, 1)>]
+[<InlineData(2, 4)>]
+[<InlineData(3, 9)>]
+let square (n: int) (expected: int) = test {
+    let! Assert = assertion
+    Assert.True(n * n = expected, $"Expected {n}*{n} = {expected}")
+}
+```
+
+Each row runs as its own, separately-reported test - same as `[TestCase]`/
+`[InlineData]` under the attribute-based styles.
+
 ## Running directly, without discovery
 
 `AnyUnit.Style.FSharp.Runner.run` executes a plain `(string * Test) list`
