@@ -7,8 +7,21 @@ namespace SatelliteRunner.Shared
 
 public partial class RunTests{
 
+        // Instance, not static: this class is constructed fresh per run (once
+        // by RunAloneCommand.Run, once per AnyUnit.Runner.Bootstrap.Runner.Run
+        // call) - no reason for one run's TeamCity setting to leak into
+        // another's, or to need "don't call Run twice concurrently" caveats.
+        // RunAloneCommand.cs's own -teamcity option still has to record the
+        // flag on itself first (ManyConsole's HasOption callback fires while
+        // parsing options, before RunAloneCommand.Run ever constructs a
+        // RunTests to pass it into) - only that one, real ordering constraint,
+        // not a reason for this field itself to be static.
+        public bool TeamCity;
 
-        public static bool TeamCity;
+        public RunTests(bool teamCity = false)
+        {
+            TeamCity = teamCity;
+        }
 
         public void PrintOutAloneStart(string id)
         {

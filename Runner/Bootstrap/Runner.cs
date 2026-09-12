@@ -91,14 +91,7 @@ namespace AnyUnit.Runner.Bootstrap
 
         private static int RunCore(string platform, Assembly[] assemblies, bool teamCity, string jsonOutputPath)
         {
-            // RunTests.TeamCity is a static field (shared with anyunit-runner's
-            // own use of RunAssemblies/the same PrintOutAlone* methods, see
-            // Platforms/shared/RunAloneCommand.cs) - fine for this library's own
-            // contract (one Run call = one whole test run per process), just
-            // not something to set concurrently from two Run calls in the same
-            // process.
-            RunTests.TeamCity = teamCity;
-            var file = new RunTests().RunAssemblies(platform, assemblies);
+            var file = new RunTests(teamCity).RunAssemblies(platform, assemblies);
 
             if (jsonOutputPath != null)
             {
