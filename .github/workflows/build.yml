@@ -146,6 +146,18 @@ jobs:
       # the framework-dependent build above does. Uploaded as workflow
       # artifacts so they're downloadable straight from this run, same
       # exe names release.yml produces.
+      #
+      # linux-arm is publish-and-upload only, never actually executed
+      # here: confirmed via a real CI failure ("cannot execute: required
+      # file not found") that ubuntu-24.04-arm's own aarch64 kernel/
+      # userspace can't run a 32-bit armhf binary at all without extra
+      # multiarch/qemu-user setup this job doesn't do - unlike win-x86 on
+      # windows-latest (x64), where WOW64 runs a 32-bit x86 binary
+      # natively with nothing extra needed, so that one still gets the
+      # real functional check. The publish/package step itself is still
+      # exercised (cross-compiling from any host works fine, per
+      # release.yml's own comment) - only the "run it for real" check is
+      # skipped, and only for this one RID.
       - name: Publish, test, and upload self-contained RID build(s)
         shell: bash
         run: |
@@ -168,7 +180,11 @@ jobs:
               mv "publish/$rid/anyunit-runner" "$exe"
               chmod +x "$exe"
             fi
-            .github/scripts/run-tests.sh "$exe" "net10-$rid"
+            if [ "$rid" = "linux-arm" ]; then
+              echo "Skipping execution of $exe: 32-bit armhf can't run on this aarch64 host without multiarch/qemu-user support."
+            else
+              .github/scripts/run-tests.sh "$exe" "net10-$rid"
+            fi
           done
 
       - name: Upload self-contained RID build(s)
