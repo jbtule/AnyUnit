@@ -11,9 +11,11 @@ without a separate test framework or test project per platform.
 **Design philosophy:** keep the tests you already have, not rewrite them
 - write them once, and don't have to keep rewriting them as the platforms
 you need to run on change over time - and run those same tests on every
-platform you need without extra per-platform work: no separate test
-project, no separate test framework, no hand-maintained duplicate suite
-per target.
+platform you need without a separate test framework or a hand-maintained
+duplicate suite per target. A thin per-platform host project sometimes
+still exists (an MTP-enabled satellite, a browser-wasm entry point - see
+`WhoTestsTheTesters/Tests` for real examples), but it's a few lines
+wiring an existing suite up, not a second copy of the tests themselves.
 
 ## Why
 
