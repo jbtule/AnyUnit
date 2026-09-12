@@ -17,6 +17,15 @@ still exists (an MTP-enabled satellite, a browser-wasm entry point - see
 `WhoTestsTheTesters/Tests` for real examples), but it's a few lines
 wiring an existing suite up, not a second copy of the tests themselves.
 
+That reach is also why the discovery/execution engine (`AnyUnit`'s own
+`Runner`/`Fixture`/`Test`) is deliberately kept simple: plain reflection
+(`Type.GetMethods`, `GetCustomAttributes`, `Assembly.GetTypes`) - nothing
+fancier, no `Reflection.Emit`, no runtime IL/expression-tree compilation.
+Constrained runtimes (Mono's interpreter under browser-wasm, most
+concretely) don't reliably support that fancier machinery in the first
+place, so staying with what plain reflection can already do is what
+makes running everywhere possible, not an accident.
+
 ## Why
 
 A shared `netstandard2.0` library can run on far more platforms than any
