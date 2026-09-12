@@ -12,21 +12,28 @@ open AnyUnit
 /// fixture class to hang them off of.
 type TestM<'a> = IAssertionHelper -> 'a
 
-/// A single, already-built AnyUnit test case - a name plus a thunk that
-/// runs the test body. Built directly as a value (via the `test { }`
-/// computation expression below), not discovered via reflection over a
-/// [Test]-attributed INSTANCE method on a class the way every other
-/// AnyUnit style (NUnit/xUnit/FsUnit) works. That reflection path
-/// can't see F#'s usual top-level `let testName () = ...` style at all:
-/// it compiles to a STATIC method, and AnyUnit's own fixture/method
-/// discovery (Utility.AllMethods, used by every TestFixtureDiscoveryAttributeBase)
-/// hardcodes BindingFlags.Instance throughout - confirmed directly by
-/// testing it. Building Test values by hand sidesteps that reflection
-/// path entirely; see Runner.fs for how they get executed and folded
-/// into AnyUnit's normal Result/ResultsFile output.
-type Test =
-    { Name: string
-      Run: TestM<unit> }
+/// A single, already-built AnyUnit test case - just a thunk that runs
+/// the test body. No name of its own: unlike Runner.fs's very first
+/// version, which carried a separate description string, the name a
+/// test is reported/discovered under is always its own F# binding name
+/// (`let passingTest = test { ... }` - Discovery.fs finds it as a
+/// property named "passingTest", same as any other AnyUnit style's
+/// test method name) - a second, independent name string would only
+/// ever say the same thing twice, so there's nothing to carry here.
+///
+/// Built directly as a value (via the `test { }` computation
+/// expression below), not discovered via reflection over a [Test]-
+/// attributed INSTANCE method on a class the way every other AnyUnit
+/// style (NUnit/xUnit/FsUnit) works. That reflection path can't see
+/// F#'s usual top-level `let testName () = ...` style at all: it
+/// compiles to a STATIC method, and AnyUnit's own fixture/method
+/// discovery (Utility.AllMethods, used by every
+/// TestFixtureDiscoveryAttributeBase) hardcodes BindingFlags.Instance
+/// throughout - confirmed directly by testing it. Building Test values
+/// by hand sidesteps that reflection path entirely; see Discovery.fs
+/// for how they're found, and Runner.fs for how a list of them gets
+/// executed and folded into AnyUnit's normal Result/ResultsFile output.
+type Test = { Run: TestM<unit> }
 
 /// Read-only access to this test's IAssert, for calling straight into
 /// whichever style package's IAssert extension methods you want (e.g.
@@ -37,7 +44,7 @@ type Test =
 /// `Assert` (capital A - only the lowercase `assert` keyword is
 /// reserved in F#) reads closest to how every other style calls it:
 ///
-///     let myTest = test "name" {
+///     let myTest = test {
 ///         let! Assert = assertion
 ///         Assert.Equal(1, 1)
 ///     }
@@ -47,16 +54,16 @@ let assertion: TestM<IAssert> = fun helper -> helper.Assert
 /// captured into the Result, same as every other style).
 let log: TestM<ILog> = fun helper -> helper.Log
 
-/// `test "name" { ... }` - ordinary let!/do!/for/while/try, plus
-/// use!/use for "start/stop": binding a disposable resource via
-/// use!/use runs the rest of the body inside a `use`, so Dispose is the
-/// "stop" half with no explicit teardown code needed at the call site.
-/// Any producer function meant to be used with let!/use! (e.g. a
+/// `test { ... }` - ordinary let!/do!/for/while/try, plus use!/use for
+/// "start/stop": binding a disposable resource via use!/use runs the
+/// rest of the body inside a `use`, so Dispose is the "stop" half with
+/// no explicit teardown code needed at the call site. Any producer
+/// function meant to be used with let!/use! (e.g. a
 /// `tesseractEngine name : TestM<TesseractEngine>` helper) should
 /// itself return a TestM<'a>, the same as with any other F# computation
 /// expression - a plain `use x = someDisposable` (no `!`) works with an
 /// ordinary, non-TestM value too, since it goes through Using directly.
-type TestBuilder(name: string) =
+type TestBuilder() =
     member _.Return(x: 'a) : TestM<'a> = fun _ -> x
     member _.ReturnFrom(m: TestM<'a>) : TestM<'a> = m
     member _.Zero() : TestM<unit> = fun _ -> ()
@@ -71,7 +78,7 @@ type TestBuilder(name: string) =
         fun helper -> try body helper finally compensation ()
     member this.Using(resource: 'a, body: 'a -> TestM<'b>) : TestM<'b> when 'a :> IDisposable =
         this.TryFinally(body resource, fun () -> match box resource with null -> () | _ -> resource.Dispose())
-    member _.Run(m: TestM<unit>) : Test = { Name = name; Run = m }
+    member _.Run(m: TestM<unit>) : Test = { Run = m }
 
 /// See TestBuilder's own comment.
-let test name = TestBuilder(name)
+let test = TestBuilder()
