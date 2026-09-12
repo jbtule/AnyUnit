@@ -82,14 +82,13 @@ namespace AnyUnit.Style.Xunit
         }
 
         /// <summary>
-        /// Verifies that a collection contains at least one object matching a predicate,
-        /// returning the first one found.
+        /// Verifies that a collection contains at least one object matching a predicate.
         /// </summary>
         /// <typeparam name="T">The type of the object to be verified</typeparam>
         /// <param name="collection">The collection to be inspected</param>
         /// <param name="predicate">The predicate an item in the collection must match</param>
         /// <exception cref="ContainsException">Thrown when no item in the collection matches the predicate</exception>
-        public static T Contains<T>(this IAssert assert, IEnumerable<T> collection, Predicate<T> predicate)
+        public static void Contains<T>(this IAssert assert, IEnumerable<T> collection, Predicate<T> predicate)
         {
             Guard.ArgumentNotNull("predicate", predicate);
 
@@ -98,11 +97,10 @@ namespace AnyUnit.Style.Xunit
                     if (predicate(item))
                     {
                         assert.Okay();
-                        return item;
+                        return;
                     }
 
             assert.Fail(new ContainsException("(filter expression)"));
-            return default(T);
         }
 
         /// <summary>

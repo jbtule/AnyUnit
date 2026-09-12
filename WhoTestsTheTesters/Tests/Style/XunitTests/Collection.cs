@@ -25,8 +25,7 @@ namespace XunitTests
         [Fact]
         public void ContainsPredicate_Success()
         {
-            var found = Assert.Contains(Enumerable.Range(1, 5), it => it > 3);
-            Assert.Equal(4, found);
+            Assert.Contains(Enumerable.Range(1, 5), it => it > 3);
         }
 
         [Fact]
