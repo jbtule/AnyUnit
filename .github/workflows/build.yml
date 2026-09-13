@@ -213,7 +213,15 @@ jobs:
             if [ "$rid" = "linux-arm" ]; then
               echo "Skipping execution of $exe: 32-bit armhf can't run on this aarch64 host without multiarch/qemu-user support."
             else
-              .github/scripts/run-tests.sh "$exe" "net10-$rid"
+              # self-contained: a self-contained single-file publish and
+              # this same job's own plain framework-dependent net10 run
+              # (further up in this job) can land on the exact same
+              # OS/arch/framework (e.g. both "linux-x64" on ubuntu-latest,
+              # since PlatformId.Current only knows about those three
+              # things, not "self-contained vs framework-dependent") -
+              # without this they'd be indistinguishable in the JSON
+              # despite being genuinely different builds.
+              .github/scripts/run-tests.sh "$exe" "net10-$rid" self-contained
             fi
           done
 
@@ -453,11 +461,16 @@ jobs:
           echo "Installing AnyUnit.Runner $version"
           dotnet tool install --global AnyUnit.Runner --add-source packages --version "$version"
 
+      # packed-tool platform-suffix: this job runs on ubuntu-latest, same
+      # OS/arch/framework as build-and-test's own from-source net10 leg -
+      # without it, both would report the identical auto-detected
+      # PlatformId ("net10-linux-x64") despite being genuinely different
+      # (a packed nuget tool install vs a plain ProjectReference build).
       - name: Run tests through the installed anyunit-runner tool
         shell: bash
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          .github/scripts/run-tests.sh anyunit-runner packed-tool
+          .github/scripts/run-tests.sh anyunit-runner packed-tool packed-tool
 
       # Job Summary suppressed here - see build-and-test's own identical
       # comment on why (convention-summary posts the one consolidated
@@ -542,11 +555,16 @@ jobs:
 
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - same as test-browser-wasm.
+      # packed-wasm-tool platform-suffix: the actual test execution runs
+      # inside the browser-wasm interpreter regardless of which OS
+      # launched it, so this would otherwise report the exact same
+      # PlatformId ("net10-browser-wasm") as test-browser-wasm's own
+      # from-source run - see test-packed-tool's own identical comment.
       - name: Run tests through the installed anyunit-browser-wasm tool
         shell: bash
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool
+          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool packed-wasm-tool
 
       # Job Summary suppressed here - see build-and-test's own identical
       # comment on why (convention-summary posts the one consolidated
