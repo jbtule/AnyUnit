@@ -78,7 +78,7 @@ namespace AnyUnit.Run
             {
 
 
-                return String.Format("{{Assemblies:[{0}]}}",
+                return String.Format("{{\"Assemblies\":[{0}]}}",
                                      String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray())
                     );
             }

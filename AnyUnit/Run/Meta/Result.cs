@@ -93,17 +93,17 @@ namespace AnyUnit.Run
         public TestMeta Test { get; set; }
         public string ToListJson()
         {
-             return String.Format("{{Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
+             return String.Format("{{\"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\"}}",
                                  Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
-                                 StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt")
+                                 StartTime.ToString("o"), EndTime.ToString("o")
                                  );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Test:{6}, Platform:\"{0}\", Kind:\"{1}\", StartTime:\"{4}\",EndTime:\"{5}\", AssertCount:{2}, Output:\"{3}\"}}",
+            return String.Format("{{\"Test\":{6}, \"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\"}}",
                                  Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
-                                 StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), EndTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"),
+                                 StartTime.ToString("o"), EndTime.ToString("o"),
                                  Test.ToItemJson()
                                  );
         }

@@ -59,16 +59,17 @@ namespace AnyUnit.Run
   
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Timeout:{4}, Results:[{5}]}}",
+            return String.Format("{{\"Name\":\"{0}\", \"UniqueName\":\"{1}\", \"Description\":\"{2}\", \"Category\":{3}, \"Timeout\":{4}, \"Results\":[{5}]}}",
                                  Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(),
-                                 Timeout.MaybeStruct(m => m.ToString(), () => "null"), 
+                                 Timeout.MaybeStruct(m => m.ToString(), () => "null"),
                                  string.Join(",",Results.Select(it => it.ToListJson()).ToArray()));
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Fixture:{4}, Timeout:{5}, Description:\"{2}\", Category:{3}, UniqueName:\"{1}\", Name:\"{0}\", }}",
-                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Fixture.ToItemJson(),Timeout);
+            return String.Format("{{\"Fixture\":{4}, \"Timeout\":{5}, \"Description\":\"{2}\", \"Category\":{3}, \"UniqueName\":\"{1}\", \"Name\":\"{0}\"}}",
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Fixture.ToItemJson(),
+                                 Timeout.MaybeStruct(m => m.ToString(), () => "null"));
 
         }
 

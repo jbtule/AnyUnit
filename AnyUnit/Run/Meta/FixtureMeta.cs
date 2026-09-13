@@ -52,14 +52,14 @@ namespace AnyUnit.Run
         }
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Description:\"{2}\", Category:{3}, Tests:[{4}]}}",
+            return String.Format("{{\"Name\":\"{0}\", \"UniqueName\":\"{1}\", \"Description\":\"{2}\", \"Category\":{3}, \"Tests\":[{4}]}}",
                                  Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), String.Join(",", Tests.Select(it => it.ToListJson()).ToArray())
                 );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{Assembly:{4}, Category:{3}, Description:\"{2}\", UniqueName:\"{1}\", Name:\"{0}\",}}",
+            return String.Format("{{\"Assembly\":{4}, \"Category\":{3}, \"Description\":\"{2}\", \"UniqueName\":\"{1}\", \"Name\":\"{0}\"}}",
                                  Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Assembly.ToItemJson()
                 );
 
