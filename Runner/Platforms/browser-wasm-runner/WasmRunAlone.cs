@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using AnyUnit.Util;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using PuppeteerSharp;
@@ -7,8 +8,6 @@ namespace BrowserWasmRunner;
 
 public static class WasmRunAlone
 {
-    private const string PlatformId = "net10-browser-wasm";
-
     // Same layout whether run from source or installed as a packed tool:
     // browser-wasm-runner.csproj's CopyBrowserWasmRunnerHostToOutput target
     // lays the host out at $(OutDir)browser-wasm-host\wwwroot (i.e. right
@@ -20,7 +19,7 @@ public static class WasmRunAlone
     private static string DefaultHostWwwroot =>
         Path.Combine(AppContext.BaseDirectory, "browser-wasm-host", "wwwroot");
 
-    public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity, bool forceNoSandbox = false)
+    public static async Task<bool> RunAsync(IReadOnlyList<string> dllPaths, IDictionary<string, string> outputs, bool teamCity, bool forceNoSandbox = false, string? platformSuffix = null)
     {
         var testAssemblyNames = dllPaths.Select(p => Path.GetFileNameWithoutExtension(p)!).ToList();
         var nameToPath = dllPaths.ToDictionary(p => Path.GetFileNameWithoutExtension(p)!, p => p, StringComparer.OrdinalIgnoreCase);
@@ -113,8 +112,21 @@ public static class WasmRunAlone
             .Features.Get<IServerAddressesFeature>()!
             .Addresses.First();
 
+        // Console-message label only (see PrintStart/PrintEnd below) -
+        // computed once, here, not per print call - the actual Platform
+        // value in the JSON is computed independently, inside the
+        // browser-wasm-runner-host process itself (see AnyUnitRunnerPage.
+        // razor's own use of PlatformId.Current), since that's genuinely a
+        // different process/runtime than this launcher. Both derive from
+        // the same AnyUnit.Util.PlatformId logic, so in practice they
+        // agree, but there's no way to literally share the one computed
+        // value across that process boundary without adding IPC just for
+        // a log line.
+        var platformLabel = string.IsNullOrEmpty(platformSuffix) ? PlatformId.Current : PlatformId.Current + "-" + platformSuffix;
+
         var assembliesParam = string.Join(",", testAssemblyNames.Select(name => Uri.EscapeDataString(name)));
         var extraParam = string.Join(",", nameToPath.Keys.Except(testAssemblyNames, StringComparer.OrdinalIgnoreCase).Select(name => Uri.EscapeDataString(name)));
+        var platformSuffixParam = string.IsNullOrEmpty(platformSuffix) ? "" : $"&platformSuffix={Uri.EscapeDataString(platformSuffix)}";
 
         // PuppeteerSharp instead of Microsoft.Playwright: pure .NET, no
         // bundled Node.js driver (Playwright's own package bundled ALL
@@ -147,9 +159,9 @@ public static class WasmRunAlone
         page.Console += (_, e) => Console.Error.WriteLine($"[browser console:{e.Message.Type}] {e.Message.Text}");
         page.PageError += (_, e) => Console.Error.WriteLine($"[browser error] {e.Message}");
 
-        PrintStart(teamCity);
+        PrintStart(teamCity, platformLabel);
 
-        await page.GoToAsync($"{address}/?assemblies={assembliesParam}&extra={extraParam}");
+        await page.GoToAsync($"{address}/?assemblies={assembliesParam}&extra={extraParam}{platformSuffixParam}");
         // Default WaitForSelectorOptions (neither Visible nor Hidden set)
         // waits for present-in-DOM regardless of visibility - exactly what
         // #anyunit-done (deliberately style="display:none") needs, no
@@ -170,7 +182,7 @@ public static class WasmRunAlone
         // results only come back once the whole WASM run finishes, since
         // that's when the page's hooks are populated. Print the batch
         // summary in the same shape PrintOutAloneEnd uses instead.
-        PrintEnd(summary, teamCity);
+        PrintEnd(summary, teamCity, platformLabel);
 
         foreach (var output in outputs)
         {
@@ -180,23 +192,23 @@ public static class WasmRunAlone
         return string.Equals(hasErrorAttr, "true", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void PrintStart(bool teamCity)
+    private static void PrintStart(bool teamCity, string platformLabel)
     {
         if (teamCity)
         {
-            Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", PlatformId);
+            Console.WriteLine("##teamcity[testSuiteStarted name='{0}']", platformLabel);
         }
         else
         {
-            Console.WriteLine("Starting Tests for '{0}'", PlatformId);
+            Console.WriteLine("Starting Tests for '{0}'", platformLabel);
         }
     }
 
-    private static void PrintEnd(string summary, bool teamCity)
+    private static void PrintEnd(string summary, bool teamCity, string platformLabel)
     {
         if (teamCity)
         {
-            Console.WriteLine("##teamcity[testSuiteFinished name='{0}']", PlatformId);
+            Console.WriteLine("##teamcity[testSuiteFinished name='{0}']", platformLabel);
         }
         else
         {

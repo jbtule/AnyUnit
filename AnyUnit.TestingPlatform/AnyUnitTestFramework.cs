@@ -81,7 +81,12 @@ namespace AnyUnit.TestingPlatform
             // Fully qualified: AnyUnit.Run.Runner, the discovery/execution
             // engine - not just "Runner", to keep it unambiguous alongside
             // this namespace's own TestingPlatformBuilderHook/AnyUnitTestFramework.
-            var runner = AnyUnit.Run.Runner.Create("mtp", _testAssemblies);
+            // PlatformId.Current (see AnyUnit.Util), not a hardcoded "mtp" -
+            // that alone couldn't distinguish an MTP host built for net10
+            // vs one built for net48, or one OS/arch from another; "-mtp"
+            // stays appended so it's still distinguishable from the same
+            // assembly run through the plain console runner instead.
+            var runner = AnyUnit.Run.Runner.Create(AnyUnit.Util.PlatformId.Current + "-mtp", _testAssemblies);
 
             if (context.Request is DiscoverTestExecutionRequest discover)
             {

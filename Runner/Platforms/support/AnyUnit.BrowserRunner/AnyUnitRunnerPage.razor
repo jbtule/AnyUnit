@@ -55,6 +55,15 @@ else
     [Parameter]
     public TestFilter? Filter { get; set; }
 
+    /// <summary>
+    /// Optional label appended to the auto-detected platform id (see
+    /// AnyUnit.Util.PlatformId) - same meaning as net10-runner/net48-runner's
+    /// own -p/-platform-suffix flag, and where browser-wasm-runner's own
+    /// copy of that flag (see its RunCommand.cs) actually ends up.
+    /// </summary>
+    [Parameter]
+    public string? PlatformSuffix { get; set; }
+
     private ResultsFile? _file;
     private readonly System.Text.StringBuilder _logBuilder = new();
     private string _log => _logBuilder.ToString();
@@ -80,7 +89,10 @@ else
         StateHasChanged();
         await Task.Yield();
 
-        var runner = Runner.Create("net10-browser", TestAssemblies);
+        var platform = string.IsNullOrEmpty(PlatformSuffix)
+            ? PlatformId.Current
+            : PlatformId.Current + "-" + PlatformSuffix;
+        var runner = Runner.Create(platform, TestAssemblies);
         var file = new ResultsFile();
 
         // The "Timeout" category exercises AnyUnit's per-test [Timeout]
