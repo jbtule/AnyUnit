@@ -29,7 +29,7 @@ namespace AnyUnit.Report
         public ConvertCommand()
         {
             IsCommand("convert", "converts one or more AnyUnit JSON results files to another test-report format");
-            this.HasOption("f|format=", "Output format: junit, trx, nunit, xunit, or ctrf.", v => _format = v);
+            this.HasOption("f|format=", "Output format: junit, trx, nunit, xunit, ctrf, or html.", v => _format = v);
             this.HasOption("o|output=", "Output file path.", v => _output = v);
             // null, not a fixed count: ManyConsole's own signature caps
             // additional arguments at whatever number is given here, it
@@ -101,9 +101,11 @@ namespace AnyUnit.Report
                     return new XUnitXmlWriter();
                 case "ctrf":
                     return new CtrfJsonWriter();
+                case "html":
+                    return new HtmlWriter();
                 default:
                     throw new ConsoleHelpAsException(string.Format(
-                        "Unknown -format '{0}' - expected junit, trx, nunit, xunit, or ctrf.", format));
+                        "Unknown -format '{0}' - expected junit, trx, nunit, xunit, ctrf, or html.", format));
             }
         }
     }

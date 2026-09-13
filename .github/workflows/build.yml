@@ -695,7 +695,7 @@ jobs:
         run: |
           set -e
           export PATH="$PATH:$HOME/.dotnet/tools"
-          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json; do
+          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json html:html; do
             fmt="${fmt_ext%%:*}"
             ext="${fmt_ext##*:}"
             anyunit-report convert -f "$fmt" -o "/tmp/BasicTests.$fmt.$ext" /tmp/BasicTests.json
@@ -709,6 +709,29 @@ jobs:
             python3 -c "import xml.etree.ElementTree as ET; ET.parse('$f')"
           done
           python3 -c "import json; json.load(open('/tmp/BasicTests.ctrf.json'))"
+          # Not XML-parsed: the HTML writer emits HTML5, not XHTML (void
+          # elements like <meta>/<input> are unclosed), so ET.parse would
+          # reject a perfectly valid document. html.parser instead, with
+          # an explicit unclosed-tag check - that's the failure mode worth
+          # catching here (a writer that forgets a </div> still "parses").
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          void = {'meta','br','hr','img','input','link','source','col'}
+          class P(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.stack = []
+              def handle_starttag(self, tag, attrs):
+                  if tag not in void: self.stack.append(tag)
+              def handle_endtag(self, tag):
+                  if tag in void: return
+                  assert self.stack, f'unexpected </{tag}>'
+                  assert self.stack[-1] == tag, f'</{tag}> closes <{self.stack[-1]}>'
+                  self.stack.pop()
+          p = P()
+          p.feed(open('/tmp/BasicTests.html.html', encoding='utf-8').read())
+          assert not p.stack, f'unclosed tags: {p.stack}'
+          PY
 
   # A consolidated, cross-platform view on top of (not instead of) every
   # job above's own fail-fast convention gate: those stay the real,
@@ -789,46 +812,48 @@ jobs:
       # "AnyUnit.Report.[0-9]*" (a digit right after the second dot) picks
       # this tool's own nupkg out from beside AnyUnit.Report.Sdk or
       # similar, same pattern as test-packed-tool's version-extraction
-      # step. TrxToExtentReport (nuget.org, not this repo) turns a .trx
-      # file into a single standalone ExtentReports HTML report -
-      # anyunit-report itself only emits JUnit/TRX/NUnit/xUnit XML or CTRF
-      # JSON, no HTML of its own (see Report/README.md). PrettyTRX was
-      # tried first and dropped: verified locally against this repo's own
-      # multi-assembly output that it mislabels every result under a
-      # single blanket "assembly" group (the first TestMethod's codeBase
-      # in the file) instead of actually grouping per test's own
-      # class/assembly - confirmed real, not ours: the merged TRX itself
-      # is correctly split across all 26 fixture classNames.
-      # TrxToExtentReport verified the opposite way locally: per-class
-      # counts in its HTML output (e.g. "BasicTests.Basic": 29) match the
-      # source TRX exactly, across every assembly, not just the first one.
-      - name: Install anyunit-report and TrxToExtentReport tools
+      # step. The packed tool, not a source build - same real-consumer
+      # reasoning as test-packed-tool's own packed-vs-source distinction.
+      #
+      # No third-party HTML tool any more: anyunit-report grew its own
+      # `-f html` writer (Report/Formats/HtmlWriter.cs). Two were tried
+      # through a TRX hand-off first and both were a poor fit for this
+      # repo's multi-platform output - PrettyTRX mislabeled every result
+      # under one blanket assembly group, and TrxToExtentReport, while
+      # correct, can only show what TRX can express: the same test under
+      # 18 platforms as 18 unrelated-looking "TestName [platform]" rows,
+      # because TRX has no concept of one test having N platform results.
+      # The first-party writer keeps platform as an axis (a test x
+      # platform matrix) instead of flattening it away.
+      - name: Install the packed anyunit-report tool
         if: always()
         run: |
           set -e
           version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
           echo "Installing AnyUnit.Report $version"
           dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
-          dotnet tool install --global TrxToExtentReport --version 0.0.4
 
-      # anyunit-report merges every platform's JSON into one TRX first
-      # (same merge ResultsFile.Add does for convention-summary's own
-      # verify step above), then TrxToExtentReport renders that single
-      # file into the HTML report.
-      - name: Generate merged TRX and HTML test report
+      # One self-contained HTML file (inline CSS/JS, no external refs) so
+      # it works straight out of the downloaded artifact zip over file://.
+      # The .trx alongside it stays useful for anything that wants to
+      # consume the run mechanically rather than read it.
+      - name: Generate merged HTML test report
         if: always()
         shell: bash
         run: |
           set -e
           export PATH="$PATH:$HOME/.dotnet/tools"
           mkdir -p trx-report
+          anyunit-report convert -f html -o trx-report/report.html all-results/*/*.json
           anyunit-report convert -f trx -o trx-report/results.trx all-results/*/*.json
-          TrxToExtentReport -t trx-report/results.trx -o trx-report/report.html
+          ls -la trx-report
 
       - name: Upload HTML test report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-report-html
-          path: trx-report/report.html
+          path: |
+            trx-report/report.html
+            trx-report/results.trx
           if-no-files-found: warn
