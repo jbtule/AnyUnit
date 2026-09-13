@@ -79,6 +79,15 @@
     <PackageReference Include="PuppeteerSharp" Version="25.10.0" />
   </ItemGroup>
 
+  <!-- AnyUnit.Util.PlatformId, for WasmRunAlone's own console-message
+       label (see that file's own comment on why this launcher process's
+       copy is independent of - though derived the same way as -
+       browser-wasm-runner-host's, which computes the JSON's actual
+       Platform value itself, inside the browser). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
   <!--
     A BeforeTargets="Build"-only auto-publish target was tried again here
     (per explicit request, after the class of problem above) and

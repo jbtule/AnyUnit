@@ -18,6 +18,18 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Platform" Version="2.0.0" />
+    <!-- Just the capability/property types (ITrxReportCapability,
+         TrxFullyQualifiedTypeNameProperty, ...) a test framework
+         implements against - the actual TRX file generator is
+         Microsoft.Testing.Extensions.TrxReport, a much larger package a
+         consuming test project references itself (see
+         AnyUnitTrxReportCapability.cs and README.md's own note on this),
+         not something this adapter pulls in. Pinned to the same version
+         as Microsoft.Testing.Platform above (not bumped - every
+         WhoTestsTheTesters/Tests/*.Mtp project pins its own direct
+         Microsoft.Testing.Platform 2.0.0 reference too, and NuGet treats
+         a transitive bump past that as a downgrade error). -->
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

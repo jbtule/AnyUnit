@@ -9,11 +9,12 @@
 }
 else
 {
-    <AnyUnit.BrowserRunner.AnyUnitRunnerPage TestAssemblies="_assemblies" />
+    <AnyUnit.BrowserRunner.AnyUnitRunnerPage TestAssemblies="_assemblies" PlatformSuffix="@_platformSuffix" />
 }
 
 @code {
     private Assembly[]? _assemblies;
+    private string? _platformSuffix;
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,10 +25,13 @@ else
         //   extra=Name3,Name4       - their own dependencies (most real
         //     test assemblies aren't self-contained: style libraries, the
         //     system under test, other NuGet packages).
+        //   platformSuffix=Foo      - see AnyUnitRunnerPage's own
+        //     PlatformSuffix parameter.
         var uri = new Uri(Nav.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         var names = query["assemblies"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
         var extraNames = query["extra"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+        _platformSuffix = query["platformSuffix"];
 
         // Dependencies are NOT eagerly Assembly.Load-ed here - confirmed
         // empirically (a minimal LibA/LibB repro) that Mono/WASM doesn't

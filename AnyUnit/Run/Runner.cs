@@ -85,8 +85,8 @@ namespace AnyUnit.Run
         
         public string ToListJson()
         {
-            return String.Format("{{Platform:\"{1}\", Assemblies:[{0}]}}",
-                          String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray()), Platform);
+            return String.Format("{{\"Platform\":\"{1}\", \"Assemblies\":[{0}]}}",
+                          String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray()), Platform.EscapeJson());
         }
 
         public string ToItemJson()

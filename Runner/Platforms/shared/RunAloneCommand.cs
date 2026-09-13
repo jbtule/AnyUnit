@@ -1,23 +1,22 @@
 using System;
 using System.IO;
 using System.Linq;
+using AnyUnit.Util;
 using ManyConsole.CommandLineUtils;
 
 namespace SatelliteRunner.Shared
 {
     public partial class RunAloneCommand : ConsoleCommand
     {
-#if NET48
-        private const string RunnerId = "net48";
-#else
-        private const string RunnerId = "net10";
-#endif
-
         public override int Run(string[] args)
         {
-            Console.WriteLine(RunnerId);
+            var runnerId = PlatformId.Current;
+            if (!string.IsNullOrEmpty(_platformSuffix))
+                runnerId = runnerId + "-" + _platformSuffix;
+
+            Console.WriteLine(runnerId);
             var dlls = args.Select(Path.GetFullPath);
-            var results = new RunTests { OutputStyle = _outputStyle }.RunAlone(RunnerId, dlls);
+            var results = new RunTests { OutputStyle = _outputStyle }.RunAlone(runnerId, dlls);
 
             WriteResults.ToFiles(results, _outputs);
 

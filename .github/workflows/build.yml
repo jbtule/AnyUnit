@@ -108,6 +108,36 @@ jobs:
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10
 
+      # Exercises the MTP ITrxReportCapability wiring for real
+      # (AnyUnit.TestingPlatform/AnyUnitTrxReportCapability.cs +
+      # Runner.TryAddTrxReportProvider): BasicTests.Mtp references
+      # Microsoft.Testing.Extensions.TrxReport itself (see that csproj's
+      # own comment on why), so the "report-trx" flag should produce a
+      # real, well-formed .trx - not just parse as a recognized flag.
+      # Same "always non-zero, only the output matters" reasoning as
+      # run-tests.sh (BasicTests always contains real Fail/Error cases).
+      - name: Run BasicTests.Mtp with the report-trx flag and verify output
+        shell: bash
+        run: |
+          set -e
+          # A relative path, not /tmp/... : on Windows, git-bash's MSYS
+          # layer auto-converts a whole argument that looks like a POSIX
+          # path (e.g. dotnet's own --results-directory /tmp/trx-check)
+          # into a real Windows path before the native .NET/Python
+          # processes ever see it - but NOT a path embedded as a substring
+          # inside a larger argument, like `$trx` interpolated into
+          # python3's -c script below. That mismatch (dotnet writes to
+          # the auto-translated real path; python3 gets the literal,
+          # untranslated string) is a confirmed real failure on Windows
+          # CI (FileNotFoundError: '/tmp/trx-check/....trx'). A relative
+          # directory has no leading "/" to trigger that heuristic at
+          # all, so bash, dotnet.exe, and python3.exe all resolve it
+          # identically against the same cwd.
+          dotnet WhoTestsTheTesters/Tests/BasicTests.Mtp/bin/Release/net10.0/BasicTests.Mtp.dll \
+            --report-trx --results-directory trx-check || true
+          trx=$(ls trx-check/*.trx)
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('$trx')"
+
       # net48-runner needs an explicit -p:Platform build per bitness
       # (classic .NET Framework has no RuntimeIdentifier/self-contained
       # deployment model - bitness is a PE-header PlatformTarget, not
@@ -183,7 +213,15 @@ jobs:
             if [ "$rid" = "linux-arm" ]; then
               echo "Skipping execution of $exe: 32-bit armhf can't run on this aarch64 host without multiarch/qemu-user support."
             else
-              .github/scripts/run-tests.sh "$exe" "net10-$rid"
+              # self-contained: a self-contained single-file publish and
+              # this same job's own plain framework-dependent net10 run
+              # (further up in this job) can land on the exact same
+              # OS/arch/framework (e.g. both "linux-x64" on ubuntu-latest,
+              # since PlatformId.Current only knows about those three
+              # things, not "self-contained vs framework-dependent") -
+              # without this they'd be indistinguishable in the JSON
+              # despite being genuinely different builds.
+              .github/scripts/run-tests.sh "$exe" "net10-$rid" self-contained
             fi
           done
 
@@ -198,12 +236,49 @@ jobs:
       # "_Opposite"-prefixed one inverts that, etc. - see
       # WhoTestsTheTesters/ConventionTestProcessor). This is the real
       # pass/fail gate: it checks every result's actual outcome against what
-      # its own name declares, rather than eyeballing raw counts.
+      # its own name declares, rather than eyeballing raw counts. Its own Job
+      # Summary is suppressed here (ANYUNIT_SKIP_GH_SUMMARY) - convention-summary
+      # posts the one consolidated summary across every job's results instead,
+      # so this job's own copy would just be a redundant, single-platform
+      # subset of it (same reasoning coverage's own step is already excluded
+      # for).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      # actions/upload-artifact is a Node.js action, not bash - on Windows
+      # it resolves a literal "/tmp" completely differently than the git-
+      # bash MSYS layer every other step here goes through (which is why
+      # ConventionTestProcessor's own bash-invoked /tmp/*.json glob just
+      # above works fine, but pointing upload-artifact at that same
+      # pattern directly does not - confirmed for real: silently found
+      # nothing on both Windows legs, "No files were found with the
+      # provided path: /tmp/*.json", even on an otherwise fully green
+      # run). $RUNNER_TEMP/runner.temp is a real, OS-native absolute path
+      # exposed identically to bash and to the action, so copying there
+      # first (a plain bash step, same path resolution that already
+      # works for /tmp itself) sidesteps the mismatch entirely.
+      - name: Stage results for upload
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/anyunit-results"
+          cp /tmp/*.json "$RUNNER_TEMP/anyunit-results/" 2>/dev/null || true
+
+      # Uploaded regardless of the gate above (always()) - convention-summary
+      # wants every platform's data even when one platform's own gate just
+      # failed, so the consolidated view still reflects it too, not a gap.
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-${{ matrix.os }}
+          path: ${{ runner.temp }}/anyunit-results/*.json
+          if-no-files-found: warn
 
   coverage:
     runs-on: ubuntu-latest
@@ -250,16 +325,43 @@ jobs:
           name: coverage
           path: coverage.cobertura.xml
 
+      # dotnet-reportgenerator-globaltool, not a third-party GitHub
+      # Action - same "just another dotnet global tool" pattern as
+      # coverlet.console itself just above, so this doesn't add a new
+      # kind of trust surface to the workflow the way a marketplace
+      # summary action would. MarkdownSummaryGithub is a real,
+      # purpose-built report type for exactly this (verified locally
+      # against a real coverage.cobertura.xml first, not assumed) -
+      # collapsible per-assembly/per-class tables, the same aesthetic
+      # WhoTestsTheTesters/ConventionTestProcessor/GitHubSummary.cs's
+      # own convention-summary output already uses.
+      - name: Post coverage summary
+        shell: bash
+        run: |
+          set -e
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator -reports:coverage.cobertura.xml -targetdir:coveragereport -reporttypes:MarkdownSummaryGithub
+          cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
   test-browser-wasm:
-    # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
+    # ubuntu-latest, not macOS: this job's own dotnet-workload-install
+    # step (below) is the one that turned out to be ~15-20x slower on
+    # macos-latest than ubuntu-latest for reasons that stayed unknown
+    # after three separate fix attempts (see git history on this file -
+    # Gatekeeper disable, --skip-manifest-update, manifest purge - all
+    # reverted, none helped). Moving here avoids the slow install
+    # entirely instead of chasing it further. This job used to be on
+    # macOS specifically because headless Chromium's own sandbox needs
     # unprivileged user namespaces, which GitHub's ubuntu-latest image
-    # blocks via AppArmor (confirmed: launch failed there with "No
-    # usable sandbox!"). WasmRunAlone.cs now also passes --no-sandbox
-    # as a direct fix, but macOS sidesteps the whole class of problem -
-    # no such restriction there - and this exact browser-wasm-runner-host/
-    # browser-wasm-runner pipeline has been the one actually exercised locally
-    # all along, on an arm64 Mac.
-    runs-on: macos-latest
+    # blocks via AppArmor ("No usable sandbox!") - but WasmRunAlone.cs's
+    # --no-sandbox auto-detection (Linux + CI env var) is now a real,
+    # already-CI-verified fix for that (test-packed-wasm-tool proved it
+    # works on this exact runner image before this job ever needed it).
+    # Real sandboxed-Chromium coverage isn't lost by this move - it just
+    # shifts to test-packed-tool/test-packed-wasm-tool below, which pick
+    # up macos-latest instead - so both the sandboxed and --no-sandbox
+    # code paths still get exercised somewhere in the matrix.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
@@ -269,6 +371,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # ~15s here on ubuntu-latest (this job used to run on macos-latest,
+      # where the identical command took ~4-6 minutes for reasons that
+      # stayed unknown after three separate fix attempts - see this
+      # job's own top-of-block comment, and pack's copy of this same
+      # step, which still runs on ubuntu-latest and always was this
+      # fast).
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
@@ -285,20 +393,33 @@ jobs:
 
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - no separate install step
-      # the way Playwright's `playwright install` needed. If this ever
-      # moves back to a Linux runner, note anyunit-browser-wasm's -no-sandbox
-      # flag (WasmRunAlone.cs auto-applies it under Linux CI already,
-      # detected via the CI env var - the flag is only needed if that
-      # heuristic doesn't fire, e.g. a self-hosted/Docker runner).
+      # the way Playwright's `playwright install` needed.
+      # WasmRunAlone.cs auto-applies --no-sandbox under Linux CI
+      # (detected via the CI env var) - already confirmed working for
+      # real on this exact runner image by test-packed-wasm-tool before
+      # this job moved here; no explicit -p flag needed for that.
       - name: Run tests through anyunit-browser-wasm
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/browser-wasm-runner/bin/Release/net10.0/anyunit-browser-wasm.dll browser-wasm
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-browser-wasm
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   pack:
     runs-on: ubuntu-latest
@@ -356,7 +477,14 @@ jobs:
   # run` against a built self-test assembly, both worked end to end.
   test-packed-tool:
     needs: pack
-    runs-on: ubuntu-latest
+    # macos-latest, not ubuntu-latest: no wasm-tools install or browser
+    # work happens in this job at all (it only installs the already-
+    # packed anyunit-runner tool), so macOS carries none of the slow-
+    # install penalty that moved test-browser-wasm off it. Running here
+    # instead of ubuntu-latest keeps a non-Linux OS covered in the
+    # packed-tool matrix now that test-browser-wasm (below-linked jobs)
+    # has vacated macOS.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
@@ -392,17 +520,35 @@ jobs:
           echo "Installing AnyUnit.Runner $version"
           dotnet tool install --global AnyUnit.Runner --add-source packages --version "$version"
 
+      # packed-tool platform-suffix: this job runs on macos-latest, same
+      # OS/arch/framework as build-and-test's own from-source net10 leg -
+      # without it, both would report the identical auto-detected
+      # PlatformId ("net10-osx-arm64") despite being genuinely different
+      # (a packed nuget tool install vs a plain ProjectReference build).
       - name: Run tests through the installed anyunit-runner tool
         shell: bash
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          .github/scripts/run-tests.sh anyunit-runner packed-tool
+          .github/scripts/run-tests.sh anyunit-runner packed-tool packed-tool
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-packed-tool
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   # Same idea as test-packed-tool, for AnyUnit.Runner.BrowserWasm
   # (anyunit-browser-wasm) - arguably the more important of the two to
@@ -419,18 +565,19 @@ jobs:
   # only ever touches the already-packed .nupkg from the `pack` job.
   test-packed-wasm-tool:
     needs: pack
-    # ubuntu-latest, unlike test-browser-wasm's own macos-latest:
-    # WasmRunAlone.cs already auto-applies Chromium's --no-sandbox
-    # whenever it detects Linux + the CI env var (which GitHub Actions
-    # sets on every hosted runner, Linux included) - see its own
-    # comment. That's the actual fix for the AppArmor/unprivileged-
-    # user-namespace sandbox failure test-browser-wasm's comment
-    # describes; macOS there just sidesteps needing it at all, since
-    # that pipeline was what got exercised locally first. This job is
-    # the first to actually run that auto-detected path on real Linux
-    # CI rather than just reasoning about it - if it turns out not to
-    # fire correctly here, that's real, actionable signal on its own.
-    runs-on: ubuntu-latest
+    # macos-latest, now alongside test-packed-tool above: this job
+    # doesn't install wasm-tools or publish browser-wasm-runner-host
+    # itself (it only installs the already-packed anyunit-browser-wasm
+    # tool, which embeds that pipeline's output as pack content), so it
+    # carries none of the slow-workload-install penalty that motivated
+    # moving test-browser-wasm to ubuntu-latest. Running the actual
+    # headless-Chromium test execution here instead keeps real sandboxed-
+    # Chromium coverage in the matrix (no --no-sandbox needed - macOS
+    # has no AppArmor-style restriction) now that test-browser-wasm
+    # covers the --no-sandbox/Linux-CI-detected code path instead - see
+    # its own comment. Between the two jobs, both code paths in
+    # WasmRunAlone.cs's sandbox handling stay exercised for real.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
@@ -468,14 +615,246 @@ jobs:
 
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - same as test-browser-wasm.
+      # packed-wasm-tool platform-suffix: the actual test execution runs
+      # inside the browser-wasm interpreter regardless of which OS
+      # launched it, so this would otherwise report the exact same
+      # PlatformId ("net10-browser-wasm") as test-browser-wasm's own
+      # from-source run - see test-packed-tool's own identical comment.
       - name: Run tests through the installed anyunit-browser-wasm tool
         shell: bash
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool
+          .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool packed-wasm-tool
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-packed-wasm-tool
+          path: /tmp/*.json
+          if-no-files-found: warn
+
+  # Same idea as test-packed-tool, for AnyUnit.Report (anyunit-report):
+  # installs the real packed nupkg, then converts a real results.json
+  # (produced by the from-source net10-runner, built here via
+  # AnyUnit.ci.slnf same as test-packed-tool does) to every supported
+  # format, checking each output actually parses as well-formed
+  # XML/JSON - the shape a consumer of the packed tool would get, not
+  # just what building AnyUnit.Report from source produces.
+  test-packed-report-tool:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      - name: Build self-test payload assemblies and net10-runner
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # BasicTests always contains real Fail/Error cases by design (see
+      # run-tests.sh's own comment) - the runner's non-zero exit is
+      # expected here too, only the output file's existence matters.
+      - name: Produce a real results.json via the from-source net10-runner
+        run: |
+          set -e
+          dotnet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll run \
+            -o /tmp/BasicTests.json \
+            WhoTestsTheTesters/Tests/BasicTests/bin/Release/netstandard2.0/BasicTests.dll || true
+          test -f /tmp/BasicTests.json
+
+      - name: Install the packed anyunit-report tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Report $version"
+          dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
+
+      - name: Convert to every supported format through the installed anyunit-report tool
+        shell: bash
+        run: |
+          set -e
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json html:html; do
+            fmt="${fmt_ext%%:*}"
+            ext="${fmt_ext##*:}"
+            anyunit-report convert -f "$fmt" -o "/tmp/BasicTests.$fmt.$ext" /tmp/BasicTests.json
+          done
+
+      - name: Verify each output is well-formed
+        shell: bash
+        run: |
+          set -e
+          for f in /tmp/BasicTests.junit.xml /tmp/BasicTests.trx.xml /tmp/BasicTests.nunit.xml /tmp/BasicTests.xunit.xml; do
+            python3 -c "import xml.etree.ElementTree as ET; ET.parse('$f')"
+          done
+          python3 -c "import json; json.load(open('/tmp/BasicTests.ctrf.json'))"
+          # Not XML-parsed: the HTML writer emits HTML5, not XHTML (void
+          # elements like <meta>/<input> are unclosed), so ET.parse would
+          # reject a perfectly valid document. html.parser instead, with
+          # an explicit unclosed-tag check - that's the failure mode worth
+          # catching here (a writer that forgets a </div> still "parses").
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          void = {'meta','br','hr','img','input','link','source','col'}
+          class P(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.stack = []
+              def handle_starttag(self, tag, attrs):
+                  if tag not in void: self.stack.append(tag)
+              def handle_endtag(self, tag):
+                  if tag in void: return
+                  assert self.stack, f'unexpected </{tag}>'
+                  assert self.stack[-1] == tag, f'</{tag}> closes <{self.stack[-1]}>'
+                  self.stack.pop()
+          p = P()
+          p.feed(open('/tmp/BasicTests.html.html', encoding='utf-8').read())
+          assert not p.stack, f'unclosed tags: {p.stack}'
+          PY
+
+  # A consolidated, cross-platform view on top of (not instead of) every
+  # job above's own fail-fast convention gate: those stay the real,
+  # job-local pass/fail signal (fails immediately, attributes clearly to
+  # one specific OS/leg in the Checks UI) - this job exists purely to
+  # answer "what does the FULL platform matrix look like in one place",
+  # which no single job above can see on its own. if: always() so it
+  # still runs (and still posts its summary) even when one of those jobs
+  # failed - the consolidated view should show that failure too, not skip
+  # itself right when it would be most useful.
+  #
+  # No merge tooling needed: ConventionTestProcessor.VerifyJsonResults
+  # already accepts more than one results.json in a single call and
+  # accumulates them into the same Correct/Invalid/Unknown lists - which
+  # is exactly why every job above already passes it a whole /tmp/*.json
+  # glob instead of one file at a time. Passing it every downloaded
+  # artifact's *.json here is the identical mechanism, just pointed at
+  # every platform's files instead of one job's own.
+  convention-summary:
+    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool, pack]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build ConventionTestProcessor
+        run: dotnet build WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release
+
+      # pack's own AnyUnit.Report.<version>.nupkg - the same packed tool a
+      # real consumer would install, not a source build, same reasoning as
+      # test-packed-tool's own packed-vs-source distinction.
+      - name: Download packed nuget packages
+        uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # Each anyunit-results-* artifact (build-and-test's 6-OS matrix,
+      # test-browser-wasm, test-packed-tool, test-packed-wasm-tool) into
+      # its own subdirectory under all-results/, NOT merge-multiple's
+      # flattened single directory: run-tests.sh's own suffix argument
+      # ("net10") is the same literal string across every build-and-test
+      # matrix leg regardless of OS, so every leg's artifact contains a
+      # same-named BasicTests-net10.json/etc. - merge-multiple flattening
+      # those into one shared directory collides them across artifacts
+      # (confirmed for real: silently produced a corrupted/truncated file,
+      # ConventionTestProcessor crashing on it with a JsonException, not a
+      # clean file-not-found). One subdirectory per artifact (the default
+      # when merge-multiple isn't set) sidesteps the collision entirely,
+      # at the cost of a one-level-deeper glob below. coverage's own
+      # results.json is deliberately not part of any of this (it re-runs
+      # the identical net10 self-test data purely to measure coverage %,
+      # not a distinct platform - see GitHubSummary.cs's own
+      # ANYUNIT_SKIP_GH_SUMMARY comment for the same reasoning).
+      - name: Download every platform's results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: anyunit-results-*
+          path: all-results
+
+      - name: Verify results match naming convention across every platform
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- all-results/*/*.json
+
+      # if: always() from here down - want the HTML report even when the
+      # gate above just failed (that's exactly when a human most wants to
+      # look at the actual per-test detail), same reasoning as build-and-
+      # test's own "Upload results" step.
+      #
+      # "AnyUnit.Report.[0-9]*" (a digit right after the second dot) picks
+      # this tool's own nupkg out from beside AnyUnit.Report.Sdk or
+      # similar, same pattern as test-packed-tool's version-extraction
+      # step. The packed tool, not a source build - same real-consumer
+      # reasoning as test-packed-tool's own packed-vs-source distinction.
+      #
+      # No third-party HTML tool any more: anyunit-report grew its own
+      # `-f html` writer (Report/Formats/HtmlWriter.cs). Two were tried
+      # through a TRX hand-off first and both were a poor fit for this
+      # repo's multi-platform output - PrettyTRX mislabeled every result
+      # under one blanket assembly group, and TrxToExtentReport, while
+      # correct, can only show what TRX can express: the same test under
+      # 18 platforms as 18 unrelated-looking "TestName [platform]" rows,
+      # because TRX has no concept of one test having N platform results.
+      # The first-party writer keeps platform as an axis (a test x
+      # platform matrix) instead of flattening it away.
+      - name: Install the packed anyunit-report tool
+        if: always()
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Report $version"
+          dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
+
+      # One self-contained HTML file (inline CSS/JS, no external refs) so
+      # it works straight out of the downloaded artifact zip over file://.
+      # HTML only, deliberately: a .trx was uploaded alongside it briefly
+      # on the theory that a machine-readable copy might be wanted, but
+      # nothing consumes it - and it was by far the bigger half of the
+      # artifact (7.7MB of TRX against a 2.8MB report). The raw per-
+      # platform results.json artifacts are still uploaded by every job
+      # above if anything ever does need to consume a run mechanically.
+      - name: Generate merged HTML test report
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          mkdir -p html-report
+          anyunit-report convert -f html -o html-report/report.html all-results/*/*.json
+          ls -la html-report
+
+      - name: Upload HTML test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-report-html
+          path: html-report/report.html
+          if-no-files-found: warn

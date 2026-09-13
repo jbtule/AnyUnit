@@ -40,6 +40,21 @@
     <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
 
+  <!--
+    Opts this self-test project into real "report-trx" flag coverage
+    (see build.yml's own "Run BasicTests.Mtp with report-trx" step) -
+    AnyUnit.TestingPlatform itself only references the small Abstractions
+    package (see its own csproj comment) and picks this up via reflection
+    at runtime if present, exactly like a real consumer wanting TRX
+    output would. Version pinned to 2.0.0 to match Microsoft.Testing.
+    Platform's own pin (see AnyUnit.TestingPlatform.csproj) - a newer
+    version here would be a NuGet package-downgrade error the same way
+    bumping Microsoft.Testing.Platform alone was.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.0" />
+  </ItemGroup>
+
   <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
 
 </Project>

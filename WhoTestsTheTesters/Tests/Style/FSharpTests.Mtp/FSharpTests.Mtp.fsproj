@@ -1,27 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Real F# MTP host now (was a C# satellite shell working around
-    EnableAnyUnitRunner's own C#-only codegen) - see Program.fs's own
-    comment. FSharpTests.fsproj itself stays a plain library, referenced
-    here by simple assembly name via Assembly.Load, same as before.
+    A real .fsproj using EnableAnyUnitRunner directly, no hand-written
+    Program.fs - Microsoft.Testing.Platform.MSBuild's own official
+    entry-point generator genuinely emits real F# source (verified
+    directly), so there's nothing C#-specific left to work around here.
+    FSharpTests.fsproj itself stays a plain library, referenced by simple
+    assembly name via AnyUnitTestAssembly below (see AnyUnit.TestingPlatform.
+    targets/TestingPlatformBuilderHook.cs for how that reaches the test
+    framework with no per-project generated code).
   -->
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="Program.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Testing.Platform" Version="2.0.0" />
-  </ItemGroup>
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\FSharpTests\FSharpTests.fsproj" />
     <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AnyUnitTestAssembly Include="FSharpTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
 
 </Project>

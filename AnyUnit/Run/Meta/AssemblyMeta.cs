@@ -50,15 +50,15 @@ namespace AnyUnit.Run
 
         public string ToListJson()
         {
-            return String.Format("{{Name:\"{0}\", UniqueName:\"{1}\", Fixtures:[{2}]}}",
-                                 Name.EscapeJson(), UniqueName.EscapeJson(),  
+            return String.Format("{{\"Name\":\"{0}\", \"UniqueName\":\"{1}\", \"Fixtures\":[{2}]}}",
+                                 Name.EscapeJson(), UniqueName.EscapeJson(),
                                  String.Join(",", Fixtures.Select(it=>it.ToListJson()).ToArray())
                 );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{UniqueName:\"{1}\",  Name:\"{0}\"}}",
+            return String.Format("{{\"UniqueName\":\"{1}\", \"Name\":\"{0}\"}}",
                                  Name.EscapeJson(), UniqueName.EscapeJson());
 
         }

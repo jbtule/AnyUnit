@@ -13,7 +13,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Testing.Platform.Builder;
@@ -23,7 +22,9 @@ namespace AnyUnit.TestingPlatform
 {
     internal sealed class AnyUnitTestFrameworkCapabilities : ITestFrameworkCapabilities
     {
-        public IReadOnlyCollection<ITestFrameworkCapability> Capabilities => Array.Empty<ITestFrameworkCapability>();
+        public AnyUnitTrxReportCapability TrxReport { get; } = new AnyUnitTrxReportCapability();
+
+        public IReadOnlyCollection<ITestFrameworkCapability> Capabilities => new ITestFrameworkCapability[] { TrxReport };
     }
 
     /// <summary>
@@ -45,9 +46,10 @@ namespace AnyUnit.TestingPlatform
         /// </summary>
         public static void AddAnyUnitTestFramework(this ITestApplicationBuilder builder, params Assembly[] testAssemblies)
         {
+            var capabilities = new AnyUnitTestFrameworkCapabilities();
             builder.RegisterTestFramework(
-                _ => new AnyUnitTestFrameworkCapabilities(),
-                (capabilities, serviceProvider) => new AnyUnitTestFramework(testAssemblies));
+                _ => capabilities,
+                (_, serviceProvider) => new AnyUnitTestFramework(testAssemblies, capabilities.TrxReport));
         }
     }
 }

@@ -7,6 +7,7 @@ public class RunCommand : ConsoleCommand
     private readonly IDictionary<string, string> _outputs = new Dictionary<string, string>();
     private bool _teamCity;
     private bool _noSandbox;
+    private string? _platformSuffix;
 
     public RunCommand()
     {
@@ -16,6 +17,7 @@ public class RunCommand : ConsoleCommand
         IsCommand("run", "runs test runner to output file");
         this.HasOption("o|output=", "Results File Output", v => _outputs.Add("json", v));
         this.HasOption("teamcity", "Team City results to Std out.", v => { _teamCity = true; });
+        this.HasOption("p|platform-suffix=", "Optional label appended to the auto-detected platform id (e.g. -p ci-nightly).", v => _platformSuffix = v);
         // Already auto-detected on Linux CI (see WasmRunAlone's own
         // comment - Chromium's sandbox commonly fails there under
         // AppArmor restrictions on unprivileged user namespaces). This
@@ -29,7 +31,7 @@ public class RunCommand : ConsoleCommand
     public override int Run(string[] args)
     {
         var dlls = args.Select(Path.GetFullPath).ToList();
-        var hasError = WasmRunAlone.RunAsync(dlls, _outputs, _teamCity, _noSandbox).GetAwaiter().GetResult();
+        var hasError = WasmRunAlone.RunAsync(dlls, _outputs, _teamCity, _noSandbox, _platformSuffix).GetAwaiter().GetResult();
         return hasError ? 1 : 0;
     }
 }

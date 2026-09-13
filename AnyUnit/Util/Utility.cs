@@ -99,15 +99,54 @@ namespace AnyUnit.Util
             return !type.GetTypeInfo().IsValueType || (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().CanAssignFrom(typeof(Nullable<>)));
         }
 
+        // Escapes a string for embedding as a JSON string literal's content
+        // (between the surrounding quotes the caller supplies). Only emits
+        // the escape sequences the JSON spec (RFC 8259) actually defines -
+        // \" \\ \b \f \n \r \t plus \u00XX for other control characters -
+        // unlike an earlier version of this method, which also emitted \'
+        // for a literal apostrophe. \' is not a valid JSON escape sequence,
+        // so any string containing one (e.g. a test name like "the user's
+        // session") produced invalid JSON.
         public static string EscapeJson(this string json)
         {
             if (json == null)
                 return json;
-            json = json.Replace(@"\", @"\\"); 
-            json = json.Replace(@"/", @"\/");
-            json = json.Replace("\"", "\\\"");
-            json = json.Replace(@"'", @"\'");
-            return json;
+
+            var sb = new StringBuilder(json.Length);
+            foreach (var c in json)
+            {
+                switch (c)
+                {
+                    case '"':
+                        sb.Append("\\\"");
+                        break;
+                    case '\\':
+                        sb.Append("\\\\");
+                        break;
+                    case '\b':
+                        sb.Append("\\b");
+                        break;
+                    case '\f':
+                        sb.Append("\\f");
+                        break;
+                    case '\n':
+                        sb.Append("\\n");
+                        break;
+                    case '\r':
+                        sb.Append("\\r");
+                        break;
+                    case '\t':
+                        sb.Append("\\t");
+                        break;
+                    default:
+                        if (c < ' ')
+                            sb.Append("\\u").Append(((int)c).ToString("x4"));
+                        else
+                            sb.Append(c);
+                        break;
+                }
+            }
+            return sb.ToString();
         }
 
 
@@ -127,7 +166,7 @@ namespace AnyUnit.Util
                     sb.Append(",");
                 }
                 sb.Append("\"");
-                sb.Append(s);
+                sb.Append(s.EscapeJson());
                 sb.Append("\"");
             }
             sb.Append("]");
