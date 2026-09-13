@@ -789,24 +789,32 @@ jobs:
       # "AnyUnit.Report.[0-9]*" (a digit right after the second dot) picks
       # this tool's own nupkg out from beside AnyUnit.Report.Sdk or
       # similar, same pattern as test-packed-tool's version-extraction
-      # step. PrettyTRX (nuget.org, not this repo) turns a folder of .trx
-      # files into a single standalone HTML report - anyunit-report itself
-      # only emits JUnit/TRX/NUnit/xUnit XML or CTRF JSON, no HTML of its
-      # own (see Report/README.md).
-      - name: Install anyunit-report and PrettyTRX tools
+      # step. TrxToExtentReport (nuget.org, not this repo) turns a .trx
+      # file into a single standalone ExtentReports HTML report -
+      # anyunit-report itself only emits JUnit/TRX/NUnit/xUnit XML or CTRF
+      # JSON, no HTML of its own (see Report/README.md). PrettyTRX was
+      # tried first and dropped: verified locally against this repo's own
+      # multi-assembly output that it mislabels every result under a
+      # single blanket "assembly" group (the first TestMethod's codeBase
+      # in the file) instead of actually grouping per test's own
+      # class/assembly - confirmed real, not ours: the merged TRX itself
+      # is correctly split across all 26 fixture classNames.
+      # TrxToExtentReport verified the opposite way locally: per-class
+      # counts in its HTML output (e.g. "BasicTests.Basic": 29) match the
+      # source TRX exactly, across every assembly, not just the first one.
+      - name: Install anyunit-report and TrxToExtentReport tools
         if: always()
         run: |
           set -e
           version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
           echo "Installing AnyUnit.Report $version"
           dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
-          dotnet tool install --global PrettyTRX
+          dotnet tool install --global TrxToExtentReport --version 0.0.4
 
       # anyunit-report merges every platform's JSON into one TRX first
       # (same merge ResultsFile.Add does for convention-summary's own
-      # verify step above) - PrettyTRX then scans the containing folder
-      # for .trx files, so the merged file gets its own directory rather
-      # than sitting beside the downloaded JSON.
+      # verify step above), then TrxToExtentReport renders that single
+      # file into the HTML report.
       - name: Generate merged TRX and HTML test report
         if: always()
         shell: bash
@@ -815,7 +823,7 @@ jobs:
           export PATH="$PATH:$HOME/.dotnet/tools"
           mkdir -p trx-report
           anyunit-report convert -f trx -o trx-report/results.trx all-results/*/*.json
-          prettytrx --path trx-report --output trx-report/report.html
+          TrxToExtentReport -t trx-report/results.trx -o trx-report/report.html
 
       - name: Upload HTML test report
         if: always()
