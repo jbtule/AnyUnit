@@ -667,22 +667,29 @@ jobs:
 
       # Each anyunit-results-* artifact (build-and-test's 6-OS matrix,
       # test-browser-wasm, test-packed-tool, test-packed-wasm-tool) into
-      # one directory - merge-multiple flattens them together rather than
-      # nesting one subfolder per artifact name, so a plain *.json glob
-      # below picks up all of them regardless of which job produced which.
-      # coverage's own results.json is deliberately not part of this (it
-      # re-runs the identical net10 self-test data purely to measure
-      # coverage %, not a distinct platform - see GitHubSummary.cs's own
+      # its own subdirectory under all-results/, NOT merge-multiple's
+      # flattened single directory: run-tests.sh's own suffix argument
+      # ("net10") is the same literal string across every build-and-test
+      # matrix leg regardless of OS, so every leg's artifact contains a
+      # same-named BasicTests-net10.json/etc. - merge-multiple flattening
+      # those into one shared directory collides them across artifacts
+      # (confirmed for real: silently produced a corrupted/truncated file,
+      # ConventionTestProcessor crashing on it with a JsonException, not a
+      # clean file-not-found). One subdirectory per artifact (the default
+      # when merge-multiple isn't set) sidesteps the collision entirely,
+      # at the cost of a one-level-deeper glob below. coverage's own
+      # results.json is deliberately not part of any of this (it re-runs
+      # the identical net10 self-test data purely to measure coverage %,
+      # not a distinct platform - see GitHubSummary.cs's own
       # ANYUNIT_SKIP_GH_SUMMARY comment for the same reasoning).
       - name: Download every platform's results
         uses: actions/download-artifact@v7
         with:
           pattern: anyunit-results-*
           path: all-results
-          merge-multiple: true
 
       - name: Verify results match naming convention across every platform
         shell: bash
         run: |
           set -e
-          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- all-results/*.json
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- all-results/*/*.json
