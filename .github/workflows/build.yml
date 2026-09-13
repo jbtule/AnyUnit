@@ -325,26 +325,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Experiment: this step alone takes ~4 minutes on macos-latest vs
-      # ~15s for the identical command on ubuntu-latest (the pack job's
-      # own copy) - unclear whether that's Gatekeeper's on-first-load
-      # code-signature verification/quarantine scanning of the many
-      # files this unpacks, or just plain macOS-runner disk I/O being
-      # slower, unrelated to Gatekeeper at all. Disabling Gatekeeper only
-      # around this one step (not the whole job) to measure it directly -
-      # acceptable here specifically because GitHub-hosted runners are
-      # single-use, destroyed after the job, so there's no persistent
-      # exposure the way there would be on a real workstation. Re-enabled
-      # immediately after, in the same step, so nothing later in the job
-      # (or a future job on whatever image this VM becomes) runs with it
-      # off.
+      # This step alone takes ~4 minutes on macos-latest vs ~15s for the
+      # identical command on ubuntu-latest (the pack job's own copy) -
+      # tried disabling Gatekeeper around just this step to test whether
+      # that was the cause (`sudo spctl --master-disable`), reverted:
+      # confirmed for real that current macOS runner images reject it
+      # non-interactively ("Globally disabling the assessment system
+      # needs to be confirmed in System Settings" - Apple requires GUI
+      # confirmation now, no headless override), failing the step
+      # outright rather than just not helping. Whatever the real cause
+      # is, it isn't fixable this way.
       - name: Install wasm-tools workload
-        shell: bash
-        run: |
-          set -e
-          sudo spctl --master-disable
-          dotnet workload install wasm-tools
-          sudo spctl --master-enable
+        run: dotnet workload install wasm-tools
 
       # Must come before the solution build below: browser-wasm-runner's own
       # build fails outright unless browser-wasm-runner-host has already been
