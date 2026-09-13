@@ -335,43 +335,25 @@ jobs:
       # confirmation now, no headless override), failing the step
       # outright rather than just not helping.
       #
-      # --skip-manifest-update: without it, `dotnet workload install`
-      # unconditionally hits the network to check for a newer workload
-      # manifest before installing anything, even though the SDK on a
-      # freshly-provisioned runner image should already carry a current
-      # one - measured no improvement from this alone (5m59s vs the
-      # ~3m55s baseline, if anything worse - likely just normal run-to-
-      # run variance on GitHub's macOS runner pool, not a regression
-      # this flag caused).
-      #
-      # Next theory: dotnet workload install loads the WHOLE installed
-      # manifest set to build its resolver graph, not just wasm-tools'
-      # own - and macos-latest ships with a lot of unrelated iOS/
-      # MacCatalyst/macOS/MAUI manifests ubuntu-latest doesn't have at
-      # all (that's the actual runner-image difference, not anything
-      # Gatekeeper/cache-related) - see runner-images' own inventory for
-      # macos-latest. Removing the ones this job has no use for before
-      # installing wasm-tools tests whether that resolver-graph cost is
-      # the real one. sdk-manifests' real layout is two levels
-      # (<band-version>/<manifest-id>/, e.g. "9.0.100/microsoft.net.
-      # workload.mono.toolchain.net9/") - the glob has a */ for the band
-      # level to actually reach into it, not a single wildcard. || true
-      # on each rm: -f already makes a nonexistent target harmless, but
-      # this keeps a genuinely wrong path from failing the step outright
-      # while the find calls below confirm what was actually there
-      # either way.
+      # Three attempts at the ~4-6 min gap on macos-latest vs ~15s on
+      # ubuntu-latest for this identical command, none of them panned
+      # out: disabling Gatekeeper around it broke the step outright
+      # (current macOS runner images require interactive GUI
+      # confirmation, no headless override); --skip-manifest-update
+      # measured no improvement (5m59s, if anything worse than the
+      # ~3m55s baseline); and purging unrelated iOS/MacCatalyst/macOS/
+      # MAUI SDK manifests first (on the theory that dotnet workload
+      # install loads the whole installed manifest set to build its
+      # resolver graph, not just wasm-tools' own) failed before it even
+      # got to test that - /usr/local/share/dotnet/sdk-manifests doesn't
+      # exist on this runner at all (actions/setup-dotnet installs into
+      # the runner's tool-cache, not that traditional path - wrong
+      # assumption, never actually got to run any rm -rf, confirmed safe
+      # from the log: `find` itself errored first). Stopping here -
+      # whatever's actually costing the extra minutes on macOS remains
+      # unknown, and isn't fixable with any of these three approaches.
       - name: Install wasm-tools workload
-        shell: bash
-        run: |
-          echo "=== sdk-manifests before ==="
-          find /usr/local/share/dotnet/sdk-manifests -maxdepth 2 -type d
-          sudo rm -rf /usr/local/share/dotnet/sdk-manifests/*/microsoft.net.workload.ios* || true
-          sudo rm -rf /usr/local/share/dotnet/sdk-manifests/*/microsoft.net.workload.maccatalyst* || true
-          sudo rm -rf /usr/local/share/dotnet/sdk-manifests/*/microsoft.net.workload.macos* || true
-          sudo rm -rf /usr/local/share/dotnet/sdk-manifests/*/microsoft.net.sdk.maui* || true
-          echo "=== sdk-manifests after ==="
-          find /usr/local/share/dotnet/sdk-manifests -maxdepth 2 -type d
-          dotnet workload install wasm-tools --skip-manifest-update
+        run: dotnet workload install wasm-tools
 
       # Must come before the solution build below: browser-wasm-runner's own
       # build fails outright unless browser-wasm-runner-host has already been
@@ -434,10 +416,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # --skip-manifest-update - see test-browser-wasm's own identical
-      # step for why.
       - name: Install wasm-tools workload
-        run: dotnet workload install wasm-tools --skip-manifest-update
+        run: dotnet workload install wasm-tools
 
       # Must come before the pack below: browser-wasm-runner's own build (which
       # `dotnet pack` triggers as part of packing it) fails outright
