@@ -728,7 +728,7 @@ jobs:
   # artifact's *.json here is the identical mechanism, just pointed at
   # every platform's files instead of one job's own.
   convention-summary:
-    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool]
+    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool, pack]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -742,6 +742,15 @@ jobs:
 
       - name: Build ConventionTestProcessor
         run: dotnet build WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release
+
+      # pack's own AnyUnit.Report.<version>.nupkg - the same packed tool a
+      # real consumer would install, not a source build, same reasoning as
+      # test-packed-tool's own packed-vs-source distinction.
+      - name: Download packed nuget packages
+        uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
 
       # Each anyunit-results-* artifact (build-and-test's 6-OS matrix,
       # test-browser-wasm, test-packed-tool, test-packed-wasm-tool) into
@@ -771,3 +780,47 @@ jobs:
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- all-results/*/*.json
+
+      # if: always() from here down - want the HTML report even when the
+      # gate above just failed (that's exactly when a human most wants to
+      # look at the actual per-test detail), same reasoning as build-and-
+      # test's own "Upload results" step.
+      #
+      # "AnyUnit.Report.[0-9]*" (a digit right after the second dot) picks
+      # this tool's own nupkg out from beside AnyUnit.Report.Sdk or
+      # similar, same pattern as test-packed-tool's version-extraction
+      # step. PrettyTRX (nuget.org, not this repo) turns a folder of .trx
+      # files into a single standalone HTML report - anyunit-report itself
+      # only emits JUnit/TRX/NUnit/xUnit XML or CTRF JSON, no HTML of its
+      # own (see Report/README.md).
+      - name: Install anyunit-report and PrettyTRX tools
+        if: always()
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Report $version"
+          dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
+          dotnet tool install --global PrettyTRX
+
+      # anyunit-report merges every platform's JSON into one TRX first
+      # (same merge ResultsFile.Add does for convention-summary's own
+      # verify step above) - PrettyTRX then scans the containing folder
+      # for .trx files, so the merged file gets its own directory rather
+      # than sitting beside the downloaded JSON.
+      - name: Generate merged TRX and HTML test report
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          mkdir -p trx-report
+          anyunit-report convert -f trx -o trx-report/results.trx all-results/*/*.json
+          prettytrx --path trx-report --output trx-report/report.html
+
+      - name: Upload HTML test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-report-html
+          path: trx-report/report.html
+          if-no-files-found: warn
