@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AnyUnit.Run;
+using Microsoft.Testing.Extensions.TrxReport.Abstractions;
 using Microsoft.Testing.Platform.Extensions;
 using Microsoft.Testing.Platform.Extensions.Messages;
 using Microsoft.Testing.Platform.Extensions.TestFramework;
@@ -38,6 +39,7 @@ namespace AnyUnit.TestingPlatform
     internal sealed class AnyUnitTestFramework : ITestFramework, IDataProducer
     {
         private readonly Assembly[] _testAssemblies;
+        private readonly AnyUnitTrxReportCapability _trxReportCapability;
 
         // Defaults to the entry assembly, matching a test project that
         // compiles its own tests directly into the MTP executable. A host
@@ -46,12 +48,13 @@ namespace AnyUnit.TestingPlatform
         // own testAssemblies parameter) needs to say so explicitly - the
         // entry assembly would otherwise be the host itself, which has no
         // tests of its own, and Runner.Create would (silently) find zero.
-        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies)
+        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies, AnyUnitTrxReportCapability trxReportCapability)
         {
             var assemblies = (testAssemblies ?? Enumerable.Empty<Assembly>()).ToArray();
             _testAssemblies = assemblies.Length > 0
                 ? assemblies
                 : new[] { Assembly.GetEntryAssembly() ?? typeof(AnyUnitTestFramework).Assembly };
+            _trxReportCapability = trxReportCapability;
         }
 
         public string Uid => "AnyUnit.TestingPlatform";
@@ -87,7 +90,7 @@ namespace AnyUnit.TestingPlatform
                 {
                     await context.MessageBus.PublishAsync(this, new TestNodeUpdateMessage(
                         discover.Session.SessionUid,
-                        ToTestNode(test, new DiscoveredTestNodeStateProperty())));
+                        ToTestNode(test, new DiscoveredTestNodeStateProperty(), null)));
                 }
             }
             else if (context.Request is RunTestExecutionRequest run)
@@ -95,7 +98,7 @@ namespace AnyUnit.TestingPlatform
                 runner.RunAll(result =>
                 {
                     var property = ToStateProperty(result);
-                    var node = ToTestNode(result.Test, property);
+                    var node = ToTestNode(result.Test, property, result);
                     context.MessageBus.PublishAsync(this, new TestNodeUpdateMessage(
                         run.Session.SessionUid, node)).GetAwaiter().GetResult();
                 });
@@ -104,14 +107,60 @@ namespace AnyUnit.TestingPlatform
             context.Complete();
         }
 
-        private static TestNode ToTestNode(TestMeta test, IProperty stateProperty)
+        // `result` is null during discovery (no test has actually run yet,
+        // so there's nothing to report an exception/output for) and
+        // non-null once a test has actually executed - only then can the
+        // TRX-specific properties below (which need a real outcome, not
+        // just static test metadata) be attached.
+        private TestNode ToTestNode(TestMeta test, IProperty stateProperty, Result result)
         {
+            var properties = new List<IProperty> { stateProperty };
+
+            if (_trxReportCapability != null && _trxReportCapability.IsEnabled)
+            {
+                properties.Add(new TrxFullyQualifiedTypeNameProperty(StripPrefix(test.Fixture.UniqueName)));
+
+                var categories = test.Category.Concat(test.Fixture.Category).Distinct().ToArray();
+                if (categories.Length > 0)
+                    properties.Add(new TrxCategoriesProperty(categories));
+
+                if (result != null)
+                {
+                    // AnyUnit.Run.Result has no separate exception-message/
+                    // stack-trace field - Output is the test's whole
+                    // captured log (see AnyUnit.Report's own writers for
+                    // the same caveat), so it's the only thing available
+                    // for either.
+                    if (result.Kind == ResultKind.Fail || result.Kind == ResultKind.Error)
+                    {
+                        properties.Add(new TrxExceptionProperty(result.Output, result.Output));
+                    }
+                    else if (!string.IsNullOrEmpty(result.Output))
+                    {
+                        properties.Add(new TrxMessagesProperty(new TrxMessage[] { new StandardOutputTrxMessage(result.Output) }));
+                    }
+                }
+            }
+
             return new TestNode
             {
                 Uid = new TestNodeUid(test.UniqueName),
                 DisplayName = test.Name,
-                Properties = new PropertyBag(stateProperty),
+                Properties = new PropertyBag(properties.ToArray()),
             };
+        }
+
+        // FixtureMeta.UniqueName carries a "T:"-style discovery-kind prefix
+        // (see FixtureMeta's constructor: "T:{namespace}.{name}") - a TRX
+        // viewer's className is expected to look like a real .NET type
+        // name, so strip it (same convention AnyUnit.Report's own writers
+        // use for the same reason - see ResultsModel.StripPrefix there).
+        private static string StripPrefix(string uniqueName)
+        {
+            if (string.IsNullOrEmpty(uniqueName))
+                return uniqueName;
+            var colon = uniqueName.IndexOf(':');
+            return colon >= 0 && colon < 3 ? uniqueName.Substring(colon + 1) : uniqueName;
         }
 
         private static IProperty ToStateProperty(Result result)

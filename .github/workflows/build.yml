@@ -108,6 +108,23 @@ jobs:
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll net10
 
+      # Exercises the MTP ITrxReportCapability wiring for real
+      # (AnyUnit.TestingPlatform/AnyUnitTrxReportCapability.cs +
+      # Runner.TryAddTrxReportProvider): BasicTests.Mtp references
+      # Microsoft.Testing.Extensions.TrxReport itself (see that csproj's
+      # own comment on why), so the "report-trx" flag should produce a
+      # real, well-formed .trx - not just parse as a recognized flag.
+      # Same "always non-zero, only the output matters" reasoning as
+      # run-tests.sh (BasicTests always contains real Fail/Error cases).
+      - name: Run BasicTests.Mtp with the report-trx flag and verify output
+        shell: bash
+        run: |
+          set -e
+          dotnet WhoTestsTheTesters/Tests/BasicTests.Mtp/bin/Release/net10.0/BasicTests.Mtp.dll \
+            --report-trx --results-directory /tmp/trx-check || true
+          trx=$(ls /tmp/trx-check/*.trx)
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('$trx')"
+
       # net48-runner needs an explicit -p:Platform build per bitness
       # (classic .NET Framework has no RuntimeIdentifier/self-contained
       # deployment model - bitness is a PE-header PlatformTarget, not

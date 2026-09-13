@@ -57,3 +57,27 @@ If you'd rather not have a `dotnet test`/MTP-integrated entry point at
 all, see [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) instead - a
 plain console `Runner.Run(platform)`, its own simpler output format, no
 MTP package dependency.
+
+## TRX output
+
+Add a reference to `Microsoft.Testing.Extensions.TrxReport` (the real
+MTP-ecosystem TRX generator - the same one `EnableMSTestRunner`/
+`EnableNUnitRunner`/`EnableXUnitRunner` projects use) to get a real
+`--report-trx` flag:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="*" />
+</ItemGroup>
+```
+
+```
+dotnet run -- --report-trx
+```
+
+`AnyUnit.TestingPlatform` itself only references the small
+`Microsoft.Testing.Extensions.TrxReport.Abstractions` package (the
+capability/property types a test framework implements against, not the
+generator) - it picks up the real generator via reflection at runtime,
+only once your project references it, so a project that doesn't want
+TRX output never pays for the larger package.
