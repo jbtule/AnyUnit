@@ -325,6 +325,24 @@ jobs:
           name: coverage
           path: coverage.cobertura.xml
 
+      # dotnet-reportgenerator-globaltool, not a third-party GitHub
+      # Action - same "just another dotnet global tool" pattern as
+      # coverlet.console itself just above, so this doesn't add a new
+      # kind of trust surface to the workflow the way a marketplace
+      # summary action would. MarkdownSummaryGithub is a real,
+      # purpose-built report type for exactly this (verified locally
+      # against a real coverage.cobertura.xml first, not assumed) -
+      # collapsible per-assembly/per-class tables, the same aesthetic
+      # WhoTestsTheTesters/ConventionTestProcessor/GitHubSummary.cs's
+      # own convention-summary output already uses.
+      - name: Post coverage summary
+        shell: bash
+        run: |
+          set -e
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator -reports:coverage.cobertura.xml -targetdir:coveragereport -reporttypes:MarkdownSummaryGithub
+          cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
   test-browser-wasm:
     # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
     # unprivileged user namespaces, which GitHub's ubuntu-latest image
