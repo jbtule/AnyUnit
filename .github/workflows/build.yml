@@ -835,25 +835,26 @@ jobs:
 
       # One self-contained HTML file (inline CSS/JS, no external refs) so
       # it works straight out of the downloaded artifact zip over file://.
-      # The .trx alongside it stays useful for anything that wants to
-      # consume the run mechanically rather than read it.
+      # HTML only, deliberately: a .trx was uploaded alongside it briefly
+      # on the theory that a machine-readable copy might be wanted, but
+      # nothing consumes it - and it was by far the bigger half of the
+      # artifact (7.7MB of TRX against a 2.8MB report). The raw per-
+      # platform results.json artifacts are still uploaded by every job
+      # above if anything ever does need to consume a run mechanically.
       - name: Generate merged HTML test report
         if: always()
         shell: bash
         run: |
           set -e
           export PATH="$PATH:$HOME/.dotnet/tools"
-          mkdir -p trx-report
-          anyunit-report convert -f html -o trx-report/report.html all-results/*/*.json
-          anyunit-report convert -f trx -o trx-report/results.trx all-results/*/*.json
-          ls -la trx-report
+          mkdir -p html-report
+          anyunit-report convert -f html -o html-report/report.html all-results/*/*.json
+          ls -la html-report
 
       - name: Upload HTML test report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-report-html
-          path: |
-            trx-report/report.html
-            trx-report/results.trx
+          path: html-report/report.html
           if-no-files-found: warn
