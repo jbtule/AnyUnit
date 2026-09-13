@@ -70,6 +70,7 @@ namespace ConventionTestProcessor
 
             ConventionMatch.WriteOutTrailer();
 
+            GitHubSummary.Write(ConventionMatch.Correct, ConventionMatch.Invalid, ConventionMatch.Unknown);
 
             if (ConventionMatch.Invalid.Count > 0)
             {
