@@ -120,9 +120,22 @@ jobs:
         shell: bash
         run: |
           set -e
+          # A relative path, not /tmp/... : on Windows, git-bash's MSYS
+          # layer auto-converts a whole argument that looks like a POSIX
+          # path (e.g. dotnet's own --results-directory /tmp/trx-check)
+          # into a real Windows path before the native .NET/Python
+          # processes ever see it - but NOT a path embedded as a substring
+          # inside a larger argument, like `$trx` interpolated into
+          # python3's -c script below. That mismatch (dotnet writes to
+          # the auto-translated real path; python3 gets the literal,
+          # untranslated string) is a confirmed real failure on Windows
+          # CI (FileNotFoundError: '/tmp/trx-check/....trx'). A relative
+          # directory has no leading "/" to trigger that heuristic at
+          # all, so bash, dotnet.exe, and python3.exe all resolve it
+          # identically against the same cwd.
           dotnet WhoTestsTheTesters/Tests/BasicTests.Mtp/bin/Release/net10.0/BasicTests.Mtp.dll \
-            --report-trx --results-directory /tmp/trx-check || true
-          trx=$(ls /tmp/trx-check/*.trx)
+            --report-trx --results-directory trx-check || true
+          trx=$(ls trx-check/*.trx)
           python3 -c "import xml.etree.ElementTree as ET; ET.parse('$trx')"
 
       # net48-runner needs an explicit -p:Platform build per bitness
