@@ -333,10 +333,20 @@ jobs:
       # non-interactively ("Globally disabling the assessment system
       # needs to be confirmed in System Settings" - Apple requires GUI
       # confirmation now, no headless override), failing the step
-      # outright rather than just not helping. Whatever the real cause
-      # is, it isn't fixable this way.
+      # outright rather than just not helping.
+      #
+      # --skip-manifest-update: without it, `dotnet workload install`
+      # unconditionally hits the network to check for a newer workload
+      # manifest before installing anything, even though the SDK on a
+      # freshly-provisioned runner image should already carry a current
+      # one - skipping that check removes one whole network round-trip
+      # (and whatever manifest-package restore it triggers) from the
+      # critical path. A real, documented flag
+      # (https://learn.microsoft.com/dotnet/core/tools/dotnet-workload-install),
+      # not a system-level change like the Gatekeeper attempt - lower
+      # risk, worth trying on both this step and pack's identical one.
       - name: Install wasm-tools workload
-        run: dotnet workload install wasm-tools
+        run: dotnet workload install wasm-tools --skip-manifest-update
 
       # Must come before the solution build below: browser-wasm-runner's own
       # build fails outright unless browser-wasm-runner-host has already been
@@ -399,8 +409,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # --skip-manifest-update - see test-browser-wasm's own identical
+      # step for why.
       - name: Install wasm-tools workload
-        run: dotnet workload install wasm-tools
+        run: dotnet workload install wasm-tools --skip-manifest-update
 
       # Must come before the pack below: browser-wasm-runner's own build (which
       # `dotnet pack` triggers as part of packing it) fails outright
