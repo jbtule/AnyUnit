@@ -95,7 +95,14 @@ namespace AnyUnit.Util
         // headless-browser-hosted WASM runtime, not this process).
         private static string Rid()
         {
-            return OsName() + "-" + RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+            // ProcessArchitecture, not OSArchitecture: a real RID tracks the
+            // running process's bitness, not the host OS's. OSArchitecture
+            // would report x64 for a 32-bit-forced net48 leg on 64-bit
+            // Windows (build.yml's -p:Platform=x86 split), silently
+            // colliding its Platform label with the x64 leg's - exactly the
+            // collision problem this class exists to prevent (see the type-
+            // level comment above).
+            return OsName() + "-" + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
         }
 
         private static string OsName()

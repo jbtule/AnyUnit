@@ -344,15 +344,24 @@ jobs:
           cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
   test-browser-wasm:
-    # macOS, not ubuntu-latest: headless Chromium's own sandbox needs
+    # ubuntu-latest, not macOS: this job's own dotnet-workload-install
+    # step (below) is the one that turned out to be ~15-20x slower on
+    # macos-latest than ubuntu-latest for reasons that stayed unknown
+    # after three separate fix attempts (see git history on this file -
+    # Gatekeeper disable, --skip-manifest-update, manifest purge - all
+    # reverted, none helped). Moving here avoids the slow install
+    # entirely instead of chasing it further. This job used to be on
+    # macOS specifically because headless Chromium's own sandbox needs
     # unprivileged user namespaces, which GitHub's ubuntu-latest image
-    # blocks via AppArmor (confirmed: launch failed there with "No
-    # usable sandbox!"). WasmRunAlone.cs now also passes --no-sandbox
-    # as a direct fix, but macOS sidesteps the whole class of problem -
-    # no such restriction there - and this exact browser-wasm-runner-host/
-    # browser-wasm-runner pipeline has been the one actually exercised locally
-    # all along, on an arm64 Mac.
-    runs-on: macos-latest
+    # blocks via AppArmor ("No usable sandbox!") - but WasmRunAlone.cs's
+    # --no-sandbox auto-detection (Linux + CI env var) is now a real,
+    # already-CI-verified fix for that (test-packed-wasm-tool proved it
+    # works on this exact runner image before this job ever needed it).
+    # Real sandboxed-Chromium coverage isn't lost by this move - it just
+    # shifts to test-packed-tool/test-packed-wasm-tool below, which pick
+    # up macos-latest instead - so both the sandboxed and --no-sandbox
+    # code paths still get exercised somewhere in the matrix.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
@@ -362,33 +371,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # This step alone takes ~4 minutes on macos-latest vs ~15s for the
-      # identical command on ubuntu-latest (the pack job's own copy) -
-      # tried disabling Gatekeeper around just this step to test whether
-      # that was the cause (`sudo spctl --master-disable`), reverted:
-      # confirmed for real that current macOS runner images reject it
-      # non-interactively ("Globally disabling the assessment system
-      # needs to be confirmed in System Settings" - Apple requires GUI
-      # confirmation now, no headless override), failing the step
-      # outright rather than just not helping.
-      #
-      # Three attempts at the ~4-6 min gap on macos-latest vs ~15s on
-      # ubuntu-latest for this identical command, none of them panned
-      # out: disabling Gatekeeper around it broke the step outright
-      # (current macOS runner images require interactive GUI
-      # confirmation, no headless override); --skip-manifest-update
-      # measured no improvement (5m59s, if anything worse than the
-      # ~3m55s baseline); and purging unrelated iOS/MacCatalyst/macOS/
-      # MAUI SDK manifests first (on the theory that dotnet workload
-      # install loads the whole installed manifest set to build its
-      # resolver graph, not just wasm-tools' own) failed before it even
-      # got to test that - /usr/local/share/dotnet/sdk-manifests doesn't
-      # exist on this runner at all (actions/setup-dotnet installs into
-      # the runner's tool-cache, not that traditional path - wrong
-      # assumption, never actually got to run any rm -rf, confirmed safe
-      # from the log: `find` itself errored first). Stopping here -
-      # whatever's actually costing the extra minutes on macOS remains
-      # unknown, and isn't fixable with any of these three approaches.
+      # ~15s here on ubuntu-latest (this job used to run on macos-latest,
+      # where the identical command took ~4-6 minutes for reasons that
+      # stayed unknown after three separate fix attempts - see this
+      # job's own top-of-block comment, and pack's copy of this same
+      # step, which still runs on ubuntu-latest and always was this
+      # fast).
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
@@ -405,11 +393,11 @@ jobs:
 
       # PuppeteerSharp downloads its own headless Chrome on first use
       # (BrowserFetcher, cached after that) - no separate install step
-      # the way Playwright's `playwright install` needed. If this ever
-      # moves back to a Linux runner, note anyunit-browser-wasm's -no-sandbox
-      # flag (WasmRunAlone.cs auto-applies it under Linux CI already,
-      # detected via the CI env var - the flag is only needed if that
-      # heuristic doesn't fire, e.g. a self-hosted/Docker runner).
+      # the way Playwright's `playwright install` needed.
+      # WasmRunAlone.cs auto-applies --no-sandbox under Linux CI
+      # (detected via the CI env var) - already confirmed working for
+      # real on this exact runner image by test-packed-wasm-tool before
+      # this job moved here; no explicit -p flag needed for that.
       - name: Run tests through anyunit-browser-wasm
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/browser-wasm-runner/bin/Release/net10.0/anyunit-browser-wasm.dll browser-wasm
@@ -489,7 +477,14 @@ jobs:
   # run` against a built self-test assembly, both worked end to end.
   test-packed-tool:
     needs: pack
-    runs-on: ubuntu-latest
+    # macos-latest, not ubuntu-latest: no wasm-tools install or browser
+    # work happens in this job at all (it only installs the already-
+    # packed anyunit-runner tool), so macOS carries none of the slow-
+    # install penalty that moved test-browser-wasm off it. Running here
+    # instead of ubuntu-latest keeps a non-Linux OS covered in the
+    # packed-tool matrix now that test-browser-wasm (below-linked jobs)
+    # has vacated macOS.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
@@ -525,10 +520,10 @@ jobs:
           echo "Installing AnyUnit.Runner $version"
           dotnet tool install --global AnyUnit.Runner --add-source packages --version "$version"
 
-      # packed-tool platform-suffix: this job runs on ubuntu-latest, same
+      # packed-tool platform-suffix: this job runs on macos-latest, same
       # OS/arch/framework as build-and-test's own from-source net10 leg -
       # without it, both would report the identical auto-detected
-      # PlatformId ("net10-linux-x64") despite being genuinely different
+      # PlatformId ("net10-osx-arm64") despite being genuinely different
       # (a packed nuget tool install vs a plain ProjectReference build).
       - name: Run tests through the installed anyunit-runner tool
         shell: bash
@@ -570,18 +565,19 @@ jobs:
   # only ever touches the already-packed .nupkg from the `pack` job.
   test-packed-wasm-tool:
     needs: pack
-    # ubuntu-latest, unlike test-browser-wasm's own macos-latest:
-    # WasmRunAlone.cs already auto-applies Chromium's --no-sandbox
-    # whenever it detects Linux + the CI env var (which GitHub Actions
-    # sets on every hosted runner, Linux included) - see its own
-    # comment. That's the actual fix for the AppArmor/unprivileged-
-    # user-namespace sandbox failure test-browser-wasm's comment
-    # describes; macOS there just sidesteps needing it at all, since
-    # that pipeline was what got exercised locally first. This job is
-    # the first to actually run that auto-detected path on real Linux
-    # CI rather than just reasoning about it - if it turns out not to
-    # fire correctly here, that's real, actionable signal on its own.
-    runs-on: ubuntu-latest
+    # macos-latest, now alongside test-packed-tool above: this job
+    # doesn't install wasm-tools or publish browser-wasm-runner-host
+    # itself (it only installs the already-packed anyunit-browser-wasm
+    # tool, which embeds that pipeline's output as pack content), so it
+    # carries none of the slow-workload-install penalty that motivated
+    # moving test-browser-wasm to ubuntu-latest. Running the actual
+    # headless-Chromium test execution here instead keeps real sandboxed-
+    # Chromium coverage in the matrix (no --no-sandbox needed - macOS
+    # has no AppArmor-style restriction) now that test-browser-wasm
+    # covers the --no-sandbox/Linux-CI-detected code path instead - see
+    # its own comment. Between the two jobs, both code paths in
+    # WasmRunAlone.cs's sandbox handling stay exercised for real.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
