@@ -228,12 +228,30 @@ jobs:
       # "_Opposite"-prefixed one inverts that, etc. - see
       # WhoTestsTheTesters/ConventionTestProcessor). This is the real
       # pass/fail gate: it checks every result's actual outcome against what
-      # its own name declares, rather than eyeballing raw counts.
+      # its own name declares, rather than eyeballing raw counts. Its own Job
+      # Summary is suppressed here (ANYUNIT_SKIP_GH_SUMMARY) - convention-summary
+      # posts the one consolidated summary across every job's results instead,
+      # so this job's own copy would just be a redundant, single-platform
+      # subset of it (same reasoning coverage's own step is already excluded
+      # for).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      # Uploaded regardless of the gate above (always()) - convention-summary
+      # wants every platform's data even when one platform's own gate just
+      # failed, so the consolidated view still reflects it too, not a gap.
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-${{ matrix.os }}
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   coverage:
     runs-on: ubuntu-latest
@@ -324,11 +342,24 @@ jobs:
         shell: bash
         run: .github/scripts/run-tests.sh Runner/Platforms/browser-wasm-runner/bin/Release/net10.0/anyunit-browser-wasm.dll browser-wasm
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-browser-wasm
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   pack:
     runs-on: ubuntu-latest
@@ -428,11 +459,24 @@ jobs:
           export PATH="$PATH:$HOME/.dotnet/tools"
           .github/scripts/run-tests.sh anyunit-runner packed-tool
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-packed-tool
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   # Same idea as test-packed-tool, for AnyUnit.Runner.BrowserWasm
   # (anyunit-browser-wasm) - arguably the more important of the two to
@@ -504,11 +548,24 @@ jobs:
           export PATH="$PATH:$HOME/.dotnet/tools"
           .github/scripts/run-tests.sh anyunit-browser-wasm packed-wasm-tool
 
+      # Job Summary suppressed here - see build-and-test's own identical
+      # comment on why (convention-summary posts the one consolidated
+      # summary instead).
       - name: Verify results match naming convention
         shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-packed-wasm-tool
+          path: /tmp/*.json
+          if-no-files-found: warn
 
   # Same idea as test-packed-tool, for AnyUnit.Report (anyunit-report):
   # installs the real packed nupkg, then converts a real results.json
@@ -574,3 +631,58 @@ jobs:
             python3 -c "import xml.etree.ElementTree as ET; ET.parse('$f')"
           done
           python3 -c "import json; json.load(open('/tmp/BasicTests.ctrf.json'))"
+
+  # A consolidated, cross-platform view on top of (not instead of) every
+  # job above's own fail-fast convention gate: those stay the real,
+  # job-local pass/fail signal (fails immediately, attributes clearly to
+  # one specific OS/leg in the Checks UI) - this job exists purely to
+  # answer "what does the FULL platform matrix look like in one place",
+  # which no single job above can see on its own. if: always() so it
+  # still runs (and still posts its summary) even when one of those jobs
+  # failed - the consolidated view should show that failure too, not skip
+  # itself right when it would be most useful.
+  #
+  # No merge tooling needed: ConventionTestProcessor.VerifyJsonResults
+  # already accepts more than one results.json in a single call and
+  # accumulates them into the same Correct/Invalid/Unknown lists - which
+  # is exactly why every job above already passes it a whole /tmp/*.json
+  # glob instead of one file at a time. Passing it every downloaded
+  # artifact's *.json here is the identical mechanism, just pointed at
+  # every platform's files instead of one job's own.
+  convention-summary:
+    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build ConventionTestProcessor
+        run: dotnet build WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release
+
+      # Each anyunit-results-* artifact (build-and-test's 6-OS matrix,
+      # test-browser-wasm, test-packed-tool, test-packed-wasm-tool) into
+      # one directory - merge-multiple flattens them together rather than
+      # nesting one subfolder per artifact name, so a plain *.json glob
+      # below picks up all of them regardless of which job produced which.
+      # coverage's own results.json is deliberately not part of this (it
+      # re-runs the identical net10 self-test data purely to measure
+      # coverage %, not a distinct platform - see GitHubSummary.cs's own
+      # ANYUNIT_SKIP_GH_SUMMARY comment for the same reasoning).
+      - name: Download every platform's results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: anyunit-results-*
+          path: all-results
+          merge-multiple: true
+
+      - name: Verify results match naming convention across every platform
+        shell: bash
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- all-results/*.json

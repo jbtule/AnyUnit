@@ -45,10 +45,20 @@ namespace ConventionTestProcessor
 
         public static int VerifyJsonResults(IEnumerable<string> jsons)
         {
+            // Every distinct Platform actually seen across every input file
+            // - most useful when this is called with more than one (build.
+            // yml's own convention-summary job passes every platform's own
+            // results.json in one call), so the resulting Job Summary can
+            // say what the "across every platform" verdict below actually
+            // covers.
+            var platforms = new SortedSet<string>(StringComparer.Ordinal);
 
             foreach (var json in jsons)
             {
                 var results = JsonSerializer.Deserialize<ResultsFile>(json, Options);
+
+                foreach (var platform in results.Platforms)
+                    platforms.Add(platform);
 
                 foreach (var asm in results.Assemblies)
                 {
@@ -70,7 +80,7 @@ namespace ConventionTestProcessor
 
             ConventionMatch.WriteOutTrailer();
 
-            GitHubSummary.Write(ConventionMatch.Correct, ConventionMatch.Invalid, ConventionMatch.Unknown);
+            GitHubSummary.Write(ConventionMatch.Correct, ConventionMatch.Invalid, ConventionMatch.Unknown, platforms);
 
             if (ConventionMatch.Invalid.Count > 0)
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using AnyUnit.Run;
 
@@ -17,7 +18,7 @@ namespace ConventionTestProcessor
     // unaffected.
     internal static class GitHubSummary
     {
-        public static void Write(IList<Result> correct, IList<Result> invalid, IList<Result> unknown)
+        public static void Write(IList<Result> correct, IList<Result> invalid, IList<Result> unknown, IEnumerable<string> platforms)
         {
             var path = Environment.GetEnvironmentVariable("GITHUB_STEP_SUMMARY");
             if (string.IsNullOrEmpty(path))
@@ -32,7 +33,7 @@ namespace ConventionTestProcessor
             if (Environment.GetEnvironmentVariable("ANYUNIT_SKIP_GH_SUMMARY") == "true")
                 return;
 
-            var markdown = Build(correct, invalid, unknown);
+            var markdown = Build(correct, invalid, unknown, platforms);
 
             // append, not overwrite: GITHUB_STEP_SUMMARY is a single file
             // for the whole job, and other steps (or another invocation of
@@ -49,12 +50,26 @@ namespace ConventionTestProcessor
             }
         }
 
-        internal static string Build(IList<Result> correct, IList<Result> invalid, IList<Result> unknown)
+        internal static string Build(IList<Result> correct, IList<Result> invalid, IList<Result> unknown, IEnumerable<string> platforms)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("## AnyUnit self-test convention results");
             sb.AppendLine();
+
+            // Which platforms this particular verdict actually covers - one
+            // call processing several platforms' results.json at once (see
+            // build.yml's convention-summary job) is exactly when this
+            // matters: without it, there's no way to tell from the summary
+            // alone whether "Correct:374, Invalid:0" means one platform or
+            // every one of them.
+            var platformList = new List<string>(platforms);
+            if (platformList.Count > 0)
+            {
+                sb.AppendLine(string.Format("**Platforms:** {0}", string.Join(", ", platformList.Select(EscapeCell))));
+                sb.AppendLine();
+            }
+
             sb.AppendLine("| Correct | Invalid | Unknown |");
             sb.AppendLine("|---|---|---|");
             sb.AppendLine(string.Format("| {0} | {1} | {2} |", correct.Count, invalid.Count, unknown.Count));
