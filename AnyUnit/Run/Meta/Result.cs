@@ -15,6 +15,7 @@
 //    limitations under the License.
 
 using System;
+using System.Runtime.InteropServices;
 using AnyUnit.Util;
 
 namespace AnyUnit.Run
@@ -66,6 +67,7 @@ namespace AnyUnit.Run
             Kind = returnedResult.Kind;
             AssertCount = returnedResult.AssertCount;
             Output = returnedResult.Output;
+            SetEnvironment();
         }
 
         public Result(string platform, ResultKind kind, DateTime startTime, DateTime endTime, IAssertionHelper helper)
@@ -79,6 +81,22 @@ namespace AnyUnit.Run
                 AssertCount = -1;
             else
                 AssertCount = helper.Assert.AssertCount;
+            SetEnvironment();
+        }
+
+        // OS/runtime this Result was actually produced under - captured
+        // here, not just once globally, since a single merged results.json
+        // (see AnyUnit.Report's multi-input convert) can genuinely combine
+        // Results from different real environments (a net10 run and a
+        // net48 run are not the same OS/runtime just because they're in
+        // the same file). netstandard2.0-safe subset of RuntimeInformation
+        // only (no RuntimeIdentifier - that member needs netstandard2.1+,
+        // and this library also ships to net48).
+        private void SetEnvironment()
+        {
+            OSDescription = RuntimeInformation.OSDescription;
+            OSArchitecture = RuntimeInformation.OSArchitecture.ToString();
+            FrameworkDescription = RuntimeInformation.FrameworkDescription;
         }
 
         public string Platform { get; set; }
@@ -90,21 +108,26 @@ namespace AnyUnit.Run
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public int AssertCount { get;  set; }
+        public string OSDescription { get; set; }
+        public string OSArchitecture { get; set; }
+        public string FrameworkDescription { get; set; }
         public TestMeta Test { get; set; }
         public string ToListJson()
         {
-             return String.Format("{{\"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\"}}",
+             return String.Format("{{\"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\", \"OSDescription\":\"{6}\", \"OSArchitecture\":\"{7}\", \"FrameworkDescription\":\"{8}\"}}",
                                  Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
-                                 StartTime.ToString("o"), EndTime.ToString("o")
+                                 StartTime.ToString("o"), EndTime.ToString("o"),
+                                 OSDescription.EscapeJson(), OSArchitecture.EscapeJson(), FrameworkDescription.EscapeJson()
                                  );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{\"Test\":{6}, \"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\"}}",
+            return String.Format("{{\"Test\":{6}, \"Platform\":\"{0}\", \"Kind\":\"{1}\", \"StartTime\":\"{4}\",\"EndTime\":\"{5}\", \"AssertCount\":{2}, \"Output\":\"{3}\", \"OSDescription\":\"{7}\", \"OSArchitecture\":\"{8}\", \"FrameworkDescription\":\"{9}\"}}",
                                  Platform.EscapeJson(), Kind, AssertCount, Output.EscapeJson(),
                                  StartTime.ToString("o"), EndTime.ToString("o"),
-                                 Test.ToItemJson()
+                                 Test.ToItemJson(),
+                                 OSDescription.EscapeJson(), OSArchitecture.EscapeJson(), FrameworkDescription.EscapeJson()
                                  );
         }
     }

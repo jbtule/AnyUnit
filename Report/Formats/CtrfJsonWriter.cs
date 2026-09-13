@@ -66,11 +66,46 @@ namespace AnyUnit.Report.Formats
                         start = entries.Count > 0 ? entries.Min(e => ToEpochMillis(e.Result.StartTime)) : 0,
                         stop = entries.Count > 0 ? entries.Max(e => ToEpochMillis(e.Result.EndTime)) : 0,
                     },
+                    environment = entries.Count > 0 ? BuildEnvironment(entries[0].Result) : null,
                     tests,
                 },
             };
 
             JsonSerializer.Serialize(output, document, Options);
+        }
+
+        // CTRF's environment block is one per report, not per test - a
+        // real limitation when converting a multi-input-merged
+        // ResultsFile (see AnyUnit.Report's ConvertCommand) that genuinely
+        // spans more than one OS/runtime: this reports the FIRST entry's
+        // environment as representative, not every one that appears.
+        // osPlatform is a coarse guess from OSDescription's free text
+        // (there's no structured platform enum captured alongside it -
+        // see AnyUnit.Run.Result.SetEnvironment) - close enough for a
+        // human/dashboard, not guaranteed to match any specific
+        // convention a CTRF viewer might expect.
+        private static object BuildEnvironment(Result result)
+        {
+            return new
+            {
+                osPlatform = ToOsPlatform(result.OSDescription),
+                osRelease = result.OSDescription,
+                extra = new { dotnetRuntime = result.FrameworkDescription, architecture = result.OSArchitecture },
+            };
+        }
+
+        private static string ToOsPlatform(string osDescription)
+        {
+            if (string.IsNullOrEmpty(osDescription))
+                return null;
+            if (osDescription.IndexOf("Windows", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "windows";
+            if (osDescription.IndexOf("Darwin", StringComparison.OrdinalIgnoreCase) >= 0
+                || osDescription.IndexOf("Mac", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "darwin";
+            if (osDescription.IndexOf("Linux", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "linux";
+            return null;
         }
 
         // CTRF's status enum is passed|failed|skipped|pending|other. AnyUnit
