@@ -250,6 +250,25 @@ jobs:
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
 
+      # actions/upload-artifact is a Node.js action, not bash - on Windows
+      # it resolves a literal "/tmp" completely differently than the git-
+      # bash MSYS layer every other step here goes through (which is why
+      # ConventionTestProcessor's own bash-invoked /tmp/*.json glob just
+      # above works fine, but pointing upload-artifact at that same
+      # pattern directly does not - confirmed for real: silently found
+      # nothing on both Windows legs, "No files were found with the
+      # provided path: /tmp/*.json", even on an otherwise fully green
+      # run). $RUNNER_TEMP/runner.temp is a real, OS-native absolute path
+      # exposed identically to bash and to the action, so copying there
+      # first (a plain bash step, same path resolution that already
+      # works for /tmp itself) sidesteps the mismatch entirely.
+      - name: Stage results for upload
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/anyunit-results"
+          cp /tmp/*.json "$RUNNER_TEMP/anyunit-results/" 2>/dev/null || true
+
       # Uploaded regardless of the gate above (always()) - convention-summary
       # wants every platform's data even when one platform's own gate just
       # failed, so the consolidated view still reflects it too, not a gap.
@@ -258,7 +277,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: anyunit-results-${{ matrix.os }}
-          path: /tmp/*.json
+          path: ${{ runner.temp }}/anyunit-results/*.json
           if-no-files-found: warn
 
   coverage:
