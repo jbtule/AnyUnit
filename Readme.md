@@ -105,6 +105,7 @@ one exists, not just cross-compiled and assumed to work).
 | [`AnyUnit.Runner.Bootstrap`](Runner/Bootstrap) | A single static `Runner.Run(platform)` a consumer's own `Main` calls directly - the smallest way to get a real, runnable test entry point (desktop or browser-wasm) without MTP or a CLI. |
 | [`AnyUnit.Runner`](Runner/Platforms/net10) | Standalone CLI (`anyunit-runner`) that discovers and runs tests in one or more assemblies you point it at. |
 | [`AnyUnit.Runner.BrowserWasm`](Runner/Platforms/browser-wasm-runner) | Same CLI shape as `AnyUnit.Runner`, but runs the target assemblies inside a real headless-browser-driven browser-wasm host - for test assemblies with native (P/Invoke) dependencies that only build for the browser-wasm target. |
+| [`AnyUnit.Report`](Report) | Standalone CLI (`anyunit-report`) that converts an `anyunit-runner`-produced JSON results file into JUnit XML, TRX, NUnit3 XML, xUnit2 XML, or [CTRF](https://ctrf.io) JSON - whatever your CI system or dashboard already understands. |
 
 Every package above is on [nuget.org](https://www.nuget.org) once a tagged
 release goes out (see "Status" below for where things stand before then):
@@ -117,6 +118,7 @@ dotnet add package AnyUnit.Runner.Bootstrap # or write your own Main directly
 
 dotnet tool install --global AnyUnit.Runner            # anyunit-runner
 dotnet tool install --global AnyUnit.Runner.BrowserWasm # anyunit-browser-wasm
+dotnet tool install --global AnyUnit.Report             # anyunit-report
 ```
 
 A tagged release's own [GitHub Release](https://github.com/jbtule/AnyUnit/releases)
@@ -151,6 +153,9 @@ coverage" above, if you'd rather download one directly than install it.
     Blazor WASM app is built from - internal plumbing for that one host,
     not published as its own package, grouped under `support/` alongside
     `shared` rather than as a directly-runnable platform itself.
+- **`Report`** - the standalone CLI (`anyunit-report`) that converts an
+  `anyunit-runner`-produced JSON results file into JUnit XML, TRX,
+  NUnit3 XML, xUnit2 XML, or CTRF JSON.
 - **`WhoTestsTheTesters`** - AnyUnit's own test suite: tests for the core
   library and each style, written *in* that style, run through the real
   runners - so a regression in discovery/execution shows up the same way

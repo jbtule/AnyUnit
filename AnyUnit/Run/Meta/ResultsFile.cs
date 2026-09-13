@@ -6,11 +6,34 @@ namespace AnyUnit.Run
 {
     public class ResultsFile : IJsonSerialize
     {
+        // Bump when ToListJson()'s shape changes in a way an existing
+        // reader (AnyUnit.Report, WhoTestsTheTesters/ConventionTestProcessor,
+        // or any other consumer of this JSON) couldn't just ignore - a
+        // renamed/removed property, not an additive one. There was no
+        // version field at all before this - readers had no way to tell
+        // "shape I don't understand" apart from "shape I understand but
+        // parsed wrong".
+        public const int CurrentSchemaVersion = 1;
+
+        // Self-identifying marker: nothing else about this shape (an
+        // object with an "Assemblies" array) is distinctive enough that a
+        // tool handed an arbitrary .json file could reliably tell "this is
+        // an AnyUnit results file" from "this happens to have a property
+        // also called Assemblies" - e.g. before erroring out on an
+        // unexpected SchemaVersion, or before a generic file-type sniffer
+        // picks a reader for a file with no distinguishing extension.
+        public const string ToolName = "AnyUnit";
 
         public ResultsFile()
         {
             Assemblies = new List<AssemblyMeta>();
+            Tool = ToolName;
+            SchemaVersion = CurrentSchemaVersion;
         }
+
+        public string Tool { get; set; }
+
+        public int SchemaVersion { get; set; }
 
         public IList<AssemblyMeta> Assemblies { get; set; }
 
@@ -78,7 +101,9 @@ namespace AnyUnit.Run
             {
 
 
-                return String.Format("{{\"Assemblies\":[{0}]}}",
+                return String.Format("{{\"Tool\":\"{0}\", \"SchemaVersion\":{1}, \"Assemblies\":[{2}]}}",
+                                     Tool,
+                                     SchemaVersion,
                                      String.Join(",", Assemblies.Select(it => it.ToListJson()).ToArray())
                     );
             }

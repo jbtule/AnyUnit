@@ -52,4 +52,5 @@
   <Project Path="AnyUnit/AnyUnit.csproj" />
   <Project Path="Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
   <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
+  <Project Path="Report/AnyUnit.Report.csproj" />
 </Solution>

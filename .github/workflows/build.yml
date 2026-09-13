@@ -479,3 +479,68 @@ jobs:
         run: |
           set -e
           dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+  # Same idea as test-packed-tool, for AnyUnit.Report (anyunit-report):
+  # installs the real packed nupkg, then converts a real results.json
+  # (produced by the from-source net10-runner, built here via
+  # AnyUnit.ci.slnf same as test-packed-tool does) to every supported
+  # format, checking each output actually parses as well-formed
+  # XML/JSON - the shape a consumer of the packed tool would get, not
+  # just what building AnyUnit.Report from source produces.
+  test-packed-report-tool:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      - name: Build self-test payload assemblies and net10-runner
+        run: dotnet build AnyUnit.ci.slnf --configuration Release
+
+      # BasicTests always contains real Fail/Error cases by design (see
+      # run-tests.sh's own comment) - the runner's non-zero exit is
+      # expected here too, only the output file's existence matters.
+      - name: Produce a real results.json via the from-source net10-runner
+        run: |
+          set -e
+          dotnet Runner/Platforms/net10/bin/Release/net10.0/anyunit-runner.dll run \
+            -o /tmp/BasicTests.json \
+            WhoTestsTheTesters/Tests/BasicTests/bin/Release/netstandard2.0/BasicTests.dll || true
+          test -f /tmp/BasicTests.json
+
+      - name: Install the packed anyunit-report tool from the local feed
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.Report.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.Report\.##; s/\.nupkg$//')
+          echo "Installing AnyUnit.Report $version"
+          dotnet tool install --global AnyUnit.Report --add-source packages --version "$version"
+
+      - name: Convert to every supported format through the installed anyunit-report tool
+        shell: bash
+        run: |
+          set -e
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json; do
+            fmt="${fmt_ext%%:*}"
+            ext="${fmt_ext##*:}"
+            anyunit-report convert -f "$fmt" -o "/tmp/BasicTests.$fmt.$ext" /tmp/BasicTests.json
+          done
+
+      - name: Verify each output is well-formed
+        shell: bash
+        run: |
+          set -e
+          for f in /tmp/BasicTests.junit.xml /tmp/BasicTests.trx.xml /tmp/BasicTests.nunit.xml /tmp/BasicTests.xunit.xml; do
+            python3 -c "import xml.etree.ElementTree as ET; ET.parse('$f')"
+          done
+          python3 -c "import json; json.load(open('/tmp/BasicTests.ctrf.json'))"
