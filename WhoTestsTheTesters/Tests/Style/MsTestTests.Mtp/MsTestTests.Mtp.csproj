@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Separate project/folder, same reasoning as BasicTests.Mtp.csproj:
-    compiles ComboTests.csproj's own source directly via an explicit
+    Separate project/folder, same reasoning as NunitTests.Mtp.csproj:
+    compiles MsTestTests.csproj's own source directly via an explicit
     cross-folder Compile Include - not a ProjectReference to it - so
-    the real [Test]/[Theory]-attributed classes live directly in this
+    the real [TestClass]-attributed classes live directly in this
     assembly too.
   -->
   <PropertyGroup>
@@ -12,14 +12,14 @@
       Deliberately drops the ".Mtp". This project compiles the payload
       project's own sources (see above), so its tests ARE that suite -
       but AnyUnit keys an assembly by name (AssemblyMeta.UniqueName is
-      "A:" + FullName), so as "ComboTests.Mtp" a merged results file forks at
+      "A:" + FullName), so as "MsTestTests.Mtp" a merged results file forks at
       the assembly level and the same test shows up twice, each with one
       platform column, instead of once with a column per platform. The
       platform id already carries the real distinction (this leg reports
-      "-mtp"), and run-mtp-tests.sh still writes /tmp/ComboTests.Mtp-*.json,
+      "-mtp"), and run-mtp-tests.sh still writes /tmp/MsTestTests.Mtp-*.json,
       so the two legs' artifacts don't collide.
     -->
-    <AssemblyName>ComboTests</AssemblyName>
+    <AssemblyName>MsTestTests</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
@@ -27,13 +27,11 @@
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>
-    <Compile Include="..\ComboTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <Compile Include="..\MsTestTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
-    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.MsTest\AnyUnit.Style.MsTest.csproj" />
     <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
   </ItemGroup>

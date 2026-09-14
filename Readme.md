@@ -99,6 +99,7 @@ one exists, not just cross-compiled and assumed to work).
 | [`AnyUnit.Constraints`](Contrib/AnyUnit.Constraints) | NUnit-style fluent `Is`/`Has`/`Does`/`Throws` constraint syntax. |
 | [`AnyUnit.Style.Nunit`](Contrib/AnyUnit.Style.Nunit) | Roughly NUnit-compatible attributes (`[Test]`, `[TestCase]`, `[SetUp]`, `[TestFixture]`, ...) and assertions - close enough syntax to often keep a test's logic unchanged, not a full reimplementation. |
 | [`AnyUnit.Style.Xunit`](Contrib/AnyUnit.Style.Xunit) | Roughly xUnit-compatible attributes (`[Fact]`, `[Theory]`, `[InlineData]`, ...) and assertions - same caveat. |
+| [`AnyUnit.Style.MsTest`](Contrib/AnyUnit.Style.MsTest) | Roughly MSTest-compatible attributes (`[TestClass]`, `[TestMethod]`, `[DataRow]`, `[TestInitialize]`, ...) and assertions - same caveat. |
 | [`AnyUnit.Style.FSharp`](Contrib/AnyUnit.Style.FSharp) | F#'s own idiomatic value-based test style (`test { }`), for when a `[Test]`-attributed method doesn't fit F# as well as a top-level `let` does. |
 | [`AnyUnit.Style.FsUnit`](Contrib/AnyUnit.Style.FsUnit) | FsUnit-style F# assertions. |
 | [`AnyUnit.TestingPlatform`](AnyUnit.TestingPlatform) | Microsoft.Testing.Platform (MTP) adapter - opt in with one MSBuild property (`EnableAnyUnitRunner`) to get a real `dotnet test`/`dotnet run` entry point generated for you. |
@@ -112,7 +113,7 @@ release goes out (see "Status" below for where things stand before then):
 
 ```bash
 dotnet add package AnyUnit
-dotnet add package AnyUnit.Style.Nunit   # or .Style.Xunit / .Style.FSharp / .Style.FsUnit / .Constraints
+dotnet add package AnyUnit.Style.Nunit   # or .Style.Xunit / .Style.MsTest / .Style.FSharp / .Style.FsUnit / .Constraints
 dotnet add package AnyUnit.TestingPlatform  # for a dotnet test/dotnet run entry point
 dotnet add package AnyUnit.Runner.Bootstrap # or write your own Main directly
 
@@ -135,8 +136,8 @@ rather download one directly than install it.
   ...), `AssertionHelper`/`IAssert`, and the actual discovery/execution
   engine (`Runner`, `Fixture`, `Test`, `ParameterSet`).
 - **`Contrib`** - the style packages (`AnyUnit.Constraints`,
-  `AnyUnit.Style.Nunit`, `AnyUnit.Style.Xunit`, `AnyUnit.Style.FSharp`,
-  `AnyUnit.Style.FsUnit`) - each one gets close enough to a specific,
+  `AnyUnit.Style.Nunit`, `AnyUnit.Style.Xunit`, `AnyUnit.Style.MsTest`,
+  `AnyUnit.Style.FSharp`, `AnyUnit.Style.FsUnit`) - each one gets close enough to a specific,
   real test framework's own syntax that an existing test's logic often
   doesn't need to change to move onto `AnyUnit`'s core - not a full
   reimplementation of that framework's API (see each style's own README

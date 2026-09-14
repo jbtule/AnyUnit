@@ -12,6 +12,8 @@ README for what it actually covers and how to use it:
   attributes and assertions.
 - [**AnyUnit.Style.Xunit**](AnyUnit.Style.Xunit) - roughly xUnit-compatible
   attributes and assertions.
+- [**AnyUnit.Style.MsTest**](AnyUnit.Style.MsTest) - roughly
+  MSTest-compatible attributes and assertions.
 - [**AnyUnit.Style.FSharp**](AnyUnit.Style.FSharp) - F#'s own idiomatic
   value-based test style.
 - [**AnyUnit.Style.FsUnit**](AnyUnit.Style.FsUnit) - FsUnit-style F#

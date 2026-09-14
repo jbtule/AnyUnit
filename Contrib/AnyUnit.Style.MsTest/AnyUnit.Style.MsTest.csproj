@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    References ONLY AnyUnit.csproj - deliberately not AnyUnit.Constraints
+    (unlike AnyUnit.Style.Nunit), because MSTest has no constraint model
+    of its own to map onto, and not any other AnyUnit.Style.* package.
+    Cross-style data interop (an MSTest [DataTestMethod] accepting an
+    xUnit [InlineData] or NUnit [TestCase] row) goes exclusively through
+    the three shared interfaces in AnyUnit.Run.Attributes -
+    IRowInlineParameter / IGeneratingParameter / IArgParameter - which
+    live in the core precisely so no style ever has to reference another.
+
+    No <LangVersion>: netstandard2.0 defaults to C# 7.3, matching every
+    other Contrib project. Nothing in here needs newer syntax - see
+    AssertionHelper.cs for why the one place that might have (extension
+    properties) deliberately uses declared instance properties instead.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Roughly MSTest-compatible attributes and assertions for AnyUnit.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

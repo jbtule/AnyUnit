@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Deliberately the ONE project that references BOTH AnyUnit.Style.Xunit
-    and AnyUnit.Style.Nunit - it exists specifically to exercise the
+    Deliberately the ONE project that references AnyUnit.Style.Xunit,
+    AnyUnit.Style.Nunit AND AnyUnit.Style.MsTest - it exists specifically to exercise the
     shared IRowInlineParameter/IGeneratingParameter/IArgParameter
     interfaces (AnyUnit.Run.Attributes) working across those two styles
-    at once. XunitTests/NunitTests each stay single-style so their own
+    at once. XunitTests/NunitTests/MsTestTests each stay single-style so their own
     unit tests aren't muddied by cross-style plumbing.
   -->
   <PropertyGroup>
@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
     <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Nunit\AnyUnit.Style.Nunit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.MsTest\AnyUnit.Style.MsTest.csproj" />
   </ItemGroup>
 
 </Project>
