@@ -33,13 +33,45 @@ namespace SatelliteRunner.Shared
             // its own output directory - Assembly.LoadFrom alone won't find
             // those. Probe each test dll's own directory as a fallback.
             var probeDirs = dllList.Select(Path.GetDirectoryName).Distinct().ToList();
+#if NETFRAMEWORK
+            // Byte-loaded assemblies land in no context, so unlike
+            // LoadFrom the CLR will not hand back an already-loaded one on
+            // a repeat request - it would happily create a second copy of
+            // the same assembly, which is the very problem this whole
+            // branch exists to avoid. Cache by simple name.
+            var probed = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+#endif
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
                 var name = new AssemblyName(args.Name).Name;
                 var candidate = probeDirs
                     .Select(dir => Path.Combine(dir, name + ".dll"))
                     .FirstOrDefault(File.Exists);
-                return candidate != null ? Assembly.LoadFrom(candidate) : null;
+                if (candidate == null)
+                    return null;
+#if NETFRAMEWORK
+                // Bytes, not LoadFrom - for the same reason the test
+                // assemblies themselves are byte-loaded below, one level
+                // deeper. A LoadFrom'd AnyUnit.Constraints.dll resolves
+                // ITS OWN AnyUnit reference out of the directory it came
+                // from, which is a second AnyUnit again, and the failure
+                // is a step subtler than zero tests: the test passes an
+                // IAssert from the embedded AnyUnit into an AssertEx.That
+                // overload typed against the disk one, so it dies with
+                // MissingMethodException on a method that plainly exists.
+                // Confirmed for real on Windows CI before this fix.
+                lock (probed)
+                {
+                    Assembly hit;
+                    if (probed.TryGetValue(name, out hit))
+                        return hit;
+                    var loaded = Assembly.Load(File.ReadAllBytes(candidate));
+                    probed[name] = loaded;
+                    return loaded;
+                }
+#else
+                return Assembly.LoadFrom(candidate);
+#endif
             };
 
 #if NETFRAMEWORK
