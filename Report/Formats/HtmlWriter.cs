@@ -188,7 +188,10 @@ namespace AnyUnit.Report.Formats
             w.Write("<div class=\"tile k-");
             w.Write(kind);
             w.Write("\"");
-            if (!string.Equals(kind, "total", StringComparison.Ordinal))
+            // A zero tile is not a filter: selecting it could only ever
+            // empty the matrix, and offering a control whose single
+            // outcome is "show nothing" is worse than offering none.
+            if (!string.Equals(kind, "total", StringComparison.Ordinal) && count > 0)
             {
                 w.Write(" data-kind=\"");
                 w.Write(kind);
@@ -197,6 +200,17 @@ namespace AnyUnit.Report.Formats
             w.Write("><div class=\"n\">");
             w.Write(count.ToString(CultureInfo.InvariantCulture));
             w.Write("</div><div class=\"l\">");
+            // The glyph rides along with its own name here, which is what
+            // lets the separate legend row go away entirely: the tiles are
+            // always visible, always server-rendered, and already name
+            // every kind - so a second strip repeating glyph-to-name was
+            // pure duplication sitting between the reader and the matrix.
+            if (!string.Equals(kind, "total", StringComparison.Ordinal))
+            {
+                w.Write("<span class=\"g\">");
+                w.Write(Glyph(kind));
+                w.Write("</span> ");
+            }
             w.Write(Html(label));
             w.WriteLine("</div></div>");
         }
@@ -217,14 +231,6 @@ namespace AnyUnit.Report.Formats
             w.WriteLine("<button id=\"collapseAll\" type=\"button\">Collapse all</button>");
             w.WriteLine("</section>");
 
-            w.WriteLine("<p class=\"legend\">");
-            w.WriteLine("<span class=\"g k-pass\">✓</span> passed");
-            w.WriteLine("<span class=\"g k-fail\">✕</span> failed");
-            w.WriteLine("<span class=\"g k-error\">!</span> errored");
-            w.WriteLine("<span class=\"g k-skip\">⊘</span> ignored");
-            w.WriteLine("<span class=\"g k-other\">∅</span> no assert");
-            w.WriteLine("<span class=\"g k-none\">·</span> not run");
-            w.WriteLine("</p>");
         }
 
         private static void WriteMatrix(StreamWriter w, ResultsFile results, IList<string> platforms,
@@ -245,8 +251,17 @@ namespace AnyUnit.Report.Formats
                 var assemblyTests = assembly.Fixtures.SelectMany(f => f.Tests).Count();
 
                 w.WriteLine("<section class=\"asm\">");
-                w.Write("<h2>");
+                // AssemblyMeta.Name, not the UniqueName: the latter is the
+                // full assembly identity ("BasicTests, Version=1.0.0.0,
+                // Culture=neutral, PublicKeyToken=null"), so four fifths of
+                // the heading was boilerplate repeated once per assembly,
+                // pushing the stats that follow it off to the right. The
+                // full identity is still there on hover, where it's
+                // occasionally wanted and never in the way.
+                w.Write("<h2 title=\"");
                 w.Write(Html(ResultsModel.StripPrefix(assembly.UniqueName)));
+                w.Write("\">");
+                w.Write(Html(Coalesce(assembly.Name, ResultsModel.StripPrefix(assembly.UniqueName))));
                 w.Write(" ");
                 StatChips(w, assemblyResults,
                           Math.Max(0, (assemblyTests * platforms.Count) - assemblyResults.Count));
@@ -271,7 +286,12 @@ namespace AnyUnit.Report.Formats
                               Math.Max(0, (fixture.Tests.Count * platforms.Count) - fixtureResults.Count));
                     w.WriteLine("</summary>");
 
-                    w.WriteLine("<div class=\"scroll\">");
+                    // "few": horizontal column headers instead of rotated
+                    // ones. Four is where a rotated label stops paying for
+                    // itself - see the .few rules in Css.
+                    w.Write("<div class=\"scroll");
+                    w.Write(platforms.Count <= 4 ? " few" : "");
+                    w.WriteLine("\">");
                     w.WriteLine("<table>");
 
                     w.WriteLine("<thead><tr><th class=\"corner\">Test</th>");
@@ -296,25 +316,26 @@ namespace AnyUnit.Report.Formats
                         var hasDetail = test.Results.Any(HasDetail);
                         var id = hasDetail ? "d" + (++detailId).ToString(CultureInfo.InvariantCulture) : null;
 
-                        // Which kinds this row contains at all, "none"
-                        // included, so the headline tiles can filter to it
-                        // without the script having to re-read every cell.
-                        // Padded with spaces at both ends so a substring
-                        // test for " fail " can't also match " none ".
-                        var kinds = new List<string>();
+                        // This row's grid, as "<column>:<kind>" pairs - not
+                        // just the set of kinds present. Both selections
+                        // filter ROWS, and a platform selection has to mean
+                        // "this platform's own cell", so "failed on -mtp"
+                        // needs to know which column each kind sits in.
+                        // Collapsing to a bare kind set would match a row
+                        // that failed on some OTHER platform.
+                        var cells = new List<string>();
                         for (var i = 0; i < platforms.Count; i++)
                         {
                             Result at;
                             var kindHere = byPlatform.TryGetValue(platforms[i], out at) ? KindClass(at.Kind) : "none";
-                            if (!kinds.Contains(kindHere))
-                                kinds.Add(kindHere);
+                            cells.Add(i.ToString(CultureInfo.InvariantCulture) + ":" + kindHere);
                         }
 
                         w.Write("<tr class=\"row");
                         w.Write(hasDetail ? " hasdetail" : "");
-                        w.Write("\" data-kinds=\" ");
-                        w.Write(string.Join(" ", kinds.ToArray()));
-                        w.Write(" \" data-fail=\"");
+                        w.Write("\" data-cells=\"");
+                        w.Write(string.Join(" ", cells.ToArray()));
+                        w.Write("\" data-fail=\"");
                         w.Write(anyBad ? "1" : "0");
                         w.Write("\" data-search=\"");
                         // Fixture name included so a search for a fixture
@@ -497,8 +518,8 @@ namespace AnyUnit.Report.Formats
             w.Write("</span>");
         }
 
-        // Single source for the wording, so the tiles, the chips' tooltips
-        // and the legend can't drift apart.
+        // Single source for the wording, so the tiles' labels and the
+        // chips' tooltips can't drift apart.
         private static string KindLabel(string kindClass)
         {
             switch (kindClass)
@@ -594,6 +615,10 @@ body{
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .tile .n{font-size:20px;font-weight:650;line-height:1.2}
 .tile .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .l .g{font-weight:700;text-transform:none;letter-spacing:0}
+.tile.k-pass .l .g{color:var(--pass)} .tile.k-fail .l .g{color:var(--fail)}
+.tile.k-error .l .g{color:var(--error)} .tile.k-skip .l .g{color:var(--skip)}
+.tile.k-other .l .g{color:var(--other)} .tile.k-none .l .g{color:var(--none)}
 .tile.k-pass .n{color:var(--pass)} .tile.k-fail .n{color:var(--fail)}
 .tile.k-error .n{color:var(--error)} .tile.k-skip .n{color:var(--skip)}
 .tile.k-other .n{color:var(--other)} .tile.k-none .n{color:var(--none)}
@@ -641,8 +666,6 @@ body{
 }
 .controls button:hover{border-color:var(--accent);color:var(--accent)}
 
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 14px}
-.legend .g{display:inline-block;width:18px;text-align:center;font-weight:700;margin-right:2px}
 
 .asm{margin-bottom:18px}
 .asm h2{font-size:15px;margin:0 0 6px;letter-spacing:-.01em;word-break:break-word}
@@ -653,7 +676,14 @@ body{
 .fname{font-weight:600;word-break:break-word}
 
 .scroll{overflow-x:auto;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch}
-table{border-collapse:separate;border-spacing:0;width:auto;min-width:100%;font-size:13px}
+/* Hugs its content rather than stretching: min-width:100% used to force
+   the table to fill the page, and since the test-name column is the only
+   flexible one it absorbed every spare pixel - so a two-platform run
+   rendered a ~1500px empty gap with its two 30px result columns stranded
+   at the far right edge, which is a long eye-journey for the exact
+   comparison this view exists to make. .scroll still handles the
+   many-platform case. */
+table{border-collapse:separate;border-spacing:0;width:auto;font-size:13px}
 thead th{position:sticky;top:0;z-index:2;background:var(--surface2)}
 th,td{border-bottom:1px solid var(--border)}
 
@@ -665,6 +695,12 @@ th.ph{
   width:30px;min-width:30px;max-width:30px;
 }
 th.ph span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;color:var(--muted)}
+
+/* Rotation earns its keep at a dozen platforms; at a handful it just
+   buys a tall header and a hard-to-read label for no width saved, so
+   few-platform runs get ordinary horizontal headers. See WriteMatrix. */
+.few th.ph{width:auto;min-width:64px;max-width:none;vertical-align:middle;padding:6px 10px}
+.few th.ph span{writing-mode:horizontal-tb;transform:none}
 th.corner{
   position:sticky;left:0;z-index:3;background:var(--surface2);
   text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);
@@ -719,9 +755,6 @@ pre{
 
   var q = doc.getElementById('q');
   var clearBtn = doc.getElementById('clearFilters');
-  var colStyle = doc.createElement('style');
-  doc.head.appendChild(colStyle);
-
   var tiles = doc.querySelectorAll('.tile[data-kind]');
   var cards = doc.querySelectorAll('.pcard[data-col]');
   var tileWrap = doc.querySelector('.tiles');
@@ -732,28 +765,48 @@ pre{
   // useful (show just the failures) instead of needing five taps to turn
   // the other kinds off first, which is how the checkbox row it replaces
   // behaved.
-  var kinds = {};   // kind -> true, empty = all kinds
-  var cols = {};    // column index -> true, empty = all columns
+  //
+  // Both filter ROWS, and neither ever hides a platform column. Selecting
+  // a platform used to hide the others, which threw away the one thing
+  // this view is for: seeing how the SAME test fared everywhere else.
+  // ''Failed on -mtp'' should narrow to those rows and still show what
+  // every other platform did with them, side by side.
+  var kinds = {};   // kind -> true, empty = any kind
+  var cols = {};    // column index -> true, empty = any platform
 
   function any(map){ for (var k in map) if (map[k]) return true; return false; }
 
-  // Columns are hidden with a generated stylesheet rather than by touching
-  // every cell: one rule per hidden platform beats walking thousands of
-  // <td>s on each toggle.
-  function syncColumns(){
-    var rules = [];
-    if (any(cols)){
-      for (var i = 0; i < cards.length; i++){
-        var c = cards[i].getAttribute('data-col');
-        if (!cols[c]) rules.push('.c' + c + '{display:none}');
+  // One predicate over the row''s own <column>:<kind> cells. With both
+  // selections active a row qualifies only if a SINGLE cell satisfies
+  // both - ''failed'' and ''-mtp'' means that platform''s own cell failed,
+  // not ''failed somewhere and also ran on -mtp''.
+  function rowMatches(row, byKind, byCol){
+    if (!byKind && !byCol) return true;
+    var cells = (row.getAttribute('data-cells') || '').split(' ');
+    for (var i = 0; i < cells.length; i++){
+      if (!cells[i]) continue;
+      var sep = cells[i].indexOf(':');
+      var col = cells[i].substring(0, sep), kind = cells[i].substring(sep + 1);
+      if (byCol && !cols[col]) continue;
+      if (byKind){
+        if (!kinds[kind]) continue;
+      } else if (byCol && kind === 'none'){
+        // Platform selected on its own means ''show me what this platform
+        // did'', and a not-run cell is not something it did - without this
+        // every row has SOME cell in every column, so the selection would
+        // match everything and quietly do nothing. Pairing the platform
+        // with the Not run tile still works: byKind is then true and
+        // ''none'' is the kind being asked for.
+        continue;
       }
+      return true;
     }
-    colStyle.textContent = rules.join('');
+    return false;
   }
 
   function applyFilters(){
     var term = (q && q.value ? q.value : '').toLowerCase().trim();
-    var byKind = any(kinds);
+    var byKind = any(kinds), byCol = any(cols);
     var fixtures = doc.querySelectorAll('details.fix');
 
     for (var f = 0; f < fixtures.length; f++){
@@ -763,14 +816,7 @@ pre{
         var row = rows[i];
         var show = true;
         if (term && row.getAttribute('data-search').indexOf(term) < 0) show = false;
-        if (show && byKind){
-          // data-kinds is space-padded at both ends, so ' fail ' cannot
-          // also match ' none '.
-          var have = row.getAttribute('data-kinds') || '';
-          var hit = false;
-          for (var k in kinds){ if (kinds[k] && have.indexOf(' ' + k + ' ') >= 0){ hit = true; break; } }
-          if (!hit) show = false;
-        }
+        if (show && !rowMatches(row, byKind, byCol)) show = false;
         row.hidden = !show;
         if (show) visible++;
         var id = row.getAttribute('data-detail');
@@ -782,13 +828,13 @@ pre{
       }
       // A fixture whose every test is filtered out is noise, not context.
       fixtures[f].hidden = (visible === 0);
-      if (visible > 0 && (term || byKind)) fixtures[f].open = true;
+      if (visible > 0 && (term || byKind || byCol)) fixtures[f].open = true;
     }
 
-    var active = !!term || byKind || any(cols);
+    var active = !!term || byKind || byCol;
     if (clearBtn) clearBtn.hidden = !active;
     if (tileWrap) tileWrap.classList.toggle('has-sel', byKind);
-    if (cardWrap) cardWrap.classList.toggle('has-sel', any(cols));
+    if (cardWrap) cardWrap.classList.toggle('has-sel', byCol);
   }
 
   function paint(el, on){
@@ -833,7 +879,6 @@ pre{
       wire(el, function(){
         cols[col] = !cols[col];
         paint(el, !!cols[col]);
-        syncColumns();
         applyFilters();
       });
     })(cards[c]);
@@ -844,7 +889,6 @@ pre{
     if (q) q.value = '';
     for (var i = 0; i < tiles.length; i++) paint(tiles[i], false);
     for (var j = 0; j < cards.length; j++) paint(cards[j], false);
-    syncColumns();
     applyFilters();
   });
 
