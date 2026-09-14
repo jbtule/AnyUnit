@@ -31,14 +31,24 @@
     the old approach had four-plus csproj files independently carrying
     (and drifting on) <Version>1.0.0-alpha</Version>, with newer projects
     simply missing it. MinVerTagPrefix matches the repo's existing tag
-    convention (v0.8.0-alpha, v0.9.0-wip). MinVerMinimumMajorMinor keeps
-    untagged builds reading as 1.0.0-alpha.0.<height> instead of
-    continuing to increment off that stale v0.9.0-wip tag once v1.0.0
-    is actually cut.
+    convention (v0.8.0-alpha, v0.9.0-wip).
+
+    MinVerMinimumMajorMinor is the floor for untagged builds, and so is
+    where "what is the next release" gets declared - no tag needed, and
+    deliberately so: pushing a v* tag is a real release (it triggers
+    release-artifacts.yml, which creates a GitHub Release and publishes
+    to nuget.org), which is not what bumping the in-development version
+    should mean. Without a floor above the latest tag, MinVer
+    auto-increments the patch instead: sitting on 1.0 with v1.0.0 cut
+    made every untagged build read as 1.0.1-alpha.<height>, i.e. claim
+    to be heading for a patch release. 1.1 makes them read as
+    1.1.0-alpha.<height> instead. Raise this whenever the next intended
+    release changes; the tag itself only gets cut when actually
+    releasing.
   -->
   <PropertyGroup>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>1.1</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
   <ItemGroup>
