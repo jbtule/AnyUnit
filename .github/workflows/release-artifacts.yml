@@ -303,19 +303,54 @@ jobs:
   #
   # Gated to: build.yml's own run actually succeeded (a failed build
   # obviously shouldn't get its packages pushed), and that run was
-  # itself for a real tag (workflow_run.head_branch is the tag name
-  # itself for a tag-triggered run, not "master" - build.yml also runs
-  # on every push to master and on every pull_request, neither of which
-  # should ever reach nuget.org).
+  # itself for a real TAG.
+  #
+  # That second half used to be `startsWith(head_branch, 'v')`, with a
+  # comment asserting head_branch "is the tag name itself for a
+  # tag-triggered run". Only half true, and the wrong half: on a
+  # tag-triggered run it is indeed the tag, but on a BRANCH push it is
+  # the branch name - and the expression cannot tell the two apart. A
+  # branch named `v1.2-housekeeping` therefore satisfied it, and merging
+  # that branch published every package to nuget.org and created a
+  # GitHub Release named after the branch. That is not hypothetical: it
+  # happened, publishing 1.2.0-alpha.0.6 of all eleven packages.
+  #
+  # head_branch alone cannot distinguish them, so don't ask it to.
+  # workflow_run carries the triggering run's own event in
+  # `workflow_run.event`, which is 'push' for both - but a tag push
+  # reports head_branch as the tag AND leaves the tag resolvable, so the
+  # reliable test is to ask git whether that ref actually exists as a
+  # tag. Cheap, unambiguous, and it fails closed: anything that is not a
+  # real tag simply does not publish.
   publish-nuget:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
       startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: write
     steps:
+      # The `if:` above narrows to a pushed ref starting with 'v'; this
+      # proves it is a real TAG before anything is published. The job
+      # condition cannot do it (no repo checkout, no API call in an
+      # expression), so it happens here, first, and fails the job loudly
+      # rather than publishing something a branch name talked its way
+      # into.
+      - name: Verify the triggering ref is a real tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/${{ github.repository }}/git/ref/tags/$REF_NAME" >/dev/null 2>&1; then
+            echo "::error::'$REF_NAME' is not a tag in this repository - refusing to publish."
+            echo "A branch whose name merely starts with 'v' must never reach nuget.org."
+            exit 1
+          fi
+          echo "Confirmed '$REF_NAME' is a real tag."
+
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
