@@ -72,6 +72,37 @@ run() {
     echo "run-tests.sh: '$1' produced no output file at $out" >&2
     exit 1
   fi
+  # One more rung on the same ladder: the file existing doesn't mean it
+  # has anything IN it. A runner that starts, discovers nothing, and
+  # writes an empty results file exits 0 and passes every check above -
+  # and then ConventionTestProcessor has no results to object to, so the
+  # convention gate passes too, and the platform simply vanishes from
+  # convention-summary's list with nothing anywhere reporting a problem.
+  # That is not hypothetical: it is exactly what the net48 runner did
+  # when its embedded-dependency loading produced a second, non-matching
+  # AnyUnit identity (see RunTests.RunAlone's NETFRAMEWORK branch) - 16
+  # empty result files, every job green. These 8 assemblies always
+  # contain tests, so "zero results" is always a bug, never a valid run.
+  #
+  # The path goes to python3 as its own argv entry, NOT interpolated into
+  # the -c script: git-bash's MSYS layer translates a whole POSIX-path
+  # argument for a native process, but not one embedded inside a larger
+  # string - the same trap that already bit the report-trx step on
+  # Windows (see build.yml's own comment there).
+  if ! python3 -c '
+import json, sys
+with open(sys.argv[1], encoding="utf-8-sig") as fh:
+    doc = json.load(fh)
+count = sum(len(t.get("Results", []))
+            for a in doc.get("Assemblies", [])
+            for f in a.get("Fixtures", [])
+            for t in f.get("Tests", []))
+if count == 0:
+    sys.exit(1)
+' "$out"; then
+    echo "run-tests.sh: '$1' produced $out with zero results - the runner ran but discovered no tests" >&2
+    exit 1
+  fi
 }
 
 run BasicTests BasicTests

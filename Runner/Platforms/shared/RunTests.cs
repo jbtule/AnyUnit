@@ -42,7 +42,40 @@ namespace SatelliteRunner.Shared
                 return candidate != null ? Assembly.LoadFrom(candidate) : null;
             };
 
+#if NETFRAMEWORK
+            // Load the bytes rather than LoadFrom, on .NET Framework only.
+            //
+            // That runner ships as a single .exe with its dependencies
+            // embedded (see net48-runner's DiminishedProgram), so
+            // AnyUnit.dll is deliberately NOT on disk beside it. Every test
+            // assembly's own output directory does carry a copy, though -
+            // and under LoadFrom, the CLR satisfies that assembly's
+            // AnyUnit reference from its own directory without ever raising
+            // AssemblyResolve. The result is two AnyUnit assemblies with
+            // different identities: the runner's [Test] attribute type is
+            // not the type on the tests, so nothing matches. Confirmed for
+            // real rather than theorised - every one of the 8 assemblies
+            // discovered exactly 0 tests, silently, with the runner still
+            // exiting 0.
+            //
+            // Loading the bytes puts the test assembly in no context, so
+            // ALL of its dependencies go through AssemblyResolve instead:
+            // the embedded copy for AnyUnit itself (handler registered at
+            // startup, so it runs before the probe-dirs one above), and the
+            // probe-dirs handler for anything that only exists next to the
+            // test assembly, like FSharp.Core.
+            //
+            // Nothing here reads Assembly.Location/CodeBase (checked across
+            // AnyUnit, Runner and Contrib), which is the usual thing that
+            // breaks for a byte-loaded assembly.
+            var am = dllList.Select(dll => Assembly.Load(File.ReadAllBytes(dll))).ToList();
+#else
+            // .NET (Core) resolves a dependency by simple name against
+            // what the default load context has already loaded, so the
+            // runner's own AnyUnit satisfies the test assembly's reference
+            // and the single-file bundle needs none of the above.
             var am = dllList.Select(Assembly.LoadFrom).ToList();
+#endif
 
             return RunAssemblies(id, am);
         }
