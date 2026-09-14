@@ -73,6 +73,7 @@ namespace AnyUnit.Report.Formats
                 WriteSummary(w, results, platforms);
                 WriteControls(w);
                 WriteMatrix(w, results, platforms, columnOf);
+                WriteEmptyState(w);
                 WriteFoot(w);
             }
         }
@@ -437,6 +438,15 @@ namespace AnyUnit.Report.Formats
                 }
                 w.WriteLine("</section>");
             }
+        }
+
+        private static void WriteEmptyState(StreamWriter w)
+        {
+            // Hidden until the script finds nothing to show. A filter that
+            // legitimately matches nothing (say a platform that ran
+            // everything, plus Not run) otherwise just empties the page and
+            // leaves the reader unable to tell "no matches" from "broken".
+            w.WriteLine("<p class=\"empty\" id=\"nomatch\" hidden>No tests match these filters.</p>");
         }
 
         private static void WriteFoot(StreamWriter w)
@@ -830,6 +840,21 @@ pre{
       fixtures[f].hidden = (visible === 0);
       if (visible > 0 && (term || byKind || byCol)) fixtures[f].open = true;
     }
+
+    // An assembly whose every fixture is filtered out is a heading over
+    // nothing - and its own chips still show unfiltered totals, so leaving
+    // it visible reads as '170 passed' sitting above an empty page.
+    var sections = doc.querySelectorAll('section.asm');
+    var anyVisible = false;
+    for (var s = 0; s < sections.length; s++){
+      var fixes = sections[s].querySelectorAll('details.fix');
+      var live = 0;
+      for (var i = 0; i < fixes.length; i++) if (!fixes[i].hidden) live++;
+      sections[s].hidden = (live === 0);
+      if (live > 0) anyVisible = true;
+    }
+    var nomatch = doc.getElementById('nomatch');
+    if (nomatch) nomatch.hidden = anyVisible || !sections.length;
 
     var active = !!term || byKind || byCol;
     if (clearBtn) clearBtn.hidden = !active;
