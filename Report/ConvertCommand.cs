@@ -29,7 +29,7 @@ namespace AnyUnit.Report
         public ConvertCommand()
         {
             IsCommand("convert", "converts one or more AnyUnit JSON results files to another test-report format");
-            this.HasOption("f|format=", "Output format: junit, trx, nunit, xunit, ctrf, or html.", v => _format = v);
+            this.HasOption("f|format=", "Output format: junit, trx, nunit, xunit, ctrf, html, or markdown.", v => _format = v);
             this.HasOption("o|output=", "Output file path.", v => _output = v);
             // null, not a fixed count: ManyConsole's own signature caps
             // additional arguments at whatever number is given here, it
@@ -55,6 +55,19 @@ namespace AnyUnit.Report
                 results = ReadAndMerge(remainingArguments);
             }
             catch (ResultsFileReader.InvalidResultsFileException ex)
+            {
+                throw new ConsoleHelpAsException(ex.Message);
+            }
+            // A mistyped path, or a shell that didn't expand a glob (quoting
+            // "results/*.json" hands us the pattern itself as a literal
+            // filename), reached the user as a raw unhandled-exception stack
+            // trace - the same class of mistake as an unreadable file, and
+            // it deserves the same one-line message the case above gets.
+            catch (IOException ex)
+            {
+                throw new ConsoleHelpAsException(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
             {
                 throw new ConsoleHelpAsException(ex.Message);
             }
@@ -103,9 +116,11 @@ namespace AnyUnit.Report
                     return new CtrfJsonWriter();
                 case "html":
                     return new HtmlWriter();
+                case "markdown":
+                    return new MarkdownWriter();
                 default:
                     throw new ConsoleHelpAsException(string.Format(
-                        "Unknown -format '{0}' - expected junit, trx, nunit, xunit, ctrf, or html.", format));
+                        "Unknown -format '{0}' - expected junit, trx, nunit, xunit, ctrf, html, or markdown.", format));
             }
         }
     }

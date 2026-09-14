@@ -695,7 +695,7 @@ jobs:
         run: |
           set -e
           export PATH="$PATH:$HOME/.dotnet/tools"
-          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json html:html; do
+          for fmt_ext in junit:xml trx:xml nunit:xml xunit:xml ctrf:json html:html markdown:md; do
             fmt="${fmt_ext%%:*}"
             ext="${fmt_ext##*:}"
             anyunit-report convert -f "$fmt" -o "/tmp/BasicTests.$fmt.$ext" /tmp/BasicTests.json
@@ -731,6 +731,19 @@ jobs:
           p = P()
           p.feed(open('/tmp/BasicTests.html.html', encoding='utf-8').read())
           assert not p.stack, f'unclosed tags: {p.stack}'
+          PY
+          # The markdown summary's own hard requirement is that it fits in
+          # a job summary - over 1 MiB the upload fails with an annotation
+          # while the job still reports success, i.e. it would silently
+          # stop appearing rather than fail loudly here. Also check its
+          # <details> are balanced: truncation rewinding to the wrong place
+          # would leave a dangling one that swallows the rest of the post.
+          python3 - <<'PY'
+          md = open('/tmp/BasicTests.markdown.md', encoding='utf-8').read()
+          size = len(md.encode('utf-8'))
+          assert size < 1024 * 1024, f'markdown summary is {size} bytes, over the 1 MiB job-summary limit'
+          assert md.count('<details>') == md.count('</details>'), 'unbalanced <details> in markdown summary'
+          print(f'markdown summary: {size} bytes, {md.count("<details>")} detail blocks')
           PY
 
   # A consolidated, cross-platform view on top of (not instead of) every
