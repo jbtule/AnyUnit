@@ -11,8 +11,8 @@ assemblies you point it at - no test project of your own needed, no MTP/
 dotnet tool install --global AnyUnit.Runner
 ```
 
-(Not yet published to nuget.org - grab a prerelease build from the
-repo's own `pack` workflow artifacts, or build from source:
+(Prerelease builds of unreleased work are published as artifacts of the
+repo's own `pack` workflow run, or build from source:
 `dotnet pack Runner/Platforms/net10/net10-runner.csproj`.)
 
 ## Usage

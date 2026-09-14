@@ -13,9 +13,9 @@ can't run them at all.
 dotnet tool install --global AnyUnit.Runner.BrowserWasm
 ```
 
-(Not yet published to nuget.org - grab a prerelease build from the
-repo's own `pack` workflow artifacts, or build from source - see the
-repo's own `browser-wasm-runner.csproj` for the required
+(Prerelease builds of unreleased work are published as artifacts of the
+repo's own `pack` workflow run, or build from source - see the repo's
+own `browser-wasm-runner.csproj` for the required
 `browser-wasm-runner-host` publish step first.)
 
 ## Usage
