@@ -45,10 +45,15 @@
     1.1.0-alpha.<height> instead. Raise this whenever the next intended
     release changes; the tag itself only gets cut when actually
     releasing.
+
+    (Which is exactly what had gone stale: v1.1.0 was cut while this
+    still said 1.1, so untagged master read as 1.1.1-alpha.<height> -
+    the same "claiming a patch release" failure mode described above,
+    one release later. Now 1.2, for the 1.2 targets.)
   -->
   <PropertyGroup>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>1.1</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
   <ItemGroup>

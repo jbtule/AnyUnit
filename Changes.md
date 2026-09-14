@@ -4,6 +4,51 @@ A high-level catalog of the eras this repo has gone through, not a
 per-commit changelog - each one was a real, working target at the time,
 not an abandoned experiment.
 
+Since 1.0 there are also per-release notes below the era list, for the
+ordinary "what changed in this version" question the eras don't answer.
+
+## Releases
+
+### 1.2 - in development
+
+- `AnyUnit.TestingPlatform` can write AnyUnit's own JSON results file
+  (`--report-anyunit-json`), so the MTP path is a first-class results
+  producer rather than depending on MTP's TRX extension for any file
+  output at all - which in turn lets the MTP legs be gated by the same
+  `ConventionTestProcessor` conformance check every other runner gets.
+- Results schema carries what downstream formats actually need:
+  separate exception message/stack trace, skip reason, expected/actual,
+  and key-value properties alongside the existing flat categories.
+  Additive - `SchemaVersion` stays at 1.
+- `async Task` test methods are awaited. Previously the returned `Task`
+  was discarded unawaited, so an async test's failures were silently
+  lost and it passed regardless.
+- `AnyUnit.Style.MsTest` - roughly MSTest-compatible attributes and
+  assertions.
+- `AnyUnit.Style.Expecto` - Expecto's value-based F# style.
+
+### 1.1 - 2026-09-13
+
+Reporting and release plumbing.
+
+- `AnyUnit.Report` (`anyunit-report`): converts a runner-produced JSON
+  results file into JUnit XML, TRX, NUnit3 XML, xUnit2 XML, CTRF JSON,
+  a self-contained HTML report, or a GitHub-flavored markdown summary.
+  Merges multiple input files.
+- `AnyUnit.TestingPlatform`: native TRX via MTP's real
+  `ITrxReportCapability` extension mechanism.
+- Dynamic RID-style platform ids (`net10-osx-arm64`), with an optional
+  suffix to distinguish runners, so a merged results file can say which
+  platforms actually went into it.
+- The `.trx`-producing and coverage CI legs, and one consolidated
+  cross-platform convention summary.
+
+### 1.0 - 2026-09-12
+
+First stable release: the `netstandard2.0` core, the NUnit/xUnit/FSharp/
+FsUnit styles and constraints, the MTP adapter, the console/browser-wasm/
+net48 runners, and publication to nuget.org.
+
 ## 2013 - Portable Class Libraries & Silverlight
 
 Original target: PCL profiles and Silverlight, back when there was no

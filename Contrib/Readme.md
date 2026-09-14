@@ -19,3 +19,7 @@ README for what it actually covers and how to use it:
 
 Real NUnit/xUnit source this repo ports from is attributed in
 [`Contributors.md`](../Contributors.md).
+
+Frameworks that were considered and deliberately not given a style are
+written up rather than left implicit - see
+[`TUnit-style-evaluation.md`](TUnit-style-evaluation.md).

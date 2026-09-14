@@ -160,3 +160,7 @@ $RECYCLE.BIN/
 .nuget/NuGet.exe
 
 **/.fake/*
+
+# Claude Code: agent worktrees and local session state. Worktrees here
+# are real checkouts of this same repo - never something to commit.
+.claude/
