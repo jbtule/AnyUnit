@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs all 8 self-test assemblies through a built runner, writing each
+# Runs all 9 self-test assemblies through a built runner, writing each
 # result set to /tmp/<name>-<suffix>.json.
 #
 # Usage: run-tests.sh <runner-path> <suffix> [<platform-suffix>]
@@ -52,7 +52,7 @@ run() {
   # them anyway, got a browser-wasm-runner 404/net10-runner file-not-
   # found, and ConventionTestProcessor's own gate never noticed, since
   # it only checks whichever /tmp/*.json files happen to exist, not
-  # that all 8 were actually produced). The `|| true` below is only for
+  # that all 9 were actually produced). The `|| true` below is only for
   # the runner's own exit code (expected non-zero: these self-test
   # assemblies always contain real Fail/Error cases by design) - it must
   # never also swallow "the assembly wasn't even found".
@@ -108,6 +108,7 @@ if count == 0:
 run BasicTests BasicTests
 run ConstraintsTests ConstraintsTests
 run NunitTests Style/NunitTests
+run MsTestTests Style/MsTestTests
 run XunitTests Style/XunitTests
 run FsUnitTests Style/FsUnitTests
 run FSharpTests Style/FSharpTests
