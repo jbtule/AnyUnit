@@ -67,6 +67,7 @@ namespace AnyUnit.Run
         public Test(Fixture fixture, ParameterSet constructorArgs, TestHarness harness, ParameterSet methodArgs)
         {
             Category = harness.Category;
+            Properties = harness.Properties ?? Properties;
             Description = harness.Description;
             if (Timeout != System.Threading.Timeout.Infinite)
             {
@@ -316,7 +317,13 @@ namespace AnyUnit.Run
                     }
                 }
                 exceptions.WriteOutExceptions(helper);
-                state.Result = finalResult ?? new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper);
+                // `exceptions` is handed to the Result too, not just to
+                // WriteOutExceptions above: the real Exception objects are
+                // still in scope right here, and before this they were
+                // flattened into the log and then dropped, leaving every
+                // report writer with nothing but Output to put in both the
+                // message and the stack-trace slot.
+                state.Result = finalResult ?? new Result(state.Platform, exceptions.GetResult(helper), startTime, DateTime.Now, helper, exceptions);
                 state.Event.Set();
             }
 

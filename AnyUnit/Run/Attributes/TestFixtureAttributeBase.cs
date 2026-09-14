@@ -63,5 +63,16 @@ namespace AnyUnit.Run.Attributes
         public abstract IList<string> GetCategories(Type type);
         public abstract string GetDescription(Type type);
 
+        // Arbitrary key -> values metadata for the fixture (FixtureMeta.
+        // Properties). Virtual with an empty default rather than abstract
+        // like GetCategories above: every existing style outside this repo
+        // subclasses this, and making it abstract would break all of them
+        // to add a field most styles have no source for. A style with no
+        // property concept simply doesn't override it.
+        public virtual IDictionary<string, IList<string>> GetProperties(Type type)
+        {
+            return new Dictionary<string, IList<string>>();
+        }
+
     }
 }

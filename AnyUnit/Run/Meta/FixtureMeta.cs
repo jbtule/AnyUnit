@@ -32,6 +32,11 @@ namespace AnyUnit.Run
         public FixtureMeta()
         {
             Category =new List<string>();
+            // Initialised, not left null - see TestMeta's own constructor
+            // for why (deserialization Populates this instance rather than
+            // replacing it, so an older results.json keeps whatever is
+            // here).
+            Properties = new Dictionary<string, IList<string>>();
             Tests = new CallBackList<TestMeta>(it=>it.Fixture = this);
         }
 
@@ -47,20 +52,28 @@ namespace AnyUnit.Run
             {
                 Description = attribute.GetDescription(type);
                 Category = attribute.GetCategories(type);
+                // ?? keeps the constructor's empty bag if a style's
+                // override hands back null - Category has the same hazard
+                // but predates this and is left alone.
+                Properties = attribute.GetProperties(type) ?? Properties;
             }
 
         }
+
+        // Two independent serializers - see TestMeta's matching note.
         public string ToListJson()
         {
-            return String.Format("{{\"Name\":\"{0}\", \"UniqueName\":\"{1}\", \"Description\":\"{2}\", \"Category\":{3}, \"Tests\":[{4}]}}",
-                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), String.Join(",", Tests.Select(it => it.ToListJson()).ToArray())
+            return String.Format("{{\"Name\":\"{0}\", \"UniqueName\":\"{1}\", \"Description\":\"{2}\", \"Category\":{3}, \"Properties\":{5}, \"Tests\":[{4}]}}",
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), String.Join(",", Tests.Select(it => it.ToListJson()).ToArray()),
+                                 Properties.ToDictionaryJson()
                 );
         }
 
         public string ToItemJson()
         {
-            return String.Format("{{\"Assembly\":{4}, \"Category\":{3}, \"Description\":\"{2}\", \"UniqueName\":\"{1}\", \"Name\":\"{0}\"}}",
-                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Assembly.ToItemJson()
+            return String.Format("{{\"Assembly\":{4}, \"Category\":{3}, \"Properties\":{5}, \"Description\":\"{2}\", \"UniqueName\":\"{1}\", \"Name\":\"{0}\"}}",
+                                 Name.EscapeJson(), UniqueName.EscapeJson(), Description.EscapeJson(), Category.ToListJson(), Assembly.ToItemJson(),
+                                 Properties.ToDictionaryJson()
                 );
 
         }
@@ -76,6 +89,10 @@ namespace AnyUnit.Run
         public string Description { get; set; }
         public IList<string> Category { get; set; }
 
-        public IList<TestMeta> Tests { get; set; }  
+        // Fixture-level key -> values metadata, alongside Category - see
+        // TestMeta.Properties for the shape and the reasoning.
+        public IDictionary<string, IList<string>> Properties { get; set; }
+
+        public IList<TestMeta> Tests { get; set; }
     }
 }

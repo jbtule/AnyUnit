@@ -183,16 +183,39 @@ namespace AnyUnit.TestingPlatform
                 if (categories.Length > 0)
                     properties.Add(new TrxCategoriesProperty(categories));
 
+                // Key/value metadata beyond categories - TestMetadataProperty
+                // is MTP's own flat key->value pair, so a key carrying more
+                // than one value becomes more than one property, the same
+                // way TRX's own <Property> list does.
+                foreach (var source in new[] { test.Fixture.Properties, test.Properties })
+                {
+                    if (source == null)
+                        continue;
+                    foreach (var pair in source)
+                    {
+                        foreach (var value in pair.Value ?? new List<string>())
+                            properties.Add(new TestMetadataProperty(pair.Key, value ?? string.Empty));
+                    }
+                }
+
                 if (result != null)
                 {
-                    // AnyUnit.Run.Result has no separate exception-message/
-                    // stack-trace field - Output is the test's whole
-                    // captured log (see AnyUnit.Report's own writers for
-                    // the same caveat), so it's the only thing available
-                    // for either.
+                    // `?? result.Output` throughout: Message/StackTrace are
+                    // null for a result that carries no exception, and
+                    // before 1.2 there were no such fields at all - Output,
+                    // the whole captured log, was the only thing available
+                    // for either slot.
                     if (result.Kind == ResultKind.Fail || result.Kind == ResultKind.Error)
                     {
-                        properties.Add(new TrxExceptionProperty(result.Output, result.Output));
+                        properties.Add(new TrxExceptionProperty(
+                            result.Message ?? result.Output,
+                            result.StackTrace ?? result.Output));
+
+                        // The log itself is no longer lost on a failing
+                        // test now that it isn't doubling as the exception
+                        // message.
+                        if (!string.IsNullOrEmpty(result.Output))
+                            properties.Add(new TrxMessagesProperty(new TrxMessage[] { new StandardOutputTrxMessage(result.Output) }));
                     }
                     else if (!string.IsNullOrEmpty(result.Output))
                     {
@@ -230,11 +253,16 @@ namespace AnyUnit.TestingPlatform
                 case ResultKind.NoError:
                     return new PassedTestNodeStateProperty();
                 case ResultKind.Ignore:
-                    return new SkippedTestNodeStateProperty();
+                    // The (string explanation) overload - a test explorer
+                    // shows it next to the skipped test, where previously
+                    // the reason only existed as text inside the log.
+                    return result.SkipReason == null
+                        ? new SkippedTestNodeStateProperty()
+                        : new SkippedTestNodeStateProperty(result.SkipReason);
                 case ResultKind.Fail:
-                    return new FailedTestNodeStateProperty(result.Output);
+                    return new FailedTestNodeStateProperty(result.Message ?? result.Output);
                 case ResultKind.Error:
-                    return new ErrorTestNodeStateProperty(result.Output);
+                    return new ErrorTestNodeStateProperty(result.Message ?? result.Output);
                 default:
                     return new ErrorTestNodeStateProperty("Unknown result kind: " + result.Kind);
             }

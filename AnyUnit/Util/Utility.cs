@@ -173,6 +173,57 @@ namespace AnyUnit.Util
             return sb.ToString();
         }
 
+        // Either a quoted, escaped JSON string, or the bare literal null.
+        // Every pre-existing string field here is written by wrapping the
+        // format-string placeholder in literal quotes, which means a null
+        // renders as "" and a reader cannot tell "absent" from "empty
+        // string". That distinction doesn't matter for the older fields
+        // (nobody falls back on them) but it is load-bearing for the
+        // Message/StackTrace/ExceptionType/SkipReason fields added in 1.2:
+        // every Report/Formats writer does `Message ?? Output`, so a
+        // results.json written before those fields existed has to come
+        // back as null, not "". So the placeholder for those fields is NOT
+        // wrapped in quotes in the format string - this supplies them.
+        // Same precedent as Timeout's own
+        // `MaybeStruct(m => m.ToString(), () => "null")` in TestMeta.
+        public static string ToJsonStringOrNull(this string target)
+        {
+            if (target == null)
+                return "null";
+            return "\"" + target.EscapeJson() + "\"";
+        }
+
+        // {"key":["v1","v2"], ...} - the shape TestMeta.Properties and
+        // FixtureMeta.Properties serialize to. Values are a list, not a
+        // scalar, because a key can legitimately repeat (NUnit's
+        // [Property] and xUnit's [Trait] both allow it) and because CTRF's
+        // own `labels` field is specified as scalar-or-array per key -
+        // always emitting the array form means one shape to read rather
+        // than two. An empty/null bag emits {} rather than null, matching
+        // how Category already emits [] rather than null.
+        public static string ToDictionaryJson(this IDictionary<string, IList<string>> target)
+        {
+            var sb = new StringBuilder();
+            sb.Append("{");
+            if (target != null)
+            {
+                bool first = true;
+                foreach (var pair in target)
+                {
+                    if (first)
+                        first = false;
+                    else
+                        sb.Append(",");
+                    sb.Append("\"");
+                    sb.Append(pair.Key.EscapeJson());
+                    sb.Append("\":");
+                    sb.Append((pair.Value ?? new List<string>()).ToListJson());
+                }
+            }
+            sb.Append("}");
+            return sb.ToString();
+        }
+
         public static IEnumerable<string> SafeSplit(this string target, string delimiter)
         {
             if (string.IsNullOrEmpty(target))

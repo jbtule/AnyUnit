@@ -28,6 +28,7 @@ namespace AnyUnit.Run
             if (attribute != null)
             {
                 Category = attribute.GetCategories(method);
+                Properties = attribute.GetProperties(method);
                 Description = attribute.GetDescription(method);
                 Timeout = attribute.GetTimeout(method);
                 RequiredCapabilities = attribute.GetRequiredCapabilities(method);
@@ -37,6 +38,10 @@ namespace AnyUnit.Run
         public string Description { get; set; }
 
         public IList<string> Category { get; set; }
+
+        // Arbitrary key -> values metadata from the style layer, carried
+        // through to TestMeta.Properties the same way Category is.
+        public IDictionary<string, IList<string>> Properties { get; set; }
 
         public TestAttributeBase Attribute { get; set; }
 

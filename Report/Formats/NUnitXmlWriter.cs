@@ -13,6 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -90,15 +91,67 @@ namespace AnyUnit.Report.Formats
                 new XAttribute("duration", Seconds(entry.Result)),
                 new XAttribute("asserts", entry.Result.AssertCount));
 
+            // Real NUnit3 XML flattens Category, Description and every
+            // [Property] into one <properties> bag of
+            // <property name= value=/> - so that's what this emits, rather
+            // than inventing a shape of its own. Fixture-level values are
+            // included: an NUnit fixture's categories really do apply to
+            // each of its test cases.
+            var properties = new List<XElement>();
+            foreach (var category in entry.Test.Category.Concat(entry.Fixture.Category)
+                                          .Where(c => !string.IsNullOrEmpty(c)).Distinct())
+            {
+                properties.Add(new XElement("property",
+                    new XAttribute("name", "Category"),
+                    new XAttribute("value", category)));
+            }
+            if (!string.IsNullOrEmpty(entry.Test.Description))
+            {
+                properties.Add(new XElement("property",
+                    new XAttribute("name", "Description"),
+                    new XAttribute("value", entry.Test.Description)));
+            }
+            foreach (var source in new[] { entry.Fixture.Properties, entry.Test.Properties })
+            {
+                if (source == null)
+                    continue;
+                foreach (var pair in source)
+                {
+                    foreach (var value in pair.Value ?? new List<string>())
+                    {
+                        properties.Add(new XElement("property",
+                            new XAttribute("name", pair.Key),
+                            new XAttribute("value", value ?? string.Empty)));
+                    }
+                }
+            }
+            if (properties.Count > 0)
+                testCase.Add(new XElement("properties", properties));
+
             if (entry.Result.Kind == ResultKind.Fail || entry.Result.Kind == ResultKind.Error)
             {
-                testCase.Add(new XElement("failure",
-                    new XElement("message", entry.Result.Output ?? string.Empty),
-                    new XElement("stack-trace", entry.Result.Output ?? string.Empty)));
+                // Before this, Output went into BOTH <message> and
+                // <stack-trace> - the whole log twice, since neither value
+                // existed separately. The `?? Output` fallbacks keep an
+                // older results.json converting exactly as it used to.
+                var failure = new XElement("failure",
+                    new XElement("message", entry.Result.Message ?? entry.Result.Output ?? string.Empty),
+                    new XElement("stack-trace", entry.Result.StackTrace ?? entry.Result.Output ?? string.Empty));
+
+                testCase.Add(failure);
+
+                // Real NUnit3 XML distinguishes an error from an assertion
+                // failure with label="Error" on the test-case, not by the
+                // result string (both are "Failed") - AnyUnit has always
+                // known which it was, and now says so.
+                if (entry.Result.Kind == ResultKind.Error)
+                    testCase.Add(new XAttribute("label", "Error"));
             }
-            else if (entry.Result.Kind == ResultKind.Ignore && !string.IsNullOrEmpty(entry.Result.Output))
+            else if (entry.Result.Kind == ResultKind.Ignore)
             {
-                testCase.Add(new XElement("reason", new XElement("message", entry.Result.Output)));
+                var reason = entry.Result.SkipReason ?? entry.Result.Output;
+                if (!string.IsNullOrEmpty(reason))
+                    testCase.Add(new XElement("reason", new XElement("message", reason)));
             }
 
             return testCase;

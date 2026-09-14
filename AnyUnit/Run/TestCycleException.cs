@@ -122,6 +122,48 @@ namespace AnyUnit.Run
 
         }
 
+        // The single exception a report format should attribute the result
+        // to - the one whose Message/StackTrace/type name become
+        // Result.Message/StackTrace/ExceptionType. Deliberately sits right
+        // next to GetResult and mirrors its precedence branch for branch,
+        // so the two can't drift into disagreeing about which exception
+        // actually decided the outcome. Output is unaffected and still
+        // carries every exception (see WriteOutExceptions below), so the
+        // multi-exception case - setup and teardown both throwing - loses
+        // nothing by this picking one.
+        //
+        // Returns null when nothing went wrong, and also for Success /
+        // NoError, which have no exception by definition.
+        public Exception GetPrimaryException(ResultKind kind)
+        {
+            switch (kind)
+            {
+                case ResultKind.Ignore:
+                    // Same Setup -> Test -> Teardown order GetResult tests
+                    // its IgnoreExceptions in.
+                    return Setup.OfType<IgnoreException>().FirstOrDefault()
+                        ?? Test.OfType<IgnoreException>().FirstOrDefault()
+                        ?? (Exception)Teardown.OfType<IgnoreException>().FirstOrDefault();
+
+                case ResultKind.Error:
+                    // GetResult's Error branch is
+                    // `Setup.Any() || Teardown.Any() || Test.Any(not a
+                    // ResultException)`. Setup first because a failed setup
+                    // is why nothing else could work; a non-ResultException
+                    // from the test body next (a ResultException is an
+                    // assertion outcome, not an error); teardown last.
+                    return Setup.FirstOrDefault()
+                        ?? Test.FirstOrDefault(it => !(it is ResultException))
+                        ?? Teardown.FirstOrDefault();
+
+                case ResultKind.Fail:
+                    return Test.OfType<AssertionException>().FirstOrDefault();
+
+                default:
+                    return null;
+            }
+        }
+
         public void WriteOutExceptions(IAssertionHelper helper)
         {
             if (Setup.Any())
