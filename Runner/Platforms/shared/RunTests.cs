@@ -33,16 +33,81 @@ namespace SatelliteRunner.Shared
             // its own output directory - Assembly.LoadFrom alone won't find
             // those. Probe each test dll's own directory as a fallback.
             var probeDirs = dllList.Select(Path.GetDirectoryName).Distinct().ToList();
+#if NETFRAMEWORK
+            // Byte-loaded assemblies land in no context, so unlike
+            // LoadFrom the CLR will not hand back an already-loaded one on
+            // a repeat request - it would happily create a second copy of
+            // the same assembly, which is the very problem this whole
+            // branch exists to avoid. Cache by simple name.
+            var probed = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+#endif
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
                 var name = new AssemblyName(args.Name).Name;
                 var candidate = probeDirs
                     .Select(dir => Path.Combine(dir, name + ".dll"))
                     .FirstOrDefault(File.Exists);
-                return candidate != null ? Assembly.LoadFrom(candidate) : null;
+                if (candidate == null)
+                    return null;
+#if NETFRAMEWORK
+                // Bytes, not LoadFrom - for the same reason the test
+                // assemblies themselves are byte-loaded below, one level
+                // deeper. A LoadFrom'd AnyUnit.Constraints.dll resolves
+                // ITS OWN AnyUnit reference out of the directory it came
+                // from, which is a second AnyUnit again, and the failure
+                // is a step subtler than zero tests: the test passes an
+                // IAssert from the embedded AnyUnit into an AssertEx.That
+                // overload typed against the disk one, so it dies with
+                // MissingMethodException on a method that plainly exists.
+                // Confirmed for real on Windows CI before this fix.
+                lock (probed)
+                {
+                    Assembly hit;
+                    if (probed.TryGetValue(name, out hit))
+                        return hit;
+                    var loaded = Assembly.Load(File.ReadAllBytes(candidate));
+                    probed[name] = loaded;
+                    return loaded;
+                }
+#else
+                return Assembly.LoadFrom(candidate);
+#endif
             };
 
+#if NETFRAMEWORK
+            // Load the bytes rather than LoadFrom, on .NET Framework only.
+            //
+            // That runner ships as a single .exe with its dependencies
+            // embedded (see net48-runner's DiminishedProgram), so
+            // AnyUnit.dll is deliberately NOT on disk beside it. Every test
+            // assembly's own output directory does carry a copy, though -
+            // and under LoadFrom, the CLR satisfies that assembly's
+            // AnyUnit reference from its own directory without ever raising
+            // AssemblyResolve. The result is two AnyUnit assemblies with
+            // different identities: the runner's [Test] attribute type is
+            // not the type on the tests, so nothing matches. Confirmed for
+            // real rather than theorised - every one of the 8 assemblies
+            // discovered exactly 0 tests, silently, with the runner still
+            // exiting 0.
+            //
+            // Loading the bytes puts the test assembly in no context, so
+            // ALL of its dependencies go through AssemblyResolve instead:
+            // the embedded copy for AnyUnit itself (handler registered at
+            // startup, so it runs before the probe-dirs one above), and the
+            // probe-dirs handler for anything that only exists next to the
+            // test assembly, like FSharp.Core.
+            //
+            // Nothing here reads Assembly.Location/CodeBase (checked across
+            // AnyUnit, Runner and Contrib), which is the usual thing that
+            // breaks for a byte-loaded assembly.
+            var am = dllList.Select(dll => Assembly.Load(File.ReadAllBytes(dll))).ToList();
+#else
+            // .NET (Core) resolves a dependency by simple name against
+            // what the default load context has already loaded, so the
+            // runner's own AnyUnit satisfies the test assembly's reference
+            // and the single-file bundle needs none of the above.
             var am = dllList.Select(Assembly.LoadFrom).ToList();
+#endif
 
             return RunAssemblies(id, am);
         }

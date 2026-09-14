@@ -26,7 +26,25 @@
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>SatelliteRunner.Shared</RootNamespace>
     <Platforms>x86;x64</Platforms>
+    <!--
+      The shared Program.Main is still compiled in (shared/*.cs below) but
+      is no longer the entry point - DiminishedProgram.Main installs the
+      embedded-assembly resolver first and hands off to it. Two Mains in
+      one assembly is a compile error without this.
+    -->
+    <StartupObject>SatelliteRunner.Net48.DiminishedProgram</StartupObject>
   </PropertyGroup>
+
+  <!--
+    ZipArchive lives in these two framework assemblies, which SDK-style
+    net48 projects don't reference by default. Framework references, not
+    PackageReferences - nothing is added to the dependency graph (and
+    therefore nothing new to embed).
+  -->
+  <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'x86'">
     <AssemblyName>anyunit-net48-runner-win32</AssemblyName>
@@ -49,5 +67,61 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
   </ItemGroup>
+
+  <!--
+    Zips every dependency the build was about to copy next to the .exe and
+    embeds that zip instead, so the .exe ships alone (see
+    DiminishedProgram.cs for the runtime half).
+
+    @(ReferenceCopyLocalPaths), not a hand-written list: it's the build's
+    own answer to "what has to sit beside this exe", so a dependency added
+    later is embedded automatically and one that goes away stops being
+    embedded - no list here to drift out of step with the csproj above.
+
+    ZipDirectory is a stock MSBuild task, which is what makes this
+    buildable anywhere `dotnet build` runs. diminish-dependencies' own
+    compressor is a Windows-only .NET Framework 4.0 exe; depending on it
+    would have meant this project no longer builds on macOS/Linux.
+
+    Then Remove="@(...)" so those same files are NOT also copied to the
+    output directory. That isn't tidiness: left in place, the CLR would
+    resolve them from disk and the embedded path would never execute -
+    so every local run and every CI run would be testing an arrangement
+    that isn't the one shipped. Emptying it means the build output IS the
+    single-file artifact, and build.yml's existing net48 test steps
+    exercise the embedding for real.
+  -->
+  <Target Name="EmbedDependencies"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="PrepareResources">
+    <PropertyGroup>
+      <_DepStage>$(IntermediateOutputPath)embedded-deps\</_DepStage>
+      <_DepZip>$(IntermediateOutputPath)dependencies.zip</_DepZip>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <!-- .dll only: .pdb/.xml alongside a reference are not assemblies
+           the resolver will ever be asked for. -->
+      <_EmbedDep Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.dll'" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(_DepStage)" />
+    <MakeDir Directories="$(_DepStage)" />
+    <Copy SourceFiles="@(_EmbedDep)" DestinationFolder="$(_DepStage)" />
+
+    <ZipDirectory SourceDirectory="$(_DepStage)"
+                  DestinationFile="$(_DepZip)"
+                  Overwrite="true" />
+
+    <ItemGroup>
+      <EmbeddedResource Include="$(_DepZip)">
+        <!-- Fixed name, so DiminishedProgram doesn't have to guess at the
+             RootNamespace-derived one. -->
+        <LogicalName>AnyUnit.Net48Runner.Dependencies.zip</LogicalName>
+      </EmbeddedResource>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+      <FileWrites Include="$(_DepZip)" />
+    </ItemGroup>
+  </Target>
 
 </Project>
