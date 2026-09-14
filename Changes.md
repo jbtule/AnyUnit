@@ -17,15 +17,21 @@ ordinary "what changed in this version" question the eras don't answer.
   output at all - which in turn lets the MTP legs be gated by the same
   `ConventionTestProcessor` conformance check every other runner gets.
 - Results schema carries what downstream formats actually need:
-  separate exception message/stack trace, skip reason, expected/actual,
-  and key-value properties alongside the existing flat categories.
-  Additive - `SchemaVersion` stays at 1.
+  separate exception message, stack trace and type, skip reason, and
+  key-value properties alongside the existing flat categories. Additive -
+  `SchemaVersion` stays at 1.
 - `async Task` test methods are awaited. Previously the returned `Task`
   was discarded unawaited, so an async test's failures were silently
   lost and it passed regardless.
 - `AnyUnit.Style.MsTest` - roughly MSTest-compatible attributes and
   assertions.
-- `AnyUnit.Style.Expecto` - Expecto's value-based F# style.
+- `AnyUnit.Style.Expecto` - Expecto's value-based F# style: `testList`/
+  `testCase` trees and the `Expect` vocabulary.
+- `[RequiresCapability]`: a test can declare a runtime facility it needs
+  (async continuations, timeout enforcement) and is reported Ignored -
+  with the reason - where the platform lacks it, replacing a hard-coded
+  category exclusion that lived in one host.
+
 
 ### 1.1 - 2026-09-13
 

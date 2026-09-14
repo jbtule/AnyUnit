@@ -94,8 +94,20 @@ namespace AnyUnit.Run
 
 
 
-            UniqueName += "." + harness.Method.Name;
-            Name += harness.Method.Name;
+            // DisplayName, when a style set one, stands in for the method
+            // name in BOTH halves - not just the pretty one. A style that
+            // produces several tests from a single member (Expecto's
+            // `testList "a" [ testCase "b" ...; testCase "c" ... ]` is one
+            // F# `let` binding, so one PropertyInfo, yielding many leaves)
+            // would otherwise give every one of them the same UniqueName,
+            // and ResultsFile.Add - which keys each level by UniqueName -
+            // would silently merge them into a single test.
+            var memberName = string.IsNullOrEmpty(harness.DisplayName)
+                ? harness.Method.Name
+                : harness.DisplayName;
+
+            UniqueName += "." + memberName;
+            Name += memberName;
 
             if (methodArgs.Parameters.Any())
             {

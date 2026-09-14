@@ -2,6 +2,8 @@
   <Folder Name="/Contrib/">
     <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
     <Project Path="Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj" />
+
+    <Project Path="Contrib/AnyUnit.Style.Expecto/AnyUnit.Style.Expecto.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.MsTest/AnyUnit.Style.MsTest.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
@@ -41,6 +43,8 @@
     <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests.FSharp/ComboTests.FSharp.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests.Mtp/ComboTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/ComboTests/ComboTests.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/ExpectoTests.Mtp/ExpectoTests.Mtp.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/ExpectoTests/AnyUnit.Style.ExpectoTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj" />

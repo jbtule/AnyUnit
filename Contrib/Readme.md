@@ -18,6 +18,9 @@ README for what it actually covers and how to use it:
   value-based test style.
 - [**AnyUnit.Style.FsUnit**](AnyUnit.Style.FsUnit) - FsUnit-style F#
   assertions.
+- [**AnyUnit.Style.Expecto**](AnyUnit.Style.Expecto) - Expecto's
+  value-based F# style: testList/testCase trees and the Expect
+  vocabulary.
 
 Real NUnit/xUnit source this repo ports from is attributed in
 [`Contributors.md`](../Contributors.md).

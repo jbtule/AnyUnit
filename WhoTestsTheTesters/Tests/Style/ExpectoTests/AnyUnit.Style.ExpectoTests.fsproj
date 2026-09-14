@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ExpectoTests</AssemblyName>
+    <!-- Same reason as FSharpTests.fsproj's own copy of this: a
+         Library-output project doesn't copy its library dependencies
+         (FSharp.Core.dll, AnyUnit.Style.Expecto.dll) into its own output
+         by default, and the console runners load this by path. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Basic.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Expecto\AnyUnit.Style.Expecto.fsproj" />
+  </ItemGroup>
+
+</Project>
