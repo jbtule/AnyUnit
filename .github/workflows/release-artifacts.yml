@@ -310,16 +310,24 @@ jobs:
               --skip-duplicate
           done
 
-      # Just the two packed CLI tools, not every library package - a
+      # Just the packed CLI tools, not every library package - a
       # download link straight off the Release page is useful for
       # something a person installs/runs directly (anyunit-runner/
-      # anyunit-browser-wasm), not for a library meant to be restored
-      # via PackageReference from nuget.org instead. Same glob reasoning
-      # as build.yml's test-packed-tool/test-packed-wasm-tool jobs use
-      # to tell AnyUnit.Runner.<version>.nupkg apart from
+      # anyunit-browser-wasm/anyunit-report), not for a library meant to
+      # be restored via PackageReference from nuget.org instead. That's
+      # the rule for what belongs here: every PackAsTool project, and
+      # only those. Same glob reasoning as build.yml's
+      # test-packed-tool/test-packed-wasm-tool jobs use to tell
+      # AnyUnit.Runner.<version>.nupkg apart from
       # AnyUnit.Runner.Bootstrap.<version>.nupkg (a digit right after
       # the id) and AnyUnit.Runner.BrowserWasm.<version>.nupkg from
       # both.
+      #
+      # nuget.org needs no such list - the push step above globs
+      # packages/*.nupkg, so a new package reaches nuget.org on its own
+      # but has to be added HERE by hand. AnyUnit.Report was missed that
+      # way when it was added: it shipped to nuget.org automatically
+      # while silently not appearing on the Release page.
       #
       # gh release view/create first, same "don't fail if create-release
       # (a separate, push-triggered job in this same workflow file) got
@@ -336,4 +344,5 @@ jobs:
           fi
           gh release upload "$tag" --repo "${{ github.repository }}" --clobber \
             packages/AnyUnit.Runner.[0-9]*.nupkg \
-            packages/AnyUnit.Runner.BrowserWasm.[0-9]*.nupkg
+            packages/AnyUnit.Runner.BrowserWasm.[0-9]*.nupkg \
+            packages/AnyUnit.Report.[0-9]*.nupkg
