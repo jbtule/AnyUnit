@@ -122,9 +122,11 @@ dotnet tool install --global AnyUnit.Report             # anyunit-report
 ```
 
 A tagged release's own [GitHub Release](https://github.com/jbtule/AnyUnit/releases)
-page also carries both CLI tools' `.nupkg` files and a self-contained,
-single-file `anyunit-runner` executable for every RID in "Platform
-coverage" above, if you'd rather download one directly than install it.
+page also carries every CLI tool's `.nupkg` file (`anyunit-runner`,
+`anyunit-browser-wasm`, `anyunit-report`), a self-contained, single-file
+`anyunit-runner` executable for every RID in "Platform coverage" above,
+and the standalone `net48` runner `.exe` (32- and 64-bit), if you'd
+rather download one directly than install it.
 
 ## Layout
 
@@ -164,16 +166,17 @@ coverage" above, if you'd rather download one directly than install it.
 
 ## Status
 
-Heading toward 1.0. This is a genuinely old project - the core ideas here
-go back 13 years, to a PCL/Silverlight-era predecessor (see
-[`Changes.md`](Changes.md)) - and getting to 1.0 has meant catching up a
+1.1 is released and on nuget.org; 1.2 is in development (see
+[`Changes.md`](Changes.md) for per-release notes). This is a genuinely
+old project - the core ideas here go back 13 years, to a
+PCL/Silverlight-era predecessor - and getting to 1.0 meant catching up a
 lot of that history in one pass, so expect some rough edges: a style
 covering less of its real framework than you'd want, docs that lag a
 recent change, a corner nothing's exercised for real yet. Two things are
-solid, though, because they've actually been exercised this pass, not
-assumed: the discovery/execution engine is genuinely portable (real
-desktop RIDs, browser-wasm, MTP - see "Platform coverage" above), and the
-style mechanism is genuinely extensible (`IRowInlineParameter`/
+solid, though, because they've actually been exercised, not assumed: the
+discovery/execution engine is genuinely portable (real desktop RIDs,
+browser-wasm, MTP - see "Platform coverage" above), and the style
+mechanism is genuinely extensible (`IRowInlineParameter`/
 `IGeneratingParameter`/`IArgParameter` let one style recognize another's
 own attributes with no reference between them - see "Why" above); adding
 a new style builds on the existing base classes rather than changing how
