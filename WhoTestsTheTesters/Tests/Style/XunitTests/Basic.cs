@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Style.Xunit;
 
 namespace XunitTests
@@ -56,6 +58,7 @@ namespace XunitTests
             throw new NotImplementedException();
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Fact(Timeout = 2000),Trait("Category", "Timeout")]
         public void TestTimeout2_Error()
         {

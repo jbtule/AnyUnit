@@ -30,6 +30,32 @@ browser-wasm.
   `Test` per parameter-set combination; `RunAll` executes them and reports
   a `Result` (`Success`/`Fail`/`Error`/`Ignore`/`NoError`) for each.
 
+## Asynchronous tests
+
+A test method may return `Task`, `Task<T>`, `ValueTask`, `ValueTask<T>`
+or an F# `Async<'T>`. The engine waits for it before deciding the test's
+outcome, so a failed assertion inside an `async` body is reported `Fail`
+(and `Assert.Ignore` reported `Ignore`) just as it would be in a
+synchronous one, and `[Timeout]` still applies - it preempts a hung
+`await` the same way it preempts a hung loop. An `async Task<bool>` test
+gets the same "returned `false` means fail" handling as a plain `bool`
+one.
+
+The one platform limit is single-threaded browser-wasm: a test whose
+awaits all complete synchronously (the overwhelmingly common case) runs
+there normally, but one that genuinely suspends can never resume, since
+its continuation needs the thread to yield back to the browser's event
+loop. Declare that with
+`[RequiresCapability(TestCapabilities.AsyncYield)]` and the engine
+reports the test `Ignored` there, naming the missing facility, while it
+runs normally everywhere else. An undeclared one gets a clear `Error`
+rather than hanging the page.
+
+`[RequiresCapability]` is read by the engine, not by any one runner, so
+it works in every style and every host at once - `TestCapabilities.Timeouts`
+is the other current value, for tests that exist to prove `[Timeout]`
+actually fires.
+
 See [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the
 smallest way to actually call `Runner.Create`/`RunAll` from your own
 entry point, or [`AnyUnit.TestingPlatform`](../AnyUnit.TestingPlatform)
