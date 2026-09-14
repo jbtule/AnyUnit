@@ -386,6 +386,15 @@ namespace AnyUnit.Report.Formats
                             w.Write("\" hidden><td colspan=\"");
                             w.Write((platforms.Count + 1).ToString(CultureInfo.InvariantCulture));
                             w.WriteLine("\">");
+                            // The test's own metadata - categories and
+                            // key/value properties - once, above the
+                            // per-platform blocks, since it belongs to the
+                            // test and not to any one run of it. Neither
+                            // was rendered anywhere before this; categories
+                            // had been in the schema from the start and
+                            // simply never made it into the report.
+                            WriteTags(w, test);
+
                             foreach (var result in test.Results.Where(HasDetail)
                                                       .OrderBy(r => r.Platform ?? "", StringComparer.Ordinal))
                             {
@@ -415,13 +424,34 @@ namespace AnyUnit.Report.Formats
                                 // existed renders exactly as it used to:
                                 // one <pre> holding the log.
                                 WritePre(w, result.SkipReason, "Reason");
-                                WritePre(w, result.Message, "Message");
+                                // The exception's type rides on the Message
+                                // label rather than getting a block of its
+                                // own: it is one short token, and it is the
+                                // one thing that tells an assertion failure
+                                // from a NotImplementedException from a
+                                // timeout at a glance - TRX collapses all of
+                                // those to "Failed", which is exactly why the
+                                // schema carries it separately.
+                                WritePre(w, result.Message,
+                                         string.IsNullOrEmpty(result.ExceptionType)
+                                             ? "Message"
+                                             : "Message · " + ShortTypeName(result.ExceptionType));
                                 WritePre(w, result.StackTrace, "Stack trace");
 
                                 var hasStructured = !string.IsNullOrEmpty(result.SkipReason)
                                                 || !string.IsNullOrEmpty(result.Message)
                                                 || !string.IsNullOrEmpty(result.StackTrace);
-                                if (!string.IsNullOrEmpty(result.Output))
+                                // Output is the WHOLE captured log, and the
+                                // engine writes the exception into that log -
+                                // so once Message and Stack trace have their
+                                // own blocks, Output would repeat both
+                                // verbatim, doubling every failure's detail
+                                // with noise. Seen in a real screenshot, not
+                                // predicted. Show it only when it carries
+                                // something beyond what those blocks already
+                                // said (a Log.Write from the test itself).
+                                var output = OutputBeyondStructured(result);
+                                if (!string.IsNullOrEmpty(output))
                                     WritePre(w, result.Output, hasStructured ? "Output" : null);
                                 else if (!hasStructured)
                                     WritePre(w, "(no output)", null);
@@ -463,6 +493,77 @@ namespace AnyUnit.Report.Formats
         // omitted when there's only one block to show, so a plain
         // log-only result looks exactly as it did before there was
         // anything to distinguish it from.
+        // Categories as plain chips, properties as key=value chips, one
+        // line. Fixture-level entries are merged in, since a category on
+        // the fixture applies to every test in it and a reader shouldn't
+        // have to know which level it was declared at. Nothing is written
+        // when there is nothing to show - the common case.
+        private static void WriteTags(StreamWriter w, TestMeta test)
+        {
+            var categories = (test.Category ?? new List<string>())
+                .Concat(test.Fixture != null && test.Fixture.Category != null ? test.Fixture.Category : new List<string>())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var properties = new List<KeyValuePair<string, string>>();
+            foreach (var source in new[] { test.Fixture != null ? test.Fixture.Properties : null, test.Properties })
+            {
+                if (source == null) continue;
+                foreach (var pair in source)
+                    foreach (var value in pair.Value ?? new List<string>())
+                        properties.Add(new KeyValuePair<string, string>(pair.Key, value));
+            }
+            if (categories.Count == 0 && properties.Count == 0)
+                return;
+
+            w.Write("<div class=\"tags\">");
+            foreach (var category in categories)
+            {
+                w.Write("<span class=\"tag\">");
+                w.Write(Html(category));
+                w.Write("</span>");
+            }
+            foreach (var pair in properties)
+            {
+                w.Write("<span class=\"tag kv\"><span class=\"k\">");
+                w.Write(Html(pair.Key));
+                w.Write("</span>=");
+                w.Write(Html(pair.Value));
+                w.Write("</span>");
+            }
+            w.WriteLine("</div>");
+        }
+
+        // "AnyUnit.AssertionException" -> "AssertionException". The
+        // namespace is noise at the point where a reader is scanning for
+        // WHAT went wrong; the full name is still in the JSON.
+        private static string ShortTypeName(string fullName)
+        {
+            var dot = fullName.LastIndexOf('.');
+            return dot < 0 ? fullName : fullName.Substring(dot + 1);
+        }
+
+        // Whatever Output says that Message/StackTrace/ExceptionType don't
+        // already. Empty means "the log is nothing but the exception dump",
+        // which is the common case for a plain failure. Removal is by
+        // substring, deliberately not by parsing the log's layout: the exact
+        // framing the engine writes (a "Type: " prefix, line breaks) has
+        // changed before and would drift again, whereas "does anything
+        // survive once the known pieces are gone" does not care.
+        private static string OutputBeyondStructured(Result result)
+        {
+            var output = result.Output ?? "";
+            if (output.Length == 0)
+                return "";
+            foreach (var piece in new[] { result.StackTrace, result.Message, result.SkipReason, result.ExceptionType })
+            {
+                if (!string.IsNullOrEmpty(piece))
+                    output = output.Replace(piece, "");
+            }
+            // The "Type: " separator the engine writes for non-assertion
+            // exceptions survives the type-name removal as a bare ": ".
+            return output.Replace(": ", "").Trim();
+        }
+
         private static void WritePre(StreamWriter w, string text, string label)
         {
             if (string.IsNullOrEmpty(text))
@@ -735,6 +836,9 @@ tr.detail>td{padding:6px 10px;background:var(--bg)}
 .dblock{border-left:3px solid var(--border);padding:2px 0 2px 8px;margin:6px 0}
 .dblock.hl{border-left-color:var(--accent)}
 .dhead{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;margin-bottom:3px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 8px}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.tag.kv .k{color:var(--text);font-weight:600}
 .dhead code{font-size:11px;color:var(--muted);word-break:break-all}
 .badge{
   display:inline-block;padding:0 7px;border-radius:99px;font-size:11px;
