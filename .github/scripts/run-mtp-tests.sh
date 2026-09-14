@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs all 8 *.Mtp self-test projects through Microsoft.Testing.Platform,
+# Runs all 9 *.Mtp self-test projects through Microsoft.Testing.Platform,
 # writing each one's AnyUnit results file to /tmp/<name>-<suffix>.json.
 #
 # The console-runner twin of this is run-tests.sh, which drives the same
@@ -93,6 +93,7 @@ if count == 0:
 run BasicTests.Mtp BasicTests.Mtp BasicTests
 run ConstraintsTests.Mtp ConstraintsTests.Mtp ConstraintsTests
 run NunitTests.Mtp Style/NunitTests.Mtp NunitTests
+run MsTestTests.Mtp Style/MsTestTests.Mtp MsTestTests
 run XunitTests.Mtp Style/XunitTests.Mtp XunitTests
 run FsUnitTests.Mtp Style/FsUnitTests.Mtp FsUnitTests.Mtp
 run FSharpTests.Mtp Style/FSharpTests.Mtp FSharpTests.Mtp

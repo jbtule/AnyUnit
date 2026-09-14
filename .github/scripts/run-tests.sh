@@ -81,7 +81,7 @@ run() {
   # That is not hypothetical: it is exactly what the net48 runner did
   # when its embedded-dependency loading produced a second, non-matching
   # AnyUnit identity (see RunTests.RunAlone's NETFRAMEWORK branch) - 16
-  # empty result files, every job green. These 8 assemblies always
+  # empty result files, every job green. These 9 assemblies always
   # contain tests, so "zero results" is always a bug, never a valid run.
   #
   # The path goes to python3 as its own argv entry, NOT interpolated into
