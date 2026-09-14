@@ -43,6 +43,30 @@ all, see [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) instead - a
 plain console `Runner.Run(platform)`, its own simpler output format, no
 MTP package dependency.
 
+## AnyUnit's own results.json (`--report-anyunit-json`)
+
+```
+dotnet run -- --report-anyunit-json
+dotnet run -- --report-anyunit-json results.json
+```
+
+Writes the same `results.json` the console runners produce with
+`-o` - the same schema, from the same serializer, so anything that
+reads one reads the other. That includes
+[`anyunit-report`](../Report), which converts it to JUnit/TRX/NUnit/
+xUnit/CTRF/HTML/Markdown, and merges several runs' files into one.
+
+Unlike `--report-trx`, this needs no extra package - it's built into
+`AnyUnit.TestingPlatform` itself, since it's AnyUnit's own format rather
+than a general MTP one.
+
+The path is optional. Given one, it's used as-is (relative to the
+current directory, like any other `-o`); given none, a timestamped file
+is written under `--results-directory`, the way `--report-trx` behaves.
+A discovery-only run (`--list-tests`) writes nothing at all: it produces
+no results, and an empty results file is something AnyUnit's own tooling
+treats as a failure rather than as "nothing ran".
+
 ## Other MTP extensions (TRX, and anything else)
 
 `EnableAnyUnitRunner` registers `AnyUnit.TestingPlatform` as a

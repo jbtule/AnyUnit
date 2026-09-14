@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -41,6 +42,24 @@ namespace AnyUnit.TestingPlatform
         private readonly Assembly[] _testAssemblies;
         private readonly AnyUnitTrxReportCapability _trxReportCapability;
 
+        // Null unless --report-anyunit-json was passed (see
+        // AnyUnitJsonReportOptions), which is what makes the whole JSON
+        // path opt-in: no flag, no ResultsFile, no file.
+        private readonly string _anyUnitJsonPath;
+        private readonly ResultsFile _resultsFile;
+
+        // Set only by a RunTestExecutionRequest. CloseTestSessionAsync
+        // can't tell a run that found nothing apart from a discovery-only
+        // session (`--list-tests`) by looking at _resultsFile alone - both
+        // have zero Results - and the two want opposite treatment. An
+        // empty file from a real run is a genuine finding, and both
+        // ConventionTestProcessor and .github/scripts/run-tests.sh
+        // deliberately fail loudly on one; an empty file from
+        // `--list-tests` would just be a lie those same checks would then
+        // fail on. So discovery writes nothing at all, matching what
+        // --report-trx does.
+        private bool _ranTests;
+
         // Defaults to the entry assembly, matching a test project that
         // compiles its own tests directly into the MTP executable. A host
         // project that instead references its test assemblies as
@@ -48,13 +67,15 @@ namespace AnyUnit.TestingPlatform
         // own testAssemblies parameter) needs to say so explicitly - the
         // entry assembly would otherwise be the host itself, which has no
         // tests of its own, and Runner.Create would (silently) find zero.
-        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies, AnyUnitTrxReportCapability trxReportCapability)
+        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies, AnyUnitTrxReportCapability trxReportCapability, string anyUnitJsonPath)
         {
             var assemblies = (testAssemblies ?? Enumerable.Empty<Assembly>()).ToArray();
             _testAssemblies = assemblies.Length > 0
                 ? assemblies
                 : new[] { Assembly.GetEntryAssembly() ?? typeof(AnyUnitTestFramework).Assembly };
             _trxReportCapability = trxReportCapability;
+            _anyUnitJsonPath = anyUnitJsonPath;
+            _resultsFile = anyUnitJsonPath != null ? new ResultsFile() : null;
         }
 
         public string Uid => "AnyUnit.TestingPlatform";
@@ -71,8 +92,28 @@ namespace AnyUnit.TestingPlatform
             return Task.FromResult(new CreateTestSessionResult { IsSuccess = true });
         }
 
+        // Written here rather than at the end of ExecuteRequestAsync
+        // because one session can carry more than one request; close is
+        // the only point at which "everything that was going to run has
+        // run" is actually true.
         public Task<CloseTestSessionResult> CloseTestSessionAsync(CloseTestSessionContext context)
         {
+            if (_resultsFile != null && _ranTests)
+            {
+                var directory = Path.GetDirectoryName(_anyUnitJsonPath);
+                if (!string.IsNullOrEmpty(directory))
+                    Directory.CreateDirectory(directory);
+
+                // File.WriteAllText's no-encoding overload is UTF-8
+                // without a BOM, matching Runner/Platforms/shared/
+                // WriteResults.cs byte for byte. (Readers cope with a BOM
+                // either way - ResultsFileReader and run-tests.sh both
+                // read as utf-8-sig - but "identical to what the console
+                // runners emit" is the actual requirement here, and a
+                // stray BOM would break that.)
+                File.WriteAllText(_anyUnitJsonPath, _resultsFile.ToListJson());
+            }
+
             return Task.FromResult(new CloseTestSessionResult { IsSuccess = true });
         }
 
@@ -99,8 +140,22 @@ namespace AnyUnit.TestingPlatform
             }
             else if (context.Request is RunTestExecutionRequest run)
             {
+                _ranTests = true;
                 runner.RunAll(result =>
                 {
+                    // ResultsFile.Add walks Assembly -> Fixture -> Test by
+                    // UniqueName and dedups by Platform, so accumulating
+                    // the whole tree is genuinely this one line - the same
+                    // line Runner/Platforms/shared and Runner/Bootstrap
+                    // use. Nothing here reshapes or re-serializes
+                    // anything: the file written in CloseTestSessionAsync
+                    // comes out of ResultsFile.ToListJson(), the one
+                    // serializer, so there is no second implementation of
+                    // the format to drift out of sync with the console
+                    // runners'.
+                    if (_resultsFile != null)
+                        _resultsFile.Add(result);
+
                     var property = ToStateProperty(result);
                     var node = ToTestNode(result.Test, property, result);
                     context.MessageBus.PublishAsync(this, new TestNodeUpdateMessage(

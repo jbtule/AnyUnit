@@ -138,6 +138,41 @@ jobs:
           trx=$(ls trx-check/*.trx)
           python3 -c "import xml.etree.ElementTree as ET; ET.parse('$trx')"
 
+      # The step above is a TRX-plumbing check, not a conformance one: it
+      # proves a .trx came out and parses as XML, which says nothing about
+      # whether the MTP path reported the RIGHT outcome for any given test.
+      # Until AnyUnit.TestingPlatform grew --report-anyunit-json that was
+      # the only check the 8 *.Mtp projects got at all - they produced
+      # nothing ConventionTestProcessor could read, so the one real gate in
+      # this repo simply didn't cover the MTP leg.
+      #
+      # These land in /tmp beside run-tests.sh's own output, so the "Verify
+      # results match naming convention" step further down picks them up
+      # through its existing /tmp/*.json glob with no change of its own -
+      # and so does "Stage results for upload", which feeds convention-
+      # summary. There they show up as their own platform rather than
+      # merging into the console runner's, because AnyUnitTestFramework
+      # stamps PlatformId.Current + "-mtp".
+      - name: Run every *.Mtp project through MTP and write AnyUnit JSON
+        shell: bash
+        run: .github/scripts/run-mtp-tests.sh net10-mtp
+
+      # Round-trips the MTP-produced JSON back out through anyunit-report.
+      # A file that ConventionTestProcessor accepts isn't automatically one
+      # AnyUnit.Report can read: they use different readers (a hand-rolled
+      # System.Text.Json pass vs Report/ResultsFileReader.cs, which also
+      # enforces the Tool marker and SchemaVersion). html specifically
+      # because its writer walks the whole Assemblies/Fixtures/Tests/
+      # Results tree including the Platforms list, so a structurally
+      # wrong file fails here rather than quietly producing less output.
+      - name: Convert the MTP results through anyunit-report
+        shell: bash
+        run: |
+          set -e
+          dotnet Report/bin/Release/net10.0/anyunit-report.dll convert \
+            -f html -o mtp-report.html /tmp/*-net10-mtp.json
+          test -s mtp-report.html
+
       # net48-runner needs an explicit -p:Platform build per bitness
       # (classic .NET Framework has no RuntimeIdentifier/self-contained
       # deployment model - bitness is a PE-header PlatformTarget, not
