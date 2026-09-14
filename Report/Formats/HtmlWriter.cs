@@ -71,7 +71,7 @@ namespace AnyUnit.Report.Formats
             {
                 WriteHead(w);
                 WriteSummary(w, results, platforms);
-                WriteControls(w, platforms);
+                WriteControls(w);
                 WriteMatrix(w, results, platforms, columnOf);
                 WriteFoot(w);
             }
@@ -133,14 +133,21 @@ namespace AnyUnit.Report.Formats
             if (platforms.Count > 0)
             {
                 w.WriteLine("<section class=\"pcards\">");
-                foreach (var platform in platforms)
+                for (var p = 0; p < platforms.Count; p++)
                 {
+                    var platform = platforms[p];
                     var forPlatform = all.Where(r => string.Equals(r.Platform ?? "", platform, StringComparison.Ordinal)).ToList();
                     var sample = forPlatform.FirstOrDefault();
                     var bad = forPlatform.Count(r => r.Kind == ResultKind.Fail || r.Kind == ResultKind.Error);
 
+                    // data-col ties the card to the matrix column it shows
+                    // or hides. The card carries no role/tabindex/aria here
+                    // - the script adds those (see Js), because without it
+                    // the card cannot filter anything and must not claim to.
                     w.Write("<div class=\"pcard");
                     w.Write(bad > 0 ? " has-bad" : "");
+                    w.Write("\" data-col=\"");
+                    w.Write(p.ToString(CultureInfo.InvariantCulture));
                     w.WriteLine("\">");
                     w.Write("<div class=\"pname\">");
                     w.Write(Html(platform));
@@ -160,13 +167,7 @@ namespace AnyUnit.Report.Formats
                         w.WriteLine("</div>");
                     }
                     w.Write("<div class=\"pcounts\">");
-                    w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} run", forPlatform.Count)));
-                    if (bad > 0)
-                    {
-                        w.Write(" &middot; <span class=\"bad\">");
-                        w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} failing", bad)));
-                        w.Write("</span>");
-                    }
+                    StatChips(w, forPlatform, Math.Max(0, tests - forPlatform.Count));
                     w.WriteLine("</div>");
                     w.WriteLine("</div>");
                 }
@@ -174,39 +175,47 @@ namespace AnyUnit.Report.Formats
             }
         }
 
+        // `kind` doubles as the CSS modifier and, for everything except the
+        // "total" tile, the filter key matching a row's data-kinds. The
+        // total tile gets no data-kind and so stays inert - "filter to all
+        // results" is what having nothing selected already means.
+        //
+        // No role/tabindex/aria-pressed is written here on purpose: see the
+        // Js constant. A tile that looks pressable in a viewer that can't
+        // run the script would be lying about what it does.
         private static void Tile(StreamWriter w, string kind, string label, int count)
         {
             w.Write("<div class=\"tile k-");
             w.Write(kind);
-            w.Write("\"><div class=\"n\">");
+            w.Write("\"");
+            if (!string.Equals(kind, "total", StringComparison.Ordinal))
+            {
+                w.Write(" data-kind=\"");
+                w.Write(kind);
+                w.Write("\"");
+            }
+            w.Write("><div class=\"n\">");
             w.Write(count.ToString(CultureInfo.InvariantCulture));
             w.Write("</div><div class=\"l\">");
             w.Write(Html(label));
             w.WriteLine("</div></div>");
         }
 
-        private static void WriteControls(StreamWriter w, IList<string> platforms)
+        // The platform checkbox row that used to live here is gone: the
+        // platform cards above are the same information in a far bigger tap
+        // target, so selecting a platform is now done by pressing its card
+        // rather than by hitting a 13px checkbox beside a repeated copy of
+        // its name. "Failures only" went with it - the Failed and Errored
+        // tiles say the same thing more precisely, and keeping both would
+        // have meant two controls competing over one filter.
+        private static void WriteControls(StreamWriter w)
         {
             w.WriteLine("<section class=\"controls\">");
             w.WriteLine("<input id=\"q\" type=\"search\" placeholder=\"Filter tests…\" autocomplete=\"off\">");
-            w.WriteLine("<label class=\"chk\"><input id=\"failOnly\" type=\"checkbox\"> Failures only</label>");
+            w.WriteLine("<button id=\"clearFilters\" type=\"button\" hidden>Clear filters</button>");
             w.WriteLine("<button id=\"expandAll\" type=\"button\">Expand all</button>");
             w.WriteLine("<button id=\"collapseAll\" type=\"button\">Collapse all</button>");
             w.WriteLine("</section>");
-
-            if (platforms.Count > 1)
-            {
-                w.WriteLine("<section class=\"pfilters\">");
-                for (var i = 0; i < platforms.Count; i++)
-                {
-                    w.Write("<label class=\"chk\"><input type=\"checkbox\" class=\"pfilter\" data-col=\"");
-                    w.Write(i.ToString(CultureInfo.InvariantCulture));
-                    w.Write("\" checked> ");
-                    w.Write(Html(platforms[i]));
-                    w.WriteLine("</label>");
-                }
-                w.WriteLine("</section>");
-            }
 
             w.WriteLine("<p class=\"legend\">");
             w.WriteLine("<span class=\"g k-pass\">✓</span> passed");
@@ -233,12 +242,15 @@ namespace AnyUnit.Report.Formats
             {
                 var assemblyResults = assembly.Fixtures.SelectMany(f => f.Tests).SelectMany(t => t.Results).ToList();
 
+                var assemblyTests = assembly.Fixtures.SelectMany(f => f.Tests).Count();
+
                 w.WriteLine("<section class=\"asm\">");
                 w.Write("<h2>");
                 w.Write(Html(ResultsModel.StripPrefix(assembly.UniqueName)));
-                w.Write(" <span class=\"cnt\">");
-                w.Write(Html(CountSummary(assemblyResults)));
-                w.WriteLine("</span></h2>");
+                w.Write(" ");
+                StatChips(w, assemblyResults,
+                          Math.Max(0, (assemblyTests * platforms.Count) - assemblyResults.Count));
+                w.WriteLine("</h2>");
 
                 foreach (var fixture in assembly.Fixtures)
                 {
@@ -254,9 +266,10 @@ namespace AnyUnit.Report.Formats
                     w.WriteLine(">");
                     w.Write("<summary><span class=\"fname\">");
                     w.Write(Html(ResultsModel.StripPrefix(fixture.UniqueName)));
-                    w.Write("</span> <span class=\"cnt\">");
-                    w.Write(Html(CountSummary(fixtureResults)));
-                    w.WriteLine("</span></summary>");
+                    w.Write("</span> ");
+                    StatChips(w, fixtureResults,
+                              Math.Max(0, (fixture.Tests.Count * platforms.Count) - fixtureResults.Count));
+                    w.WriteLine("</summary>");
 
                     w.WriteLine("<div class=\"scroll\">");
                     w.WriteLine("<table>");
@@ -283,9 +296,25 @@ namespace AnyUnit.Report.Formats
                         var hasDetail = test.Results.Any(HasDetail);
                         var id = hasDetail ? "d" + (++detailId).ToString(CultureInfo.InvariantCulture) : null;
 
+                        // Which kinds this row contains at all, "none"
+                        // included, so the headline tiles can filter to it
+                        // without the script having to re-read every cell.
+                        // Padded with spaces at both ends so a substring
+                        // test for " fail " can't also match " none ".
+                        var kinds = new List<string>();
+                        for (var i = 0; i < platforms.Count; i++)
+                        {
+                            Result at;
+                            var kindHere = byPlatform.TryGetValue(platforms[i], out at) ? KindClass(at.Kind) : "none";
+                            if (!kinds.Contains(kindHere))
+                                kinds.Add(kindHere);
+                        }
+
                         w.Write("<tr class=\"row");
                         w.Write(hasDetail ? " hasdetail" : "");
-                        w.Write("\" data-fail=\"");
+                        w.Write("\" data-kinds=\" ");
+                        w.Write(string.Join(" ", kinds.ToArray()));
+                        w.Write(" \" data-fail=\"");
                         w.Write(anyBad ? "1" : "0");
                         w.Write("\" data-search=\"");
                         // Fixture name included so a search for a fixture
@@ -430,13 +459,57 @@ namespace AnyUnit.Report.Formats
                 || result.Kind == ResultKind.Error;
         }
 
-        private static string CountSummary(IList<Result> results)
+        // Every non-zero kind, not just passed-and-failing. The old summary
+        // ("12 passed" / "12 passed, 3 failing") silently folded ignored,
+        // no-assert and never-ran into nothing at all, so a callout reading
+        // "12 passed" could be hiding three ignored tests and a platform
+        // that never ran the assembly - which is the exact question this
+        // report is opened to answer. Zero counts stay omitted, so a
+        // wholly-green scope still reads as one short chip, not six.
+        //
+        // `notRun` is passed in rather than derived: it's a property of the
+        // matrix (tests x platforms minus results present), which this
+        // function can't see from a flat result list.
+        private static void StatChips(StreamWriter w, IList<Result> results, int notRun)
         {
-            var pass = results.Count(r => r.Kind == ResultKind.Success);
-            var bad = results.Count(r => r.Kind == ResultKind.Fail || r.Kind == ResultKind.Error);
-            return bad > 0
-                ? string.Format(CultureInfo.InvariantCulture, "{0} passed, {1} failing", pass, bad)
-                : string.Format(CultureInfo.InvariantCulture, "{0} passed", pass);
+            w.Write("<span class=\"stats\">");
+            Chip(w, "pass", results.Count(r => r.Kind == ResultKind.Success));
+            Chip(w, "fail", results.Count(r => r.Kind == ResultKind.Fail));
+            Chip(w, "error", results.Count(r => r.Kind == ResultKind.Error));
+            Chip(w, "skip", results.Count(r => r.Kind == ResultKind.Ignore));
+            Chip(w, "other", results.Count(r => r.Kind == ResultKind.NoError));
+            Chip(w, "none", notRun);
+            w.Write("</span>");
+        }
+
+        private static void Chip(StreamWriter w, string kindClass, int count)
+        {
+            if (count <= 0)
+                return;
+            w.Write("<span class=\"chip k-");
+            w.Write(kindClass);
+            w.Write("\" title=\"");
+            w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} {1}", count, KindLabel(kindClass))));
+            w.Write("\"><span class=\"g\">");
+            w.Write(Glyph(kindClass));
+            w.Write("</span>");
+            w.Write(count.ToString(CultureInfo.InvariantCulture));
+            w.Write("</span>");
+        }
+
+        // Single source for the wording, so the tiles, the chips' tooltips
+        // and the legend can't drift apart.
+        private static string KindLabel(string kindClass)
+        {
+            switch (kindClass)
+            {
+                case "pass": return "passed";
+                case "fail": return "failed";
+                case "error": return "errored";
+                case "skip": return "ignored";
+                case "other": return "no assert";
+                default: return "not run";
+            }
         }
 
         private static string KindClass(ResultKind kind)
@@ -530,8 +603,32 @@ body{
 .pcard.has-bad{border-left-color:var(--fail)}
 .pname{font-weight:600;font-size:13px;word-break:break-all}
 .pmeta{color:var(--muted);font-size:11px;margin-top:1px;word-break:break-word}
-.pcounts{font-size:11px;margin-top:4px;color:var(--muted)}
-.pcounts .bad{color:var(--fail);font-weight:600}
+.pcounts{font-size:11px;margin-top:6px;color:var(--muted)}
+
+/* Stat chips: one per non-zero kind, on every assembly, fixture and
+   platform callout. Glyph + number, never colour alone - same reasoning
+   as the matrix cells. */
+.stats{display:inline-flex;flex-wrap:wrap;gap:3px 6px;vertical-align:middle;font-weight:400}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-variant-numeric:tabular-nums;
+      padding:1px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.chip .g{font-weight:700;line-height:1}
+.chip.k-pass .g{color:var(--pass)} .chip.k-fail .g{color:var(--fail)}
+.chip.k-error .g{color:var(--error)} .chip.k-skip .g{color:var(--skip)}
+.chip.k-other .g{color:var(--other)} .chip.k-none .g{color:var(--none)}
+.chip.k-fail,.chip.k-error{color:var(--text);font-weight:600}
+
+/* Interactive affordance is applied ONLY to elements the script has
+   actually wired up (it adds .sel-able itself). With JavaScript off
+   nothing below matches, so the tiles and platform cards stay plain
+   readouts rather than pretending to be buttons that never respond. */
+.sel-able{cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,opacity .12s}
+.sel-able:hover{border-color:var(--muted)}
+.sel-able:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tiles.has-sel .tile.sel-able:not(.on){opacity:.45}
+.tile.sel-able.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pcards.has-sel .pcard.sel-able:not(.on){opacity:.45}
+.pcard.sel-able.on{box-shadow:inset 0 0 0 1px var(--accent)}
+.sel-able .selmark{float:right;font-size:10px;color:var(--accent);font-weight:700}
 
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
 .controls input[type=search]{
@@ -543,15 +640,12 @@ body{
   background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;
 }
 .controls button:hover{border-color:var(--accent);color:var(--accent)}
-.chk{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
-.pfilters{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
 
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 14px}
 .legend .g{display:inline-block;width:18px;text-align:center;font-weight:700;margin-right:2px}
 
 .asm{margin-bottom:18px}
 .asm h2{font-size:15px;margin:0 0 6px;letter-spacing:-.01em;word-break:break-word}
-.cnt{font-weight:400;font-size:12px;color:var(--muted)}
 
 .fix{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden}
 .fix>summary{padding:8px 10px;cursor:pointer;font-size:13px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
@@ -615,7 +709,7 @@ pre{
    them all rather than hiding output behind an interaction that cannot
    happen. */
 .no-js tr.detail{display:table-row!important}
-.no-js .controls,.no-js .pfilters{display:none}
+.no-js .controls{display:none}
 ";
 
         private const string Js = @"
@@ -624,25 +718,42 @@ pre{
   doc.documentElement.classList.remove('no-js');
 
   var q = doc.getElementById('q');
-  var failOnly = doc.getElementById('failOnly');
+  var clearBtn = doc.getElementById('clearFilters');
   var colStyle = doc.createElement('style');
   doc.head.appendChild(colStyle);
 
-  // Columns are hidden with a generated stylesheet rather than by
-  // touching every cell: one rule per hidden platform beats walking
-  // thousands of <td>s on each toggle.
+  var tiles = doc.querySelectorAll('.tile[data-kind]');
+  var cards = doc.querySelectorAll('.pcard[data-col]');
+  var tileWrap = doc.querySelector('.tiles');
+  var cardWrap = doc.querySelector('.pcards');
+
+  // Both selections are ADDITIVE and start empty, meaning ''no filter'' -
+  // not ''everything deselected''. That is what lets one tap do something
+  // useful (show just the failures) instead of needing five taps to turn
+  // the other kinds off first, which is how the checkbox row it replaces
+  // behaved.
+  var kinds = {};   // kind -> true, empty = all kinds
+  var cols = {};    // column index -> true, empty = all columns
+
+  function any(map){ for (var k in map) if (map[k]) return true; return false; }
+
+  // Columns are hidden with a generated stylesheet rather than by touching
+  // every cell: one rule per hidden platform beats walking thousands of
+  // <td>s on each toggle.
   function syncColumns(){
     var rules = [];
-    var boxes = doc.querySelectorAll('.pfilter');
-    for (var i = 0; i < boxes.length; i++){
-      if (!boxes[i].checked) rules.push('.c' + boxes[i].getAttribute('data-col') + '{display:none}');
+    if (any(cols)){
+      for (var i = 0; i < cards.length; i++){
+        var c = cards[i].getAttribute('data-col');
+        if (!cols[c]) rules.push('.c' + c + '{display:none}');
+      }
     }
     colStyle.textContent = rules.join('');
   }
 
   function applyFilters(){
     var term = (q && q.value ? q.value : '').toLowerCase().trim();
-    var onlyBad = !!(failOnly && failOnly.checked);
+    var byKind = any(kinds);
     var fixtures = doc.querySelectorAll('details.fix');
 
     for (var f = 0; f < fixtures.length; f++){
@@ -652,7 +763,14 @@ pre{
         var row = rows[i];
         var show = true;
         if (term && row.getAttribute('data-search').indexOf(term) < 0) show = false;
-        if (show && onlyBad && row.getAttribute('data-fail') !== '1') show = false;
+        if (show && byKind){
+          // data-kinds is space-padded at both ends, so ' fail ' cannot
+          // also match ' none '.
+          var have = row.getAttribute('data-kinds') || '';
+          var hit = false;
+          for (var k in kinds){ if (kinds[k] && have.indexOf(' ' + k + ' ') >= 0){ hit = true; break; } }
+          if (!hit) show = false;
+        }
         row.hidden = !show;
         if (show) visible++;
         var id = row.getAttribute('data-detail');
@@ -664,9 +782,71 @@ pre{
       }
       // A fixture whose every test is filtered out is noise, not context.
       fixtures[f].hidden = (visible === 0);
-      if (visible > 0 && (term || onlyBad)) fixtures[f].open = true;
+      if (visible > 0 && (term || byKind)) fixtures[f].open = true;
     }
+
+    var active = !!term || byKind || any(cols);
+    if (clearBtn) clearBtn.hidden = !active;
+    if (tileWrap) tileWrap.classList.toggle('has-sel', byKind);
+    if (cardWrap) cardWrap.classList.toggle('has-sel', any(cols));
   }
+
+  function paint(el, on){
+    el.classList.toggle('on', on);
+    el.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var mark = el.querySelector('.selmark');
+    if (mark) mark.textContent = on ? '\u25CF' : '';
+  }
+
+  // role/tabindex/aria-pressed are added HERE, never in the generated
+  // markup: without this script running, these elements cannot filter
+  // anything, and an element that announces itself as a pressed-state
+  // button while doing nothing is worse than a plain readout.
+  function wire(el, toggle){
+    el.classList.add('sel-able');
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-pressed', 'false');
+    var mark = doc.createElement('span');
+    mark.className = 'selmark';
+    el.insertBefore(mark, el.firstChild);
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggle(); }
+    });
+  }
+
+  for (var t = 0; t < tiles.length; t++){
+    (function(el){
+      var kind = el.getAttribute('data-kind');
+      wire(el, function(){
+        kinds[kind] = !kinds[kind];
+        paint(el, !!kinds[kind]);
+        applyFilters();
+      });
+    })(tiles[t]);
+  }
+
+  for (var c = 0; c < cards.length; c++){
+    (function(el){
+      var col = el.getAttribute('data-col');
+      wire(el, function(){
+        cols[col] = !cols[col];
+        paint(el, !!cols[col]);
+        syncColumns();
+        applyFilters();
+      });
+    })(cards[c]);
+  }
+
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    kinds = {}; cols = {};
+    if (q) q.value = '';
+    for (var i = 0; i < tiles.length; i++) paint(tiles[i], false);
+    for (var j = 0; j < cards.length; j++) paint(cards[j], false);
+    syncColumns();
+    applyFilters();
+  });
 
   function toggleRow(row, platform){
     var id = row.getAttribute('data-detail');
@@ -693,10 +873,6 @@ pre{
   });
 
   if (q) q.addEventListener('input', applyFilters);
-  if (failOnly) failOnly.addEventListener('change', applyFilters);
-
-  var filters = doc.querySelectorAll('.pfilter');
-  for (var i = 0; i < filters.length; i++) filters[i].addEventListener('change', syncColumns);
 
   function setAll(open){
     var fixtures = doc.querySelectorAll('details.fix');
