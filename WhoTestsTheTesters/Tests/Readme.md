@@ -11,7 +11,7 @@ be.
    `AnyUnit.Runner.Bootstrap` works end to end, on desktop and under
    browser-wasm (run via `node`/`bun`, no headless browser needed).
  - **`Style/`** - one pair of projects per style (`NunitTests`,
-   `XunitTests`, `FSharpTests`, `FsUnitTests`, and `ComboTests`/
+   `XunitTests`, `MsTestTests`, `FSharpTests`, `FsUnitTests`, and `ComboTests`/
    `ComboTests.FSharp` mixing more than one style's attributes in the same
    assembly):
    - the plain project runs against `anyunit-runner`/`anyunit-browser-wasm`

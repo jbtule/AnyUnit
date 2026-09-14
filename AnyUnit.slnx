@@ -3,6 +3,7 @@
     <Project Path="Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj" />
     <Project Path="Contrib/AnyUnit.Style.FSharp/AnyUnit.Style.FSharp.fsproj" />
     <Project Path="Contrib/AnyUnit.Style.FsUnit/AnyUnit.Style.FsUnit.fsproj" />
+    <Project Path="Contrib/AnyUnit.Style.MsTest/AnyUnit.Style.MsTest.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Nunit/AnyUnit.Style.Nunit.csproj" />
     <Project Path="Contrib/AnyUnit.Style.Xunit/AnyUnit.Style.Xunit.csproj" />
   </Folder>
@@ -44,6 +45,8 @@
     <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/MsTestTests.Mtp/MsTestTests.Mtp.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/MsTestTests/MsTestTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests.Mtp/NunitTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/NunitTests/NunitTests.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/XunitTests.Mtp/XunitTests.Mtp.csproj" />
