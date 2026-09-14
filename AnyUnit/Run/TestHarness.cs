@@ -30,6 +30,7 @@ namespace AnyUnit.Run
                 Category = attribute.GetCategories(method);
                 Description = attribute.GetDescription(method);
                 Timeout = attribute.GetTimeout(method);
+                RequiredCapabilities = attribute.GetRequiredCapabilities(method);
             }
         }
 
@@ -47,5 +48,11 @@ namespace AnyUnit.Run
         }
 
         public int Timeout { get; set; }
+
+        // What this test needs the platform to provide. Settable as well as
+        // gettable so a style that builds harnesses by hand (AnyUnit.Style.
+        // FSharp constructs them from Test-typed properties) can fill it in
+        // without going through an attribute on a method that doesn't exist.
+        public TestCapabilities RequiredCapabilities { get; set; }
     }
 }

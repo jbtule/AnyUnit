@@ -32,15 +32,17 @@ Written for this repo, not ported from anywhere:
 [`WhoTestsTheTesters`](WhoTestsTheTesters) - plus the parts of the ported
 directories above that are AnyUnit's own (roughly half of
 `AnyUnit.Style.Nunit`, for instance). Those files carry the
-`Copyright 2013 AnyUnit Contributors` Apache-2.0 header.
+AnyUnit Contributors Apache-2.0 header, dated to when each was written.
 
 ### Which header a file should have
 
 The rule is per file, by where that file's code actually came from -
 never per directory:
 
-- Written for this repo → the `Copyright 2013 AnyUnit Contributors`
-  Apache-2.0 block.
+- Written for this repo → the AnyUnit Contributors Apache-2.0 block,
+  carrying **the year the file was written** (`Copyright 2026 AnyUnit
+  Contributors` for something added in 2026). The 2013 ones are
+  genuinely that old; a new file is not.
 - Ported from NUnit → NUnit's own banner header, pointing at
   <https://nunit.org>.
 - Ported from xUnit.net → the `Copyright 2013 Outercurve Foundation`

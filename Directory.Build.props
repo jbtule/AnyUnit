@@ -7,6 +7,34 @@
     here so a plain `dotnet pack` on the solution doesn't try to produce
     a nupkg for every internal runner/test-payload project too.
   -->
+  <!--
+    Warnings are errors, everywhere, including locally.
+
+    Turned on at a moment when the whole repo genuinely built clean -
+    verified per branch, not just at the tip, and across `build`,
+    `publish` (the Blazor/wasm host, which the CI solution filter
+    excludes) and `pack` (NU5xxx packaging warnings are their own
+    family). Switching it on while something was already warning would
+    have meant either a scramble or a pile of suppressions; from clean it
+    costs nothing and keeps costing nothing.
+
+    Not scoped to ContinuousIntegrationBuild on purpose: a warning that
+    only fails in CI is one you find after pushing, having already built
+    locally and seen green. The friction of fixing it while the code is
+    still in front of you is the point.
+
+    Compiler warnings only. MSBuildTreatWarningsAsErrors is deliberately
+    NOT set - it promotes SDK/restore diagnostics that are frequently
+    environmental (a workload version, a transitive package's target
+    framework) and would fail builds for reasons unrelated to this code.
+
+    To allow one specific warning, add it to WarningsNotAsErrors here
+    with a comment saying why, rather than turning this off.
+  -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <PropertyGroup>
     <IsPackable>false</IsPackable>
 

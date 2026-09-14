@@ -97,6 +97,23 @@ namespace ConventionTestProcessor
 
         public static bool? ResultMatchesName(Result result)
         {
+            // A test the platform simply cannot run is correct whatever its
+            // name says it should do. TestTimeout_Error proves [Timeout]
+            // fires; on a single-threaded runtime there is nothing to prove,
+            // and the engine reports Ignore with the missing capability
+            // named (see AnyUnit.Run.Test.CapabilityUnavailablePrefix -
+            // matched by that shared const, not by a copy of the wording).
+            //
+            // This used to be handled a rung lower down, by the browser-wasm
+            // host filtering those tests out before they ran, so they never
+            // reached this gate at all - and never appeared in the report
+            // either, which is what made it worth changing.
+            if (result.Kind == ResultKind.Ignore
+                && (result.Output ?? string.Empty).Contains(AnyUnit.Run.Test.CapabilityUnavailablePrefix))
+            {
+                return true;
+            }
+
             bool reverse = result.Test.Name.Contains("_Opposite");
 
             if (result.Test.Name.Contains("_Fail"))
