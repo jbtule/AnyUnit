@@ -133,7 +133,7 @@ jobs:
           # directory has no leading "/" to trigger that heuristic at
           # all, so bash, dotnet.exe, and python3.exe all resolve it
           # identically against the same cwd.
-          dotnet WhoTestsTheTesters/Tests/BasicTests.Mtp/bin/Release/net10.0/BasicTests.Mtp.dll \
+          dotnet WhoTestsTheTesters/Tests/BasicTests.Mtp/bin/Release/net10.0/BasicTests.dll \
             --report-trx --results-directory trx-check || true
           trx=$(ls trx-check/*.trx)
           python3 -c "import xml.etree.ElementTree as ET; ET.parse('$trx')"

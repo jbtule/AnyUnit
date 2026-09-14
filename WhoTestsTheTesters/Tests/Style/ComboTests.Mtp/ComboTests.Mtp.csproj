@@ -8,6 +8,18 @@
     assembly too.
   -->
   <PropertyGroup>
+    <!--
+      Deliberately drops the ".Mtp". This project compiles the payload
+      project's own sources (see above), so its tests ARE that suite -
+      but AnyUnit keys an assembly by name (AssemblyMeta.UniqueName is
+      "A:" + FullName), so as "ComboTests.Mtp" a merged results file forks at
+      the assembly level and the same test shows up twice, each with one
+      platform column, instead of once with a column per platform. The
+      platform id already carries the real distinction (this leg reports
+      "-mtp"), and run-mtp-tests.sh still writes /tmp/ComboTests.Mtp-*.json,
+      so the two legs' artifacts don't collide.
+    -->
+    <AssemblyName>ComboTests</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>

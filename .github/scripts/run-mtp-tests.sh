@@ -36,7 +36,22 @@ fi
 run() {
   local name="$1"
   local dir="$2"
-  local exe="WhoTestsTheTesters/Tests/$dir/bin/Release/net10.0/$name.dll"
+  local asm="$3"
+  # $asm is passed in rather than derived from $name, because the two
+  # satellite shapes genuinely differ and neither is guessable from the
+  # project name:
+  #
+  #   - the Compile Include ones (BasicTests.Mtp and friends) compile the
+  #     payload's sources into THIS assembly, so they set <AssemblyName>
+  #     to the payload's name - to keep a merged results file from
+  #     forking at the assembly level (see any of those csprojs) - and
+  #     build BasicTests.dll.
+  #   - the host-shaped ones (FsUnitTests.Mtp, FSharpTests.Mtp,
+  #     ComboTests.FSharp.Mtp) ProjectReference the payload and name it
+  #     via <AnyUnitTestAssembly>, so MTP already discovers the payload's
+  #     own identity. They need no AssemblyName, and still build
+  #     FsUnitTests.Mtp.dll.
+  local exe="WhoTestsTheTesters/Tests/$dir/bin/Release/net10.0/$asm.dll"
   # Same fail-loudly ladder as run-tests.sh, for the same confirmed-real
   # reasons - see that script's comments. A missing executable means the
   # project never got built (e.g. dropped from AnyUnit.ci.slnf); without
@@ -75,11 +90,11 @@ if count == 0:
   fi
 }
 
-run BasicTests.Mtp BasicTests.Mtp
-run ConstraintsTests.Mtp ConstraintsTests.Mtp
-run NunitTests.Mtp Style/NunitTests.Mtp
-run XunitTests.Mtp Style/XunitTests.Mtp
-run FsUnitTests.Mtp Style/FsUnitTests.Mtp
-run FSharpTests.Mtp Style/FSharpTests.Mtp
-run ComboTests.Mtp Style/ComboTests.Mtp
-run ComboTests.FSharp.Mtp Style/ComboTests.FSharp.Mtp
+run BasicTests.Mtp BasicTests.Mtp BasicTests
+run ConstraintsTests.Mtp ConstraintsTests.Mtp ConstraintsTests
+run NunitTests.Mtp Style/NunitTests.Mtp NunitTests
+run XunitTests.Mtp Style/XunitTests.Mtp XunitTests
+run FsUnitTests.Mtp Style/FsUnitTests.Mtp FsUnitTests.Mtp
+run FSharpTests.Mtp Style/FSharpTests.Mtp FSharpTests.Mtp
+run ComboTests.Mtp Style/ComboTests.Mtp ComboTests
+run ComboTests.FSharp.Mtp Style/ComboTests.FSharp.Mtp ComboTests.FSharp.Mtp
