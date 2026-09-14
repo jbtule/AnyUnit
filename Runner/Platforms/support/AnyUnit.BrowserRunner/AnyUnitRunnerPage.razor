@@ -95,39 +95,18 @@ else
         var runner = Runner.Create(platform, TestAssemblies);
         var file = new ResultsFile();
 
-        // The "Timeout" category exercises AnyUnit's per-test [Timeout]
-        // enforcement, which relies on a background thread preempting a
-        // busy-looping test - something single-threaded WASM fundamentally
-        // doesn't have. Rather than let each of those tests spin for its
-        // full ~30s of wall-clock busy-wait (Utility.IsSingleThreadedRuntime
-        // is why they don't get killed early here), skip the category
-        // outright: it's testing a capability this platform can't have, not
-        // a real regression. This applies to any consumer, not just
-        // AnyUnit's own test payloads, so it's baked in here rather than
-        // left for each host to rediscover.
+        // No capability filtering here any more. A test that needs
+        // something this platform lacks ([RequiresCapability] - see
+        // AnyUnit.Run.TestCapabilities) is now reported Ignored by the
+        // engine itself, with the missing facility named in the reason.
+        //
+        // That replaced this host excluding the categories "Timeout" and
+        // "RequiresAsyncYield" by hand, which was wrong twice over: it only
+        // worked in this one host (anything using Runner.Run directly
+        // rediscovered the problem or hung), and it silently swallowed any
+        // consumer's identically-named category, since a category is the
+        // suite's own taxonomy and not a statement about the platform.
         var filter = Filter ?? new TestFilter();
-        if (Utility.IsSingleThreadedRuntime && !filter.Excludes.Contains("C:Timeout"))
-        {
-            filter.Excludes.Add("C:Timeout");
-        }
-
-        // Same idea, for the same reason, one capability over: an async test
-        // that genuinely suspends (awaits something not already complete)
-        // can never finish here, because its continuation only runs once
-        // this thread yields back to the browser's event loop and a test run
-        // never does. AsyncTestResult.Block reports a clear Error rather
-        // than hanging - confirmed on a real headless-browser run, along
-        // with the fact that busy-spinning on IsCompleted does NOT pump the
-        // loop, so there is nothing better to do - but an Error is still a
-        // wrong-looking result for a test that is fine everywhere else. Let
-        // a suite mark such a test "RequiresAsyncYield" and have it skipped
-        // here instead, exactly like the Timeout category above. Async tests
-        // whose awaits all complete synchronously are the overwhelmingly
-        // common case and are unaffected; they run here normally.
-        if (Utility.IsSingleThreadedRuntime && !filter.Excludes.Contains("C:RequiresAsyncYield"))
-        {
-            filter.Excludes.Add("C:RequiresAsyncYield");
-        }
 
         runner.RunAll(r =>
         {

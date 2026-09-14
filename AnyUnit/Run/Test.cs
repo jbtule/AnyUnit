@@ -48,6 +48,16 @@ namespace AnyUnit.Run
         private readonly ParameterSet _constructorArgs;
         private readonly MethodInfo _method;
         private readonly ParameterSet _methodArgs;
+        private readonly TestCapabilities _requiredCapabilities;
+
+        // Prefix on the IgnoreException message for a capability skip, so a
+        // consumer can tell "this platform can't run it" apart from "the
+        // suite chose to ignore it" - the two are both ResultKind.Ignore
+        // and would otherwise be indistinguishable. Shared as a const
+        // rather than duplicated: WhoTestsTheTesters/ConventionTestProcessor
+        // matches on it to accept such a skip whatever outcome the test's
+        // name encodes.
+        public const string CapabilityUnavailablePrefix = "Capability unavailable:";
 
         public MethodInfo Method
         {
@@ -94,6 +104,11 @@ namespace AnyUnit.Run
 
                 Name += string.Format("({0})", String.Join(",", nameArgs.ToArray()));
             }
+
+            // Fixture-level requirements union with the test's own: a
+            // fixture that needs a facility needs it for every test in it.
+            _requiredCapabilities = harness.RequiredCapabilities
+                                    | fixture.Attribute.GetRequiredCapabilities(fixture.Type);
 
             _fixture = fixture;
             _init = fixture.Attribute.FixtureInit;
@@ -210,6 +225,19 @@ namespace AnyUnit.Run
                     if (_methodArgs.IgnoreReason != null)
                     {
                         throw new IgnoreException(_methodArgs.IgnoreReason);
+                    }
+
+                    // Checked here rather than filtered out by each host:
+                    // every runner honours it for free, and - unlike a
+                    // host-side filter, which makes the test simply vanish
+                    // from the results - it leaves a reported Ignore saying
+                    // exactly which facility was missing.
+                    var missing = PlatformCapabilities.Missing(_requiredCapabilities);
+                    if (missing != TestCapabilities.None)
+                    {
+                        throw new IgnoreException(string.Format(
+                            "{0} this test requires {1}, which is not available on this platform.",
+                            CapabilityUnavailablePrefix, missing));
                     }
 
                     var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);

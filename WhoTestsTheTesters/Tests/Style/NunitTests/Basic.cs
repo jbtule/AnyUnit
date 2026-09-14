@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using AnyUnit.Run;
 using AnyUnit.Style.Nunit;
+using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 
 namespace NunitTests
 {
@@ -31,6 +33,7 @@ namespace NunitTests
             Assert.True(false);
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test, Category("Timeout"), Timeout(1000)]
         public void TestTimeout_Error()
         {
@@ -42,6 +45,7 @@ namespace NunitTests
             }
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test, Category("Timeout"), Timeout(2000)]
         public void TestTimeout2_Error()
         {
@@ -53,6 +57,7 @@ namespace NunitTests
             }
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test, Category("Timeout"), Timeout(3000)]
         public void TestTimeout3_Error()
         {

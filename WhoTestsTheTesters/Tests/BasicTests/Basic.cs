@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnyUnit;
 using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 
 namespace BasicTests
 {
@@ -64,6 +65,7 @@ namespace BasicTests
         }
 
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test(Timeout = 1000, Category = "Timeout")]
         public void TestTimeout_Error()
         {
@@ -75,6 +77,7 @@ namespace BasicTests
             }
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test(Timeout = 2000,Category = "Timeout")]
         public void TestTimeout2_Error()
         {
@@ -85,6 +88,7 @@ namespace BasicTests
                 Test.Sleep(100);
             }
         }
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test(Timeout = 3000, Category = "Timeout")]
         public void TestTimeout3_Error()
         {
@@ -226,16 +230,17 @@ namespace BasicTests
         }
 
         // The other half of the async story: an await that genuinely
-        // suspends. Category "RequiresAsyncYield" is honored by
-        // AnyUnit.BrowserRunner, which excludes it on a single-threaded
-        // runtime - this test can never complete under browser-wasm (its
+        // suspends. Declared with [RequiresCapability(AsyncYield)], which
+        // the ENGINE honours on every host - this test can never complete
+        // under browser-wasm (its
         // continuation needs the thread to yield back to the browser's
-        // event loop, which a test run never does), so the engine reports a
-        // clear Error there rather than hanging. Confirmed on a real
+        // event loop, which a test run never does), so it is reported
+        // Ignored there instead. Confirmed on a real
         // headless-browser run: the task arrived with IsCompleted=False and
         // was still IsCompleted=False after a deliberate 2s busy-spin. On
         // every other platform this runs normally and must pass.
-        [Test(Category = "RequiresAsyncYield")]
+        [RequiresCapability(TestCapabilities.AsyncYield)]
+        [Test]
         public async Task TestAsyncYield_Success()
         {
             await Task.Delay(1);
@@ -252,6 +257,7 @@ namespace BasicTests
         // out a hung loop. Category "Timeout" so it is skipped on
         // browser-wasm along with the other three, which can't enforce a
         // timeout at all.
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Test(Timeout = 1000, Category = "Timeout")]
         public async Task TestAsyncTimeout_Error()
         {

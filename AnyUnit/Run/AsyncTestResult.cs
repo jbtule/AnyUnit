@@ -190,10 +190,12 @@ namespace AnyUnit.Run
             // branch already exists to avoid.
             //
             // Tests that really do need to suspend can still be written -
-            // they just have to be excluded on this runtime, the same way
-            // the [Timeout] tests already are (see AnyUnitRunnerPage.razor,
-            // which excludes the "Timeout" and "RequiresAsyncYield"
-            // categories under Utility.IsSingleThreadedRuntime).
+            // they just have to declare it, with
+            // [RequiresCapability(TestCapabilities.AsyncYield)], and the
+            // engine reports them Ignored here instead of reaching this at
+            // all. Landing in this branch therefore means the test did NOT
+            // declare the requirement, which is exactly when a clear error
+            // beats a silent skip.
             if (Utility.IsSingleThreadedRuntime && !task.IsCompleted)
             {
                 throw new NotSupportedException(
@@ -201,8 +203,9 @@ namespace AnyUnit.Run
                     + "runtime is single-threaded (browser WebAssembly without threads), so it can "
                     + "never finish: its continuation needs this thread to yield back to the "
                     + "browser's event loop, which a test run cannot do. Either make the test's "
-                    + "awaits complete synchronously, or exclude it on this platform with "
-                    + "Category = \"RequiresAsyncYield\".");
+                    + "awaits complete synchronously, or declare the requirement with "
+                    + "[RequiresCapability(TestCapabilities.AsyncYield)], which reports the "
+                    + "test as Ignored on platforms that cannot provide it.");
             }
 
             // GetAwaiter().GetResult() rather than Wait(): Wait() wraps

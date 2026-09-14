@@ -45,9 +45,16 @@ The one platform limit is single-threaded browser-wasm: a test whose
 awaits all complete synchronously (the overwhelmingly common case) runs
 there normally, but one that genuinely suspends can never resume, since
 its continuation needs the thread to yield back to the browser's event
-loop. Rather than hang the page, the engine reports a clear `Error`;
-mark such a test `Category = "RequiresAsyncYield"` and the browser
-runner skips it, the same way it already skips the `Timeout` category.
+loop. Declare that with
+`[RequiresCapability(TestCapabilities.AsyncYield)]` and the engine
+reports the test `Ignored` there, naming the missing facility, while it
+runs normally everywhere else. An undeclared one gets a clear `Error`
+rather than hanging the page.
+
+`[RequiresCapability]` is read by the engine, not by any one runner, so
+it works in every style and every host at once - `TestCapabilities.Timeouts`
+is the other current value, for tests that exist to prove `[Timeout]`
+actually fires.
 
 See [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the
 smallest way to actually call `Runner.Create`/`RunAll` from your own

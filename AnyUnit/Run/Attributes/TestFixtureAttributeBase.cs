@@ -49,6 +49,17 @@ namespace AnyUnit.Run.Attributes
         public virtual FixtureOneTimeSetUpAction OneTimeSetUp { get { return null; } }
         public virtual FixtureOneTimeTearDownAction OneTimeTearDown { get { return null; } }
 
+        // Class-level requirements, unioned with each test's own - see
+        // TestAttributeBase.GetRequiredCapabilities for why this is
+        // virtual rather than abstract.
+        public virtual TestCapabilities GetRequiredCapabilities(Type type)
+        {
+            var required = TestCapabilities.None;
+            foreach (var attribute in type.GetTypeInfo().GetCustomAttributes(typeof(RequiresCapabilityAttribute), true))
+                required |= ((RequiresCapabilityAttribute)attribute).Required;
+            return required;
+        }
+
         public abstract IList<string> GetCategories(Type type);
         public abstract string GetDescription(Type type);
 
