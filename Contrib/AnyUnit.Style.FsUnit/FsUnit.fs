@@ -1,4 +1,16 @@
-﻿namespace AnyUnit.Style.FsUnit
+﻿//
+//  This is an altered version of FsUnit's own `should` operator
+//  vocabulary, adapted to assert through AnyUnit's IAssert rather than
+//  NUnit's static Assert.
+//
+//  Copyright (c) 2010 Raymond Vernagus
+//  Licensed under the MIT license - see License.txt in this directory
+//  for the full text and notice.
+//
+//  Alterations Copyright 2013 AnyUnit Contributors, Apache-2.0.
+//
+
+namespace AnyUnit.Style.FsUnit
 
 // `should`/`shouldFail` below are deliberately marked [<Obsolete>] themselves
 // (steering callers toward the newer `this.should`/`this.shouldFail`
