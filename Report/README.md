@@ -7,7 +7,8 @@ AnyUnit runner) into a report format your CI system, IDE, or dashboard
 already understands: JUnit XML, TRX, NUnit3 XML, xUnit2 XML, or
 [CTRF](https://ctrf.io) JSON - or into a self-contained HTML report
 built around AnyUnit's multi-platform results (see
-[HTML](#html-report)).
+[HTML](#html-report)), or a GitHub Actions job summary (see
+[Markdown](#markdown-summary)).
 
 ## Install
 
@@ -22,7 +23,7 @@ repo's own `pack` workflow artifacts, or build from source:
 ## Usage
 
 ```
-anyunit-report convert -f|-format <junit|trx|nunit|xunit|ctrf|html> -o|-output <file> <results.json> [<results2.json> ...]
+anyunit-report convert -f|-format <junit|trx|nunit|xunit|ctrf|html|markdown> -o|-output <file> <results.json> [<results2.json> ...]
 ```
 
 One format per run - to produce more than one, run it more than once
@@ -83,3 +84,66 @@ script only adds filtering and collapsing).
 ```
 anyunit-report convert -f html -o report.html results-*.json
 ```
+
+## Markdown summary
+
+`-f markdown` emits GitHub Flavored Markdown sized for a [GitHub Actions
+job summary](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-job-summary)
+- the run's headline numbers, a per-platform table, and the failing
+tests with an output excerpt each.
+
+It's the companion to `-f html`, not a replacement: HTML is exhaustive
+and lives in an artifact you download, Markdown is the bounded "what
+happened, do I need to look?" view that renders straight into the
+Actions UI with nothing to click through.
+
+### In a workflow
+
+```yaml
+- name: Run tests
+  run: dotnet anyunit-runner.dll run -o results.json MyTests.dll
+
+- name: Post test summary
+  if: always()
+  run: |
+    anyunit-report convert -f markdown -o summary.md results.json
+    cat summary.md >> "$GITHUB_STEP_SUMMARY"
+```
+
+`if: always()` matters: a failing test run is exactly when you want the
+summary, and without it the step is skipped on failure. Pass several
+files (`results-*.json`) to summarise a whole platform matrix in one
+post - the per-platform table is the point of doing so.
+
+To publish the full report alongside it, add the HTML as an artifact:
+
+```yaml
+- name: Upload full report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: test-report
+    path: report.html
+```
+
+### Staying under the limit
+
+A job summary is capped at **1 MiB per step**, and exceeding it fails
+the *upload* with an error annotation while the job still reports
+success - so an oversized summary silently doesn't appear at all. This
+writer is therefore bounded by construction rather than by hoping:
+
+- Failures are grouped **per test**, not per (test, platform) - a test
+  failing on 18 platforms is one entry, not 18.
+- A test that fails on *every* platform says so; the platform list is
+  enumerated only when it's a subset, which is the case where which
+  platforms is the actual diagnosis.
+- At most 50 failing tests are listed, with a 20-line / 2000-character
+  output excerpt each, taken from the first failing platform.
+- A whole-document byte budget backstops the rest, rewinding to the last
+  balanced point so truncation can't leave a dangling `<details>`.
+
+Whenever anything is left out, the summary says so and points at the
+HTML report. For scale: this repo's own 18-platform CI run (374 tests,
+6718 results, 2830 of them failing by design) produces a ~23 KB summary,
+about 2% of the limit.
