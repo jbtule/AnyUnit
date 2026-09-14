@@ -47,9 +47,27 @@ namespace AnyUnit.TestingPlatform
         public static void AddAnyUnitTestFramework(this ITestApplicationBuilder builder, params Assembly[] testAssemblies)
         {
             var capabilities = new AnyUnitTestFrameworkCapabilities();
+
+            // Registered unconditionally, before the framework itself: MTP
+            // parses and validates the whole command line before it ever
+            // builds the test framework, so a provider added only when the
+            // flag is present could never exist - there would be nothing to
+            // tell MTP that "--report-anyunit-json" is a known option in
+            // the first place, and it would be rejected as unrecognized.
+            builder.CommandLine.AddProvider(() => new AnyUnitJsonReportOptions());
+
             builder.RegisterTestFramework(
                 _ => capabilities,
-                (_, serviceProvider) => new AnyUnitTestFramework(testAssemblies, capabilities.TrxReport));
+                // The two reporting concerns reach the framework by
+                // deliberately different routes, because MTP gives them to
+                // us differently: TRX is a *capability* MTP calls Enable()
+                // on (so the live object is threaded in), while this is an
+                // ordinary parsed command-line option, read back out of the
+                // service provider at the moment the framework is built.
+                (_, serviceProvider) => new AnyUnitTestFramework(
+                    testAssemblies,
+                    capabilities.TrxReport,
+                    AnyUnitJsonReportOptions.ResolveOutputPath(serviceProvider)));
         }
     }
 }
