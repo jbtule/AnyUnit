@@ -71,8 +71,9 @@ namespace AnyUnit.Report.Formats
             {
                 WriteHead(w);
                 WriteSummary(w, results, platforms);
-                WriteControls(w, platforms);
+                WriteControls(w);
                 WriteMatrix(w, results, platforms, columnOf);
+                WriteEmptyState(w);
                 WriteFoot(w);
             }
         }
@@ -133,14 +134,21 @@ namespace AnyUnit.Report.Formats
             if (platforms.Count > 0)
             {
                 w.WriteLine("<section class=\"pcards\">");
-                foreach (var platform in platforms)
+                for (var p = 0; p < platforms.Count; p++)
                 {
+                    var platform = platforms[p];
                     var forPlatform = all.Where(r => string.Equals(r.Platform ?? "", platform, StringComparison.Ordinal)).ToList();
                     var sample = forPlatform.FirstOrDefault();
                     var bad = forPlatform.Count(r => r.Kind == ResultKind.Fail || r.Kind == ResultKind.Error);
 
+                    // data-col ties the card to the matrix column it shows
+                    // or hides. The card carries no role/tabindex/aria here
+                    // - the script adds those (see Js), because without it
+                    // the card cannot filter anything and must not claim to.
                     w.Write("<div class=\"pcard");
                     w.Write(bad > 0 ? " has-bad" : "");
+                    w.Write("\" data-col=\"");
+                    w.Write(p.ToString(CultureInfo.InvariantCulture));
                     w.WriteLine("\">");
                     w.Write("<div class=\"pname\">");
                     w.Write(Html(platform));
@@ -160,13 +168,7 @@ namespace AnyUnit.Report.Formats
                         w.WriteLine("</div>");
                     }
                     w.Write("<div class=\"pcounts\">");
-                    w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} run", forPlatform.Count)));
-                    if (bad > 0)
-                    {
-                        w.Write(" &middot; <span class=\"bad\">");
-                        w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} failing", bad)));
-                        w.Write("</span>");
-                    }
+                    StatChips(w, forPlatform, Math.Max(0, tests - forPlatform.Count));
                     w.WriteLine("</div>");
                     w.WriteLine("</div>");
                 }
@@ -174,48 +176,62 @@ namespace AnyUnit.Report.Formats
             }
         }
 
+        // `kind` doubles as the CSS modifier and, for everything except the
+        // "total" tile, the filter key matching a row's data-kinds. The
+        // total tile gets no data-kind and so stays inert - "filter to all
+        // results" is what having nothing selected already means.
+        //
+        // No role/tabindex/aria-pressed is written here on purpose: see the
+        // Js constant. A tile that looks pressable in a viewer that can't
+        // run the script would be lying about what it does.
         private static void Tile(StreamWriter w, string kind, string label, int count)
         {
             w.Write("<div class=\"tile k-");
             w.Write(kind);
-            w.Write("\"><div class=\"n\">");
+            w.Write("\"");
+            // A zero tile is not a filter: selecting it could only ever
+            // empty the matrix, and offering a control whose single
+            // outcome is "show nothing" is worse than offering none.
+            if (!string.Equals(kind, "total", StringComparison.Ordinal) && count > 0)
+            {
+                w.Write(" data-kind=\"");
+                w.Write(kind);
+                w.Write("\"");
+            }
+            w.Write("><div class=\"n\">");
             w.Write(count.ToString(CultureInfo.InvariantCulture));
             w.Write("</div><div class=\"l\">");
+            // The glyph rides along with its own name here, which is what
+            // lets the separate legend row go away entirely: the tiles are
+            // always visible, always server-rendered, and already name
+            // every kind - so a second strip repeating glyph-to-name was
+            // pure duplication sitting between the reader and the matrix.
+            if (!string.Equals(kind, "total", StringComparison.Ordinal))
+            {
+                w.Write("<span class=\"g\">");
+                w.Write(Glyph(kind));
+                w.Write("</span> ");
+            }
             w.Write(Html(label));
             w.WriteLine("</div></div>");
         }
 
-        private static void WriteControls(StreamWriter w, IList<string> platforms)
+        // The platform checkbox row that used to live here is gone: the
+        // platform cards above are the same information in a far bigger tap
+        // target, so selecting a platform is now done by pressing its card
+        // rather than by hitting a 13px checkbox beside a repeated copy of
+        // its name. "Failures only" went with it - the Failed and Errored
+        // tiles say the same thing more precisely, and keeping both would
+        // have meant two controls competing over one filter.
+        private static void WriteControls(StreamWriter w)
         {
             w.WriteLine("<section class=\"controls\">");
             w.WriteLine("<input id=\"q\" type=\"search\" placeholder=\"Filter tests…\" autocomplete=\"off\">");
-            w.WriteLine("<label class=\"chk\"><input id=\"failOnly\" type=\"checkbox\"> Failures only</label>");
+            w.WriteLine("<button id=\"clearFilters\" type=\"button\" hidden>Clear filters</button>");
             w.WriteLine("<button id=\"expandAll\" type=\"button\">Expand all</button>");
             w.WriteLine("<button id=\"collapseAll\" type=\"button\">Collapse all</button>");
             w.WriteLine("</section>");
 
-            if (platforms.Count > 1)
-            {
-                w.WriteLine("<section class=\"pfilters\">");
-                for (var i = 0; i < platforms.Count; i++)
-                {
-                    w.Write("<label class=\"chk\"><input type=\"checkbox\" class=\"pfilter\" data-col=\"");
-                    w.Write(i.ToString(CultureInfo.InvariantCulture));
-                    w.Write("\" checked> ");
-                    w.Write(Html(platforms[i]));
-                    w.WriteLine("</label>");
-                }
-                w.WriteLine("</section>");
-            }
-
-            w.WriteLine("<p class=\"legend\">");
-            w.WriteLine("<span class=\"g k-pass\">✓</span> passed");
-            w.WriteLine("<span class=\"g k-fail\">✕</span> failed");
-            w.WriteLine("<span class=\"g k-error\">!</span> errored");
-            w.WriteLine("<span class=\"g k-skip\">⊘</span> ignored");
-            w.WriteLine("<span class=\"g k-other\">∅</span> no assert");
-            w.WriteLine("<span class=\"g k-none\">·</span> not run");
-            w.WriteLine("</p>");
         }
 
         private static void WriteMatrix(StreamWriter w, ResultsFile results, IList<string> platforms,
@@ -233,12 +249,24 @@ namespace AnyUnit.Report.Formats
             {
                 var assemblyResults = assembly.Fixtures.SelectMany(f => f.Tests).SelectMany(t => t.Results).ToList();
 
+                var assemblyTests = assembly.Fixtures.SelectMany(f => f.Tests).Count();
+
                 w.WriteLine("<section class=\"asm\">");
-                w.Write("<h2>");
+                // AssemblyMeta.Name, not the UniqueName: the latter is the
+                // full assembly identity ("BasicTests, Version=1.0.0.0,
+                // Culture=neutral, PublicKeyToken=null"), so four fifths of
+                // the heading was boilerplate repeated once per assembly,
+                // pushing the stats that follow it off to the right. The
+                // full identity is still there on hover, where it's
+                // occasionally wanted and never in the way.
+                w.Write("<h2 title=\"");
                 w.Write(Html(ResultsModel.StripPrefix(assembly.UniqueName)));
-                w.Write(" <span class=\"cnt\">");
-                w.Write(Html(CountSummary(assemblyResults)));
-                w.WriteLine("</span></h2>");
+                w.Write("\">");
+                w.Write(Html(Coalesce(assembly.Name, ResultsModel.StripPrefix(assembly.UniqueName))));
+                w.Write(" ");
+                StatChips(w, assemblyResults,
+                          Math.Max(0, (assemblyTests * platforms.Count) - assemblyResults.Count));
+                w.WriteLine("</h2>");
 
                 foreach (var fixture in assembly.Fixtures)
                 {
@@ -254,11 +282,17 @@ namespace AnyUnit.Report.Formats
                     w.WriteLine(">");
                     w.Write("<summary><span class=\"fname\">");
                     w.Write(Html(ResultsModel.StripPrefix(fixture.UniqueName)));
-                    w.Write("</span> <span class=\"cnt\">");
-                    w.Write(Html(CountSummary(fixtureResults)));
-                    w.WriteLine("</span></summary>");
+                    w.Write("</span> ");
+                    StatChips(w, fixtureResults,
+                              Math.Max(0, (fixture.Tests.Count * platforms.Count) - fixtureResults.Count));
+                    w.WriteLine("</summary>");
 
-                    w.WriteLine("<div class=\"scroll\">");
+                    // "few": horizontal column headers instead of rotated
+                    // ones. Four is where a rotated label stops paying for
+                    // itself - see the .few rules in Css.
+                    w.Write("<div class=\"scroll");
+                    w.Write(platforms.Count <= 4 ? " few" : "");
+                    w.WriteLine("\">");
                     w.WriteLine("<table>");
 
                     w.WriteLine("<thead><tr><th class=\"corner\">Test</th>");
@@ -283,8 +317,25 @@ namespace AnyUnit.Report.Formats
                         var hasDetail = test.Results.Any(HasDetail);
                         var id = hasDetail ? "d" + (++detailId).ToString(CultureInfo.InvariantCulture) : null;
 
+                        // This row's grid, as "<column>:<kind>" pairs - not
+                        // just the set of kinds present. Both selections
+                        // filter ROWS, and a platform selection has to mean
+                        // "this platform's own cell", so "failed on -mtp"
+                        // needs to know which column each kind sits in.
+                        // Collapsing to a bare kind set would match a row
+                        // that failed on some OTHER platform.
+                        var cells = new List<string>();
+                        for (var i = 0; i < platforms.Count; i++)
+                        {
+                            Result at;
+                            var kindHere = byPlatform.TryGetValue(platforms[i], out at) ? KindClass(at.Kind) : "none";
+                            cells.Add(i.ToString(CultureInfo.InvariantCulture) + ":" + kindHere);
+                        }
+
                         w.Write("<tr class=\"row");
                         w.Write(hasDetail ? " hasdetail" : "");
+                        w.Write("\" data-cells=\"");
+                        w.Write(string.Join(" ", cells.ToArray()));
                         w.Write("\" data-fail=\"");
                         w.Write(anyBad ? "1" : "0");
                         w.Write("\" data-search=\"");
@@ -335,6 +386,15 @@ namespace AnyUnit.Report.Formats
                             w.Write("\" hidden><td colspan=\"");
                             w.Write((platforms.Count + 1).ToString(CultureInfo.InvariantCulture));
                             w.WriteLine("\">");
+                            // The test's own metadata - categories and
+                            // key/value properties - once, above the
+                            // per-platform blocks, since it belongs to the
+                            // test and not to any one run of it. Neither
+                            // was rendered anywhere before this; categories
+                            // had been in the schema from the start and
+                            // simply never made it into the report.
+                            WriteTags(w, test);
+
                             foreach (var result in test.Results.Where(HasDetail)
                                                       .OrderBy(r => r.Platform ?? "", StringComparer.Ordinal))
                             {
@@ -364,13 +424,34 @@ namespace AnyUnit.Report.Formats
                                 // existed renders exactly as it used to:
                                 // one <pre> holding the log.
                                 WritePre(w, result.SkipReason, "Reason");
-                                WritePre(w, result.Message, "Message");
+                                // The exception's type rides on the Message
+                                // label rather than getting a block of its
+                                // own: it is one short token, and it is the
+                                // one thing that tells an assertion failure
+                                // from a NotImplementedException from a
+                                // timeout at a glance - TRX collapses all of
+                                // those to "Failed", which is exactly why the
+                                // schema carries it separately.
+                                WritePre(w, result.Message,
+                                         string.IsNullOrEmpty(result.ExceptionType)
+                                             ? "Message"
+                                             : "Message · " + ShortTypeName(result.ExceptionType));
                                 WritePre(w, result.StackTrace, "Stack trace");
 
                                 var hasStructured = !string.IsNullOrEmpty(result.SkipReason)
                                                 || !string.IsNullOrEmpty(result.Message)
                                                 || !string.IsNullOrEmpty(result.StackTrace);
-                                if (!string.IsNullOrEmpty(result.Output))
+                                // Output is the WHOLE captured log, and the
+                                // engine writes the exception into that log -
+                                // so once Message and Stack trace have their
+                                // own blocks, Output would repeat both
+                                // verbatim, doubling every failure's detail
+                                // with noise. Seen in a real screenshot, not
+                                // predicted. Show it only when it carries
+                                // something beyond what those blocks already
+                                // said (a Log.Write from the test itself).
+                                var output = OutputBeyondStructured(result);
+                                if (!string.IsNullOrEmpty(output))
                                     WritePre(w, result.Output, hasStructured ? "Output" : null);
                                 else if (!hasStructured)
                                     WritePre(w, "(no output)", null);
@@ -389,6 +470,15 @@ namespace AnyUnit.Report.Formats
             }
         }
 
+        private static void WriteEmptyState(StreamWriter w)
+        {
+            // Hidden until the script finds nothing to show. A filter that
+            // legitimately matches nothing (say a platform that ran
+            // everything, plus Not run) otherwise just empties the page and
+            // leaves the reader unable to tell "no matches" from "broken".
+            w.WriteLine("<p class=\"empty\" id=\"nomatch\" hidden>No tests match these filters.</p>");
+        }
+
         private static void WriteFoot(StreamWriter w)
         {
             w.WriteLine("</div>");
@@ -403,6 +493,77 @@ namespace AnyUnit.Report.Formats
         // omitted when there's only one block to show, so a plain
         // log-only result looks exactly as it did before there was
         // anything to distinguish it from.
+        // Categories as plain chips, properties as key=value chips, one
+        // line. Fixture-level entries are merged in, since a category on
+        // the fixture applies to every test in it and a reader shouldn't
+        // have to know which level it was declared at. Nothing is written
+        // when there is nothing to show - the common case.
+        private static void WriteTags(StreamWriter w, TestMeta test)
+        {
+            var categories = (test.Category ?? new List<string>())
+                .Concat(test.Fixture != null && test.Fixture.Category != null ? test.Fixture.Category : new List<string>())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var properties = new List<KeyValuePair<string, string>>();
+            foreach (var source in new[] { test.Fixture != null ? test.Fixture.Properties : null, test.Properties })
+            {
+                if (source == null) continue;
+                foreach (var pair in source)
+                    foreach (var value in pair.Value ?? new List<string>())
+                        properties.Add(new KeyValuePair<string, string>(pair.Key, value));
+            }
+            if (categories.Count == 0 && properties.Count == 0)
+                return;
+
+            w.Write("<div class=\"tags\">");
+            foreach (var category in categories)
+            {
+                w.Write("<span class=\"tag\">");
+                w.Write(Html(category));
+                w.Write("</span>");
+            }
+            foreach (var pair in properties)
+            {
+                w.Write("<span class=\"tag kv\"><span class=\"k\">");
+                w.Write(Html(pair.Key));
+                w.Write("</span>=");
+                w.Write(Html(pair.Value));
+                w.Write("</span>");
+            }
+            w.WriteLine("</div>");
+        }
+
+        // "AnyUnit.AssertionException" -> "AssertionException". The
+        // namespace is noise at the point where a reader is scanning for
+        // WHAT went wrong; the full name is still in the JSON.
+        private static string ShortTypeName(string fullName)
+        {
+            var dot = fullName.LastIndexOf('.');
+            return dot < 0 ? fullName : fullName.Substring(dot + 1);
+        }
+
+        // Whatever Output says that Message/StackTrace/ExceptionType don't
+        // already. Empty means "the log is nothing but the exception dump",
+        // which is the common case for a plain failure. Removal is by
+        // substring, deliberately not by parsing the log's layout: the exact
+        // framing the engine writes (a "Type: " prefix, line breaks) has
+        // changed before and would drift again, whereas "does anything
+        // survive once the known pieces are gone" does not care.
+        private static string OutputBeyondStructured(Result result)
+        {
+            var output = result.Output ?? "";
+            if (output.Length == 0)
+                return "";
+            foreach (var piece in new[] { result.StackTrace, result.Message, result.SkipReason, result.ExceptionType })
+            {
+                if (!string.IsNullOrEmpty(piece))
+                    output = output.Replace(piece, "");
+            }
+            // The "Type: " separator the engine writes for non-assertion
+            // exceptions survives the type-name removal as a bare ": ".
+            return output.Replace(": ", "").Trim();
+        }
+
         private static void WritePre(StreamWriter w, string text, string label)
         {
             if (string.IsNullOrEmpty(text))
@@ -430,13 +591,57 @@ namespace AnyUnit.Report.Formats
                 || result.Kind == ResultKind.Error;
         }
 
-        private static string CountSummary(IList<Result> results)
+        // Every non-zero kind, not just passed-and-failing. The old summary
+        // ("12 passed" / "12 passed, 3 failing") silently folded ignored,
+        // no-assert and never-ran into nothing at all, so a callout reading
+        // "12 passed" could be hiding three ignored tests and a platform
+        // that never ran the assembly - which is the exact question this
+        // report is opened to answer. Zero counts stay omitted, so a
+        // wholly-green scope still reads as one short chip, not six.
+        //
+        // `notRun` is passed in rather than derived: it's a property of the
+        // matrix (tests x platforms minus results present), which this
+        // function can't see from a flat result list.
+        private static void StatChips(StreamWriter w, IList<Result> results, int notRun)
         {
-            var pass = results.Count(r => r.Kind == ResultKind.Success);
-            var bad = results.Count(r => r.Kind == ResultKind.Fail || r.Kind == ResultKind.Error);
-            return bad > 0
-                ? string.Format(CultureInfo.InvariantCulture, "{0} passed, {1} failing", pass, bad)
-                : string.Format(CultureInfo.InvariantCulture, "{0} passed", pass);
+            w.Write("<span class=\"stats\">");
+            Chip(w, "pass", results.Count(r => r.Kind == ResultKind.Success));
+            Chip(w, "fail", results.Count(r => r.Kind == ResultKind.Fail));
+            Chip(w, "error", results.Count(r => r.Kind == ResultKind.Error));
+            Chip(w, "skip", results.Count(r => r.Kind == ResultKind.Ignore));
+            Chip(w, "other", results.Count(r => r.Kind == ResultKind.NoError));
+            Chip(w, "none", notRun);
+            w.Write("</span>");
+        }
+
+        private static void Chip(StreamWriter w, string kindClass, int count)
+        {
+            if (count <= 0)
+                return;
+            w.Write("<span class=\"chip k-");
+            w.Write(kindClass);
+            w.Write("\" title=\"");
+            w.Write(Html(string.Format(CultureInfo.InvariantCulture, "{0} {1}", count, KindLabel(kindClass))));
+            w.Write("\"><span class=\"g\">");
+            w.Write(Glyph(kindClass));
+            w.Write("</span>");
+            w.Write(count.ToString(CultureInfo.InvariantCulture));
+            w.Write("</span>");
+        }
+
+        // Single source for the wording, so the tiles' labels and the
+        // chips' tooltips can't drift apart.
+        private static string KindLabel(string kindClass)
+        {
+            switch (kindClass)
+            {
+                case "pass": return "passed";
+                case "fail": return "failed";
+                case "error": return "errored";
+                case "skip": return "ignored";
+                case "other": return "no assert";
+                default: return "not run";
+            }
         }
 
         private static string KindClass(ResultKind kind)
@@ -521,6 +726,10 @@ body{
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .tile .n{font-size:20px;font-weight:650;line-height:1.2}
 .tile .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .l .g{font-weight:700;text-transform:none;letter-spacing:0}
+.tile.k-pass .l .g{color:var(--pass)} .tile.k-fail .l .g{color:var(--fail)}
+.tile.k-error .l .g{color:var(--error)} .tile.k-skip .l .g{color:var(--skip)}
+.tile.k-other .l .g{color:var(--other)} .tile.k-none .l .g{color:var(--none)}
 .tile.k-pass .n{color:var(--pass)} .tile.k-fail .n{color:var(--fail)}
 .tile.k-error .n{color:var(--error)} .tile.k-skip .n{color:var(--skip)}
 .tile.k-other .n{color:var(--other)} .tile.k-none .n{color:var(--none)}
@@ -530,8 +739,32 @@ body{
 .pcard.has-bad{border-left-color:var(--fail)}
 .pname{font-weight:600;font-size:13px;word-break:break-all}
 .pmeta{color:var(--muted);font-size:11px;margin-top:1px;word-break:break-word}
-.pcounts{font-size:11px;margin-top:4px;color:var(--muted)}
-.pcounts .bad{color:var(--fail);font-weight:600}
+.pcounts{font-size:11px;margin-top:6px;color:var(--muted)}
+
+/* Stat chips: one per non-zero kind, on every assembly, fixture and
+   platform callout. Glyph + number, never colour alone - same reasoning
+   as the matrix cells. */
+.stats{display:inline-flex;flex-wrap:wrap;gap:3px 6px;vertical-align:middle;font-weight:400}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-variant-numeric:tabular-nums;
+      padding:1px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.chip .g{font-weight:700;line-height:1}
+.chip.k-pass .g{color:var(--pass)} .chip.k-fail .g{color:var(--fail)}
+.chip.k-error .g{color:var(--error)} .chip.k-skip .g{color:var(--skip)}
+.chip.k-other .g{color:var(--other)} .chip.k-none .g{color:var(--none)}
+.chip.k-fail,.chip.k-error{color:var(--text);font-weight:600}
+
+/* Interactive affordance is applied ONLY to elements the script has
+   actually wired up (it adds .sel-able itself). With JavaScript off
+   nothing below matches, so the tiles and platform cards stay plain
+   readouts rather than pretending to be buttons that never respond. */
+.sel-able{cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,opacity .12s}
+.sel-able:hover{border-color:var(--muted)}
+.sel-able:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tiles.has-sel .tile.sel-able:not(.on){opacity:.45}
+.tile.sel-able.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pcards.has-sel .pcard.sel-able:not(.on){opacity:.45}
+.pcard.sel-able.on{box-shadow:inset 0 0 0 1px var(--accent)}
+.sel-able .selmark{float:right;font-size:10px;color:var(--accent);font-weight:700}
 
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
 .controls input[type=search]{
@@ -543,15 +776,10 @@ body{
   background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;
 }
 .controls button:hover{border-color:var(--accent);color:var(--accent)}
-.chk{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
-.pfilters{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
 
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 14px}
-.legend .g{display:inline-block;width:18px;text-align:center;font-weight:700;margin-right:2px}
 
 .asm{margin-bottom:18px}
 .asm h2{font-size:15px;margin:0 0 6px;letter-spacing:-.01em;word-break:break-word}
-.cnt{font-weight:400;font-size:12px;color:var(--muted)}
 
 .fix{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden}
 .fix>summary{padding:8px 10px;cursor:pointer;font-size:13px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
@@ -559,7 +787,14 @@ body{
 .fname{font-weight:600;word-break:break-word}
 
 .scroll{overflow-x:auto;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch}
-table{border-collapse:separate;border-spacing:0;width:auto;min-width:100%;font-size:13px}
+/* Hugs its content rather than stretching: min-width:100% used to force
+   the table to fill the page, and since the test-name column is the only
+   flexible one it absorbed every spare pixel - so a two-platform run
+   rendered a ~1500px empty gap with its two 30px result columns stranded
+   at the far right edge, which is a long eye-journey for the exact
+   comparison this view exists to make. .scroll still handles the
+   many-platform case. */
+table{border-collapse:separate;border-spacing:0;width:auto;font-size:13px}
 thead th{position:sticky;top:0;z-index:2;background:var(--surface2)}
 th,td{border-bottom:1px solid var(--border)}
 
@@ -571,6 +806,12 @@ th.ph{
   width:30px;min-width:30px;max-width:30px;
 }
 th.ph span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;color:var(--muted)}
+
+/* Rotation earns its keep at a dozen platforms; at a handful it just
+   buys a tall header and a hard-to-read label for no width saved, so
+   few-platform runs get ordinary horizontal headers. See WriteMatrix. */
+.few th.ph{width:auto;min-width:64px;max-width:none;vertical-align:middle;padding:6px 10px}
+.few th.ph span{writing-mode:horizontal-tb;transform:none}
 th.corner{
   position:sticky;left:0;z-index:3;background:var(--surface2);
   text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);
@@ -595,6 +836,9 @@ tr.detail>td{padding:6px 10px;background:var(--bg)}
 .dblock{border-left:3px solid var(--border);padding:2px 0 2px 8px;margin:6px 0}
 .dblock.hl{border-left-color:var(--accent)}
 .dhead{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;margin-bottom:3px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 8px}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.tag.kv .k{color:var(--text);font-weight:600}
 .dhead code{font-size:11px;color:var(--muted);word-break:break-all}
 .badge{
   display:inline-block;padding:0 7px;border-radius:99px;font-size:11px;
@@ -615,7 +859,7 @@ pre{
    them all rather than hiding output behind an interaction that cannot
    happen. */
 .no-js tr.detail{display:table-row!important}
-.no-js .controls,.no-js .pfilters{display:none}
+.no-js .controls{display:none}
 ";
 
         private const string Js = @"
@@ -624,25 +868,59 @@ pre{
   doc.documentElement.classList.remove('no-js');
 
   var q = doc.getElementById('q');
-  var failOnly = doc.getElementById('failOnly');
-  var colStyle = doc.createElement('style');
-  doc.head.appendChild(colStyle);
+  var clearBtn = doc.getElementById('clearFilters');
+  var tiles = doc.querySelectorAll('.tile[data-kind]');
+  var cards = doc.querySelectorAll('.pcard[data-col]');
+  var tileWrap = doc.querySelector('.tiles');
+  var cardWrap = doc.querySelector('.pcards');
 
-  // Columns are hidden with a generated stylesheet rather than by
-  // touching every cell: one rule per hidden platform beats walking
-  // thousands of <td>s on each toggle.
-  function syncColumns(){
-    var rules = [];
-    var boxes = doc.querySelectorAll('.pfilter');
-    for (var i = 0; i < boxes.length; i++){
-      if (!boxes[i].checked) rules.push('.c' + boxes[i].getAttribute('data-col') + '{display:none}');
+  // Both selections are ADDITIVE and start empty, meaning ''no filter'' -
+  // not ''everything deselected''. That is what lets one tap do something
+  // useful (show just the failures) instead of needing five taps to turn
+  // the other kinds off first, which is how the checkbox row it replaces
+  // behaved.
+  //
+  // Both filter ROWS, and neither ever hides a platform column. Selecting
+  // a platform used to hide the others, which threw away the one thing
+  // this view is for: seeing how the SAME test fared everywhere else.
+  // ''Failed on -mtp'' should narrow to those rows and still show what
+  // every other platform did with them, side by side.
+  var kinds = {};   // kind -> true, empty = any kind
+  var cols = {};    // column index -> true, empty = any platform
+
+  function any(map){ for (var k in map) if (map[k]) return true; return false; }
+
+  // One predicate over the row''s own <column>:<kind> cells. With both
+  // selections active a row qualifies only if a SINGLE cell satisfies
+  // both - ''failed'' and ''-mtp'' means that platform''s own cell failed,
+  // not ''failed somewhere and also ran on -mtp''.
+  function rowMatches(row, byKind, byCol){
+    if (!byKind && !byCol) return true;
+    var cells = (row.getAttribute('data-cells') || '').split(' ');
+    for (var i = 0; i < cells.length; i++){
+      if (!cells[i]) continue;
+      var sep = cells[i].indexOf(':');
+      var col = cells[i].substring(0, sep), kind = cells[i].substring(sep + 1);
+      if (byCol && !cols[col]) continue;
+      if (byKind){
+        if (!kinds[kind]) continue;
+      } else if (byCol && kind === 'none'){
+        // Platform selected on its own means ''show me what this platform
+        // did'', and a not-run cell is not something it did - without this
+        // every row has SOME cell in every column, so the selection would
+        // match everything and quietly do nothing. Pairing the platform
+        // with the Not run tile still works: byKind is then true and
+        // ''none'' is the kind being asked for.
+        continue;
+      }
+      return true;
     }
-    colStyle.textContent = rules.join('');
+    return false;
   }
 
   function applyFilters(){
     var term = (q && q.value ? q.value : '').toLowerCase().trim();
-    var onlyBad = !!(failOnly && failOnly.checked);
+    var byKind = any(kinds), byCol = any(cols);
     var fixtures = doc.querySelectorAll('details.fix');
 
     for (var f = 0; f < fixtures.length; f++){
@@ -652,7 +930,7 @@ pre{
         var row = rows[i];
         var show = true;
         if (term && row.getAttribute('data-search').indexOf(term) < 0) show = false;
-        if (show && onlyBad && row.getAttribute('data-fail') !== '1') show = false;
+        if (show && !rowMatches(row, byKind, byCol)) show = false;
         row.hidden = !show;
         if (show) visible++;
         var id = row.getAttribute('data-detail');
@@ -664,9 +942,84 @@ pre{
       }
       // A fixture whose every test is filtered out is noise, not context.
       fixtures[f].hidden = (visible === 0);
-      if (visible > 0 && (term || onlyBad)) fixtures[f].open = true;
+      if (visible > 0 && (term || byKind || byCol)) fixtures[f].open = true;
     }
+
+    // An assembly whose every fixture is filtered out is a heading over
+    // nothing - and its own chips still show unfiltered totals, so leaving
+    // it visible reads as '170 passed' sitting above an empty page.
+    var sections = doc.querySelectorAll('section.asm');
+    var anyVisible = false;
+    for (var s = 0; s < sections.length; s++){
+      var fixes = sections[s].querySelectorAll('details.fix');
+      var live = 0;
+      for (var i = 0; i < fixes.length; i++) if (!fixes[i].hidden) live++;
+      sections[s].hidden = (live === 0);
+      if (live > 0) anyVisible = true;
+    }
+    var nomatch = doc.getElementById('nomatch');
+    if (nomatch) nomatch.hidden = anyVisible || !sections.length;
+
+    var active = !!term || byKind || byCol;
+    if (clearBtn) clearBtn.hidden = !active;
+    if (tileWrap) tileWrap.classList.toggle('has-sel', byKind);
+    if (cardWrap) cardWrap.classList.toggle('has-sel', byCol);
   }
+
+  function paint(el, on){
+    el.classList.toggle('on', on);
+    el.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var mark = el.querySelector('.selmark');
+    if (mark) mark.textContent = on ? '\u25CF' : '';
+  }
+
+  // role/tabindex/aria-pressed are added HERE, never in the generated
+  // markup: without this script running, these elements cannot filter
+  // anything, and an element that announces itself as a pressed-state
+  // button while doing nothing is worse than a plain readout.
+  function wire(el, toggle){
+    el.classList.add('sel-able');
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-pressed', 'false');
+    var mark = doc.createElement('span');
+    mark.className = 'selmark';
+    el.insertBefore(mark, el.firstChild);
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggle(); }
+    });
+  }
+
+  for (var t = 0; t < tiles.length; t++){
+    (function(el){
+      var kind = el.getAttribute('data-kind');
+      wire(el, function(){
+        kinds[kind] = !kinds[kind];
+        paint(el, !!kinds[kind]);
+        applyFilters();
+      });
+    })(tiles[t]);
+  }
+
+  for (var c = 0; c < cards.length; c++){
+    (function(el){
+      var col = el.getAttribute('data-col');
+      wire(el, function(){
+        cols[col] = !cols[col];
+        paint(el, !!cols[col]);
+        applyFilters();
+      });
+    })(cards[c]);
+  }
+
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    kinds = {}; cols = {};
+    if (q) q.value = '';
+    for (var i = 0; i < tiles.length; i++) paint(tiles[i], false);
+    for (var j = 0; j < cards.length; j++) paint(cards[j], false);
+    applyFilters();
+  });
 
   function toggleRow(row, platform){
     var id = row.getAttribute('data-detail');
@@ -693,10 +1046,6 @@ pre{
   });
 
   if (q) q.addEventListener('input', applyFilters);
-  if (failOnly) failOnly.addEventListener('change', applyFilters);
-
-  var filters = doc.querySelectorAll('.pfilter');
-  for (var i = 0; i < filters.length; i++) filters[i].addEventListener('change', syncColumns);
 
   function setAll(open){
     var fixtures = doc.querySelectorAll('details.fix');
