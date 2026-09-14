@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace AnyUnit.Style.MsTest
 {
@@ -200,6 +201,17 @@ namespace AnyUnit.Style.MsTest
                               expectedType, value == null ? "(null)" : value.GetType().ToString()), message));
         }
 
+        /// <summary>
+        /// The generic form MSTest 3.x added -
+        /// `Assert.IsInstanceOfType&lt;Foo&gt;(value)`. Found missing by
+        /// porting a real 595-test MSTest suite, which used both this and
+        /// the (object, Type) overload above.
+        /// </summary>
+        public static void IsInstanceOfType<T>(this IAssert assert, object value, string message = null)
+        {
+            assert.IsInstanceOfType(value, typeof(T), message);
+        }
+
         /// <summary>Asserts a value is not an instance of `wrongType`.</summary>
         public static void IsNotInstanceOfType(this IAssert assert, object value, Type wrongType, string message = null)
         {
@@ -261,6 +273,45 @@ namespace AnyUnit.Style.MsTest
             where T : Exception
         {
             return assert.ThrowsException<T>(() => { func(); }, message);
+        }
+
+        /// <summary>
+        /// The asynchronous counterpart of ThrowsException&lt;T&gt;, awaited
+        /// by the caller: `await Assert.ThrowsExceptionAsync&lt;Foo&gt;(() =&gt; DoAsync())`.
+        /// Same exact-type rule, same reasoning about a wrong type being a
+        /// Fail rather than an Error.
+        ///
+        /// Worth knowing: a test using this must be `async Task`, so it
+        /// relies on the engine awaiting a returned Task rather than
+        /// discarding it - see AnyUnit.Run.AsyncTestResult. Before that
+        /// existed, a failure in here would have vanished silently.
+        /// </summary>
+        public static async Task<T> ThrowsExceptionAsync<T>(this IAssert assert, Func<Task> action, string message = null)
+            where T : Exception
+        {
+            try
+            {
+                await action();
+            }
+            catch (T caught) when (caught.GetType() == typeof(T))
+            {
+                assert.Okay();
+                return caught;
+            }
+            catch (Exception other)
+            {
+                assert.Fail(new AssertionException(
+                    WithMessage(string.Format("Assert.ThrowsExceptionAsync failed. Expected:<{0}>. Actual:<{1}>.",
+                                              typeof(T), other.GetType()), message),
+                    other));
+            }
+
+            assert.Fail(WithMessage(
+                string.Format("Assert.ThrowsExceptionAsync failed. No exception thrown. Expected:<{0}>.", typeof(T)),
+                message));
+
+            // Unreachable - assert.Fail always throws.
+            return null;
         }
 
         /// <summary>

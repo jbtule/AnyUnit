@@ -163,3 +163,58 @@ with no reference between the style packages in either direction.
 - **`async Task` test methods.** AnyUnit's core does not await a returned
   `Task` yet, so an `async` test's failures can go unnoticed. That is a
   core limitation, not a MSTest-style one, and is being fixed separately.
+
+## Validated against a real suite
+
+Ported [ParksComputing.Xfer.Lang.Tests](https://github.com/paulmooreparks/Xfer)
+- **595 test methods, 50 test classes, 60 files** - which passes 595/595
+under real MSTest 3.9.3.
+
+After the port it runs on AnyUnit with **the same 595 tests and no
+failures**.
+
+The whole port, end to end:
+
+| Edit | Count |
+|---|---|
+| `<Using Include="...UnitTesting" />` -> `AnyUnit.Style.MsTest` in the csproj | 1 |
+| Swap the two MSTest `PackageReference`s for a reference to this package | 1 |
+| `using Microsoft.VisualStudio.TestTools.UnitTesting;` -> `using AnyUnit.Style.MsTest;` | 50 files |
+| Add `: AssertionHelper` to each `[TestClass]` | 50 classes |
+| Cast a `dynamic` argument (see below) | 3 call sites |
+
+Everything else - `[TestMethod]`, `[TestClass]`, `[TestInitialize]`,
+`[TestCleanup]`, 23 `[ExpectedException]`, and ~1,570 assertion calls
+across `Assert`, `StringAssert` and `CollectionAssert` - compiled and
+ran unchanged.
+
+### Two gaps it found, both now fixed
+
+`Assert.IsInstanceOfType<T>(value)` (MSTest 3.x's generic overload, as
+opposed to the `(value, Type)` one) and `Assert.ThrowsExceptionAsync<T>`
+were both missing. Added.
+
+### One limit that cannot be fixed
+
+`Assert` here is a set of extension methods on `IAssert`, and **C# cannot
+dispatch an extension method on a `dynamic` argument**:
+
+```csharp
+dynamic? result = Deserialize<dynamic>(text);
+Assert.IsNotNull(result);           // CS1973 here, fine in real MSTest
+Assert.IsNotNull((object?)result);  // the fix: cast
+```
+
+Real MSTest's `Assert` is a static class, so it has no such problem. This
+is inherent to how a style adds vocabulary to `IAssert` and is the one
+edit a port may need beyond the base class. It affected 3 call sites out
+of ~1,570.
+
+### What it also surfaced about the suite
+
+Five of the 595 tests report `NoError` rather than `Success` - they
+assert nothing at all. One is a debug leftover that only writes to the
+console inside a try/catch; another is a "does not throw" test with no
+assertion. Both are green under MSTest, which cannot tell them apart
+from a real pass. Distinguishing exactly that is why AnyUnit's `Assert`
+is an instance scoped to one test.
