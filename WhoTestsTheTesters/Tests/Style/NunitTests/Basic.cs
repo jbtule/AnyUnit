@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AnyUnit.Run;
-using AnyUnit.Style.Nunit;
-using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Style.Nunit;
 
 namespace NunitTests
 {
