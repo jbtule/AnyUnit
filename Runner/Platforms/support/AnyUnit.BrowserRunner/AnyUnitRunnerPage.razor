@@ -111,6 +111,24 @@ else
             filter.Excludes.Add("C:Timeout");
         }
 
+        // Same idea, for the same reason, one capability over: an async test
+        // that genuinely suspends (awaits something not already complete)
+        // can never finish here, because its continuation only runs once
+        // this thread yields back to the browser's event loop and a test run
+        // never does. AsyncTestResult.Block reports a clear Error rather
+        // than hanging - confirmed on a real headless-browser run, along
+        // with the fact that busy-spinning on IsCompleted does NOT pump the
+        // loop, so there is nothing better to do - but an Error is still a
+        // wrong-looking result for a test that is fine everywhere else. Let
+        // a suite mark such a test "RequiresAsyncYield" and have it skipped
+        // here instead, exactly like the Timeout category above. Async tests
+        // whose awaits all complete synchronously are the overwhelmingly
+        // common case and are unaffected; they run here normally.
+        if (Utility.IsSingleThreadedRuntime && !filter.Excludes.Contains("C:RequiresAsyncYield"))
+        {
+            filter.Excludes.Add("C:RequiresAsyncYield");
+        }
+
         runner.RunAll(r =>
         {
             _logBuilder.AppendLine($"{r.Test.Fixture.Assembly.Name}.{r.Test.Fixture.Name}.{r.Test.Name} [{r.Kind}]");

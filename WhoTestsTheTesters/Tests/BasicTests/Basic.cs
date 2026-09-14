@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using AnyUnit;
 using AnyUnit.Run;
 
@@ -158,6 +159,104 @@ namespace BasicTests
         public void TestParams_Partial(int i, Expected expected)
         {
             Assert.True(i > 3, String.Format("expected {0} to be greater than 3", i));
+        }
+
+        // Async variants of the cases above. These are not decoration: an
+        // async method never throws out of the call itself - every exception
+        // it raises, an AssertionException from a failed assert included, is
+        // captured into the Task it returns. Before AnyUnit.Run's
+        // AsyncTestResult existed, that Task was dropped unawaited, so
+        // TestAsyncFalse_Fail below came back Success and every other case
+        // here came back NoError. Confirmed directly by testing it: with the
+        // AsyncTestResult.Unwrap call commented out of Test.RunHelper, this
+        // whole block reports Success/Success/NoError/NoError/NoError/
+        // NoError/NoError instead of what their names say.
+        //
+        // Every await here completes synchronously on purpose, so these run
+        // identically on every platform including single-threaded
+        // browser-wasm - see AsyncTestResult.Block, and
+        // TestAsyncYield_Success at the end of this file for the other case.
+        [Test]
+        public async Task TestAsyncTrue_Success()
+        {
+            Log.Write("This is an async test whose awaits complete synchronously");
+            await Task.FromResult(0);
+            Assert.True(true);
+        }
+
+        [Test]
+        public async Task TestAsyncFalse_Fail()
+        {
+            await Task.FromResult(0);
+            Assert.False(true, "Expected False");
+        }
+
+        [Test]
+        public async Task TestAsync_Error()
+        {
+            await Task.FromResult(0);
+            throw new NotSupportedException("This should be an error.");
+        }
+
+        [Test]
+        public async Task TestAsync_Ignore()
+        {
+            await Task.FromResult(0);
+            Assert.Ignore("Ignoring...");
+        }
+
+        [Test]
+        public async Task TestAsyncNothing_NoError()
+        {
+            await Task.FromResult(0);
+        }
+
+        [Test]
+        public async Task<bool> TestAsyncReturn_Success()
+        {
+            await Task.FromResult(0);
+            return true;
+        }
+
+        [Test]
+        public async Task<bool> TestAsyncReturn_Fail()
+        {
+            await Task.FromResult(0);
+            return false;
+        }
+
+        // The other half of the async story: an await that genuinely
+        // suspends. Category "RequiresAsyncYield" is honored by
+        // AnyUnit.BrowserRunner, which excludes it on a single-threaded
+        // runtime - this test can never complete under browser-wasm (its
+        // continuation needs the thread to yield back to the browser's
+        // event loop, which a test run never does), so the engine reports a
+        // clear Error there rather than hanging. Confirmed on a real
+        // headless-browser run: the task arrived with IsCompleted=False and
+        // was still IsCompleted=False after a deliberate 2s busy-spin. On
+        // every other platform this runs normally and must pass.
+        [Test(Category = "RequiresAsyncYield")]
+        public async Task TestAsyncYield_Success()
+        {
+            await Task.Delay(1);
+            Assert.True(true);
+        }
+
+        // [Timeout] against a test that hangs *in the await itself*, rather
+        // than in a busy loop like TestTimeout_Error above. This is the one
+        // genuinely new interaction async introduces: the engine now blocks
+        // the test's own thread waiting on the Task. That stays
+        // interruptible because the wait enforcing [Timeout] lives on the
+        // caller's thread, outside the test's (see Test.Run) - so a hung
+        // await is timed out by the very same machinery that already times
+        // out a hung loop. Category "Timeout" so it is skipped on
+        // browser-wasm along with the other three, which can't enforce a
+        // timeout at all.
+        [Test(Timeout = 1000, Category = "Timeout")]
+        public async Task TestAsyncTimeout_Error()
+        {
+            Assert.Okay();
+            await Task.Delay(30000);
         }
     }
 }

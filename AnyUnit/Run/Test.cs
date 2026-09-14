@@ -214,6 +214,15 @@ namespace AnyUnit.Run
 
                     var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
 
+                    // An async test method hands back a Task (or ValueTask,
+                    // or an F# Async) that is very possibly not finished yet,
+                    // and that holds any exception the body raised instead of
+                    // throwing it out of the call above. Wait for it here, so
+                    // the bool/IReturnedResult inspection below sees the real
+                    // produced value and the catch below sees the real
+                    // exception. See AsyncTestResult for the whole story.
+                    result = AsyncTestResult.Unwrap(result);
+
                     //If the test method returns a boolean, true increments assertion
                     if (result as bool? ?? false)
                     {
