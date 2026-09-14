@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -45,9 +46,23 @@ namespace AnyUnit.Report.Formats
                 start = ToEpochMillis(e.Result.StartTime),
                 stop = ToEpochMillis(e.Result.EndTime),
                 suite = ResultsModel.StripPrefix(e.Fixture.UniqueName),
-                message = e.Result.Kind == ResultKind.Fail || e.Result.Kind == ResultKind.Error
-                    ? e.Result.Output
-                    : null,
+                // CTRF has no dedicated skip-reason field, so a skipped
+                // test's reason goes in `message` - which this writer
+                // couldn't do before, because it nulled `message` for
+                // anything that wasn't Fail/Error.
+                message = ToMessage(e.Result),
+                // `trace` is CTRF's stack-trace field. It was never emitted
+                // at all, because there was nothing to put in it that
+                // wasn't already in `message`.
+                trace = e.Result.StackTrace ?? (IsBad(e.Result) ? e.Result.Output : null),
+                // CTRF's own tags/labels: tags is a flat string array
+                // (categories), labels a key -> values object. xunit.v3's
+                // CTRF output uses exactly this split.
+                tags = Tags(e),
+                labels = Labels(e),
+                extra = e.Result.ExceptionType == null
+                    ? null
+                    : new { exception = e.Result.ExceptionType },
             }).ToArray();
 
             var document = new
@@ -72,6 +87,64 @@ namespace AnyUnit.Report.Formats
             };
 
             JsonSerializer.Serialize(output, document, Options);
+        }
+
+        private static bool IsBad(Result result)
+        {
+            return result.Kind == ResultKind.Fail || result.Kind == ResultKind.Error;
+        }
+
+        // `?? Output` on the failure path: a results.json written before
+        // Result.Message existed has only Output, and must still produce a
+        // message rather than null.
+        private static string ToMessage(Result result)
+        {
+            if (IsBad(result))
+                return result.Message ?? result.Output;
+            if (result.Kind == ResultKind.Ignore)
+                return result.SkipReason ?? result.Output;
+            return null;
+        }
+
+        private static string[] Tags(TestCaseEntry entry)
+        {
+            var tags = entry.Test.Category.Concat(entry.Fixture.Category)
+                .Where(c => !string.IsNullOrEmpty(c))
+                .Distinct()
+                .ToArray();
+            return tags.Length > 0 ? tags : null;
+        }
+
+        // CTRF's `labels` is specified as key -> scalar-or-array; always
+        // emitting the array form means a consumer has one shape to read
+        // rather than two. Category is deliberately NOT folded in here -
+        // it's `tags` above, which is what a CTRF viewer actually renders
+        // as a chip.
+        private static IDictionary<string, IList<string>> Labels(TestCaseEntry entry)
+        {
+            var labels = new Dictionary<string, IList<string>>();
+            foreach (var source in new[] { entry.Fixture.Properties, entry.Test.Properties })
+            {
+                if (source == null)
+                    continue;
+                foreach (var pair in source)
+                {
+                    if (pair.Key == "Category")
+                        continue;
+                    IList<string> values;
+                    if (!labels.TryGetValue(pair.Key, out values))
+                    {
+                        values = new List<string>();
+                        labels[pair.Key] = values;
+                    }
+                    foreach (var value in pair.Value ?? new List<string>())
+                    {
+                        if (!values.Contains(value))
+                            values.Add(value);
+                    }
+                }
+            }
+            return labels.Count > 0 ? labels : null;
         }
 
         // CTRF's environment block is one per report, not per test - a

@@ -85,6 +85,13 @@ namespace AnyUnit.Style.Xunit
                         .Select(trait => trait.Value)).ToList();
         }
 
+        // Every fixture-level trait, not just the Category ones - see
+        // FactAttribute.GetProperties for why the rest were being lost.
+        public override IDictionary<string, IList<string>> GetProperties(Type type)
+        {
+            return TraitProperties.ToProperties(type.GetAttributes<TraitAttribute>());
+        }
+
         public override string GetDescription(Type type)
         {
             return (type.GetAttributes<TraitAttribute>(inherit:false)

@@ -57,6 +57,14 @@ namespace AnyUnit.Run.Attributes
 
         public abstract IList<string> GetCategories(MethodInfo method);
 
+        // Arbitrary key -> values metadata for the test (TestMeta.
+        // Properties). Virtual with an empty default rather than abstract -
+        // see TestFixtureAttributeBase.GetProperties for why.
+        public virtual IDictionary<string, IList<string>> GetProperties(MethodInfo method)
+        {
+            return new Dictionary<string, IList<string>>();
+        }
+
         public abstract string GetDescription(MethodInfo method);
     }
 }

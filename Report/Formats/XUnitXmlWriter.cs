@@ -13,6 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -48,15 +49,58 @@ namespace AnyUnit.Report.Formats
                             new XAttribute("time", Seconds(entry.Result)),
                             new XAttribute("result", ToXunitResult(entry.Result.Kind)));
 
+                        // Traits are xUnit's own name for what AnyUnit calls
+                        // Category plus Properties, and the format has a
+                        // first-class <traits><trait name= value=/> slot
+                        // this writer simply wasn't using.
+                        var traits = new List<XElement>();
+                        foreach (var category in entry.Test.Category.Concat(entry.Fixture.Category)
+                                                      .Where(c => !string.IsNullOrEmpty(c)).Distinct())
+                        {
+                            traits.Add(new XElement("trait",
+                                new XAttribute("name", "Category"),
+                                new XAttribute("value", category)));
+                        }
+                        foreach (var source in new[] { entry.Fixture.Properties, entry.Test.Properties })
+                        {
+                            if (source == null)
+                                continue;
+                            foreach (var pair in source)
+                            {
+                                // Category is already above; a style that
+                                // also puts it in the bag (the xUnit style
+                                // does, deliberately) must not emit it twice.
+                                if (pair.Key == "Category")
+                                    continue;
+                                foreach (var value in pair.Value ?? new List<string>())
+                                {
+                                    traits.Add(new XElement("trait",
+                                        new XAttribute("name", pair.Key),
+                                        new XAttribute("value", value ?? string.Empty)));
+                                }
+                            }
+                        }
+                        if (traits.Count > 0)
+                            test.Add(new XElement("traits", traits));
+
                         if (entry.Result.Kind == ResultKind.Fail || entry.Result.Kind == ResultKind.Error)
                         {
+                            // exception-type used to be Kind.ToString() -
+                            // i.e. the literal string "Fail" or "Error",
+                            // which is not a type name at all. Real xUnit
+                            // writes e.g. "Xunit.Sdk.EqualException". The
+                            // fallback keeps an older results.json emitting
+                            // what it always did rather than nothing.
                             test.Add(new XElement("failure",
-                                new XAttribute("exception-type", entry.Result.Kind.ToString()),
-                                new XElement("message", entry.Result.Output ?? string.Empty)));
+                                new XAttribute("exception-type",
+                                    entry.Result.ExceptionType ?? entry.Result.Kind.ToString()),
+                                new XElement("message", entry.Result.Message ?? entry.Result.Output ?? string.Empty),
+                                new XElement("stack-trace", entry.Result.StackTrace ?? entry.Result.Output ?? string.Empty)));
                         }
                         else if (entry.Result.Kind == ResultKind.Ignore)
                         {
-                            test.Add(new XElement("reason", entry.Result.Output ?? string.Empty));
+                            test.Add(new XElement("reason",
+                                entry.Result.SkipReason ?? entry.Result.Output ?? string.Empty));
                         }
 
                         return test;

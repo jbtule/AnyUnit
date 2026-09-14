@@ -355,9 +355,26 @@ namespace AnyUnit.Report.Formats
                                         result.AssertCount, result.AssertCount == 1 ? "" : "s"));
                                 }
                                 w.WriteLine("</span></div>");
-                                w.Write("<pre>");
-                                w.Write(Html(string.IsNullOrEmpty(result.Output) ? "(no output)" : result.Output));
-                                w.WriteLine("</pre>");
+                                // Message, stack trace and log as three
+                                // distinct blocks rather than one blob -
+                                // they were only ever one blob because
+                                // Output was the only field that existed.
+                                // Each is skipped when absent, so a
+                                // results.json written before those fields
+                                // existed renders exactly as it used to:
+                                // one <pre> holding the log.
+                                WritePre(w, result.SkipReason, "Reason");
+                                WritePre(w, result.Message, "Message");
+                                WritePre(w, result.StackTrace, "Stack trace");
+
+                                var hasStructured = !string.IsNullOrEmpty(result.SkipReason)
+                                                || !string.IsNullOrEmpty(result.Message)
+                                                || !string.IsNullOrEmpty(result.StackTrace);
+                                if (!string.IsNullOrEmpty(result.Output))
+                                    WritePre(w, result.Output, hasStructured ? "Output" : null);
+                                else if (!hasStructured)
+                                    WritePre(w, "(no output)", null);
+
                                 w.WriteLine("</div>");
                             }
                             w.WriteLine("</td></tr>");
@@ -382,12 +399,33 @@ namespace AnyUnit.Report.Formats
             w.WriteLine("</html>");
         }
 
+        // One <pre>, optionally preceded by a small label. The label is
+        // omitted when there's only one block to show, so a plain
+        // log-only result looks exactly as it did before there was
+        // anything to distinguish it from.
+        private static void WritePre(StreamWriter w, string text, string label)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+            if (label != null)
+            {
+                w.Write("<div class=\"muted\">");
+                w.Write(Html(label));
+                w.WriteLine("</div>");
+            }
+            w.Write("<pre>");
+            w.Write(Html(text));
+            w.WriteLine("</pre>");
+        }
+
         // A result earns a detail block if it either carries output or went
         // wrong - a Fail/Error with an empty Output still needs a row to
         // say so, rather than looking like a test with nothing to report.
         private static bool HasDetail(Result result)
         {
             return !string.IsNullOrEmpty(result.Output)
+                || !string.IsNullOrEmpty(result.Message)
+                || !string.IsNullOrEmpty(result.SkipReason)
                 || result.Kind == ResultKind.Fail
                 || result.Kind == ResultKind.Error;
         }

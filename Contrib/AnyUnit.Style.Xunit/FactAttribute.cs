@@ -47,6 +47,19 @@ namespace AnyUnit.Style.Xunit
                       .Select(trait => trait.Value)).ToList();
         }
 
+        // EVERY trait, not just the Category ones GetCategories keeps -
+        // before this, a [Trait("Owner","jay")] or [Trait("Priority","2")]
+        // was silently dropped on the floor, even though real xUnit carries
+        // both (its CTRF output emits them as `extra.traits`, key -> array
+        // of values). Category deliberately appears in both places: it stays
+        // in Category because that's the key report formats single out, and
+        // it's in here because the bag is meant to be the whole trait set.
+        public override IDictionary<string, IList<string>> GetProperties(MethodInfo method)
+        {
+            return TraitProperties.ToProperties(method.GetCustomAttributes(typeof(TraitAttribute), true)
+                                                      .OfType<TraitAttribute>());
+        }
+
         public override string GetDescription(MethodInfo method)
         {
             return DisplayName;

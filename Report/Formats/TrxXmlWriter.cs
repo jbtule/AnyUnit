@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -67,29 +68,94 @@ namespace AnyUnit.Report.Formats
                     new XAttribute("outcome", ToTrxOutcome(entry.Result.Kind)),
                     new XAttribute("testListId", ResultsTestListId));
 
+                // One <Output> per result, assembled rather than branched:
+                // a failing test has both an ErrorInfo AND (now) its
+                // captured log, which the earlier either/or shape threw
+                // away entirely - every failing test's StdOut was lost.
+                var trxOutput = new XElement(Ns + "Output");
+
                 if (entry.Result.Kind == ResultKind.Fail || entry.Result.Kind == ResultKind.Error)
                 {
-                    unitTestResult.Add(new XElement(Ns + "Output",
-                        new XElement(Ns + "ErrorInfo",
-                            new XElement(Ns + "Message", entry.Result.Output ?? string.Empty))));
+                    // `?? Output` throughout: a results.json written before
+                    // Message/StackTrace existed has them as null, and must
+                    // still convert to something rather than an empty
+                    // <Message/>.
+                    trxOutput.Add(new XElement(Ns + "ErrorInfo",
+                        new XElement(Ns + "Message", entry.Result.Message ?? entry.Result.Output ?? string.Empty),
+                        new XElement(Ns + "StackTrace", entry.Result.StackTrace ?? entry.Result.Output ?? string.Empty)));
                 }
-                else if (!string.IsNullOrEmpty(entry.Result.Output))
+                else if (entry.Result.Kind == ResultKind.Ignore)
                 {
-                    unitTestResult.Add(new XElement(Ns + "Output",
-                        new XElement(Ns + "StdOut", entry.Result.Output)));
+                    // TRX has no skip-reason slot of its own - every real
+                    // framework (NUnit, MSTest, xunit.v3) puts it in
+                    // ErrorInfo/Message under a NotExecuted outcome, so
+                    // that's where it goes. `?? Output` so an older
+                    // results.json, which has no SkipReason at all, still
+                    // says something rather than nothing.
+                    var reason = entry.Result.SkipReason ?? entry.Result.Output;
+                    if (!string.IsNullOrEmpty(reason))
+                    {
+                        trxOutput.Add(new XElement(Ns + "ErrorInfo",
+                            new XElement(Ns + "Message", reason)));
+                    }
                 }
+
+                if (!string.IsNullOrEmpty(entry.Result.Output))
+                    trxOutput.Add(new XElement(Ns + "StdOut", entry.Result.Output));
+
+                if (trxOutput.HasElements)
+                    unitTestResult.Add(trxOutput);
 
                 unitTestResults.Add(unitTestResult);
 
-                unitTestDefinitions.Add(new XElement(Ns + "UnitTest",
+                var testMethod = new XElement(Ns + "TestMethod",
+                    new XAttribute("codeBase", entry.Assembly.Name ?? string.Empty),
+                    new XAttribute("className", ResultsModel.StripPrefix(entry.Fixture.UniqueName)),
+                    new XAttribute("name", entry.Test.Name));
+
+                var unitTest = new XElement(Ns + "UnitTest",
                     new XAttribute("name", entry.DisplayName),
                     new XAttribute("storage", entry.Assembly.Name ?? string.Empty),
-                    new XAttribute("id", testId),
-                    new XElement(Ns + "Execution", new XAttribute("id", executionId)),
-                    new XElement(Ns + "TestMethod",
-                        new XAttribute("codeBase", entry.Assembly.Name ?? string.Empty),
-                        new XAttribute("className", ResultsModel.StripPrefix(entry.Fixture.UniqueName)),
-                        new XAttribute("name", entry.Test.Name))));
+                    new XAttribute("id", testId));
+
+                // Description, Categories and Properties were all simply
+                // never emitted, despite TestMeta having carried Description
+                // and Category since long before this writer existed - the
+                // TRX schema orders them <Description>, <TestCategory>,
+                // <Properties>, then <Execution>/<TestMethod>.
+                if (!string.IsNullOrEmpty(entry.Test.Description))
+                    unitTest.Add(new XElement(Ns + "Description", entry.Test.Description));
+
+                // Fixture-level categories apply to every test in the
+                // fixture, so they're merged in here the same way the MTP
+                // adapter merges them for TrxCategoriesProperty.
+                var categories = entry.Test.Category
+                    .Concat(entry.Fixture.Category)
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .Distinct()
+                    .ToList();
+                if (categories.Count > 0)
+                {
+                    unitTest.Add(new XElement(Ns + "TestCategory",
+                        categories.Select(c => new XElement(Ns + "TestCategoryItem",
+                            new XAttribute("TestCategory", c)))));
+                }
+
+                // TRX <Property> is a flat Key/Value pair, so a key with
+                // more than one value becomes more than one <Property> -
+                // that's what NUnit's and MSTest's own TRX output does too.
+                var propertyElements = MergedProperties(entry)
+                    .SelectMany(pair => pair.Value.Select(value => new XElement(Ns + "Property",
+                        new XElement(Ns + "Key", pair.Key),
+                        new XElement(Ns + "Value", value ?? string.Empty))))
+                    .ToList();
+                if (propertyElements.Count > 0)
+                    unitTest.Add(new XElement(Ns + "Properties", propertyElements));
+
+                unitTest.Add(new XElement(Ns + "Execution", new XAttribute("id", executionId)));
+                unitTest.Add(testMethod);
+
+                unitTestDefinitions.Add(unitTest);
 
                 testEntries.Add(new XElement(Ns + "TestEntry",
                     new XAttribute("testId", testId),
@@ -131,6 +197,36 @@ namespace AnyUnit.Report.Formats
                     counters));
 
             new XDocument(new XDeclaration("1.0", "UTF-8", null), testRun).Save(output);
+        }
+
+        // Fixture-level properties first, then the test's own, so a test
+        // that names the same key as its fixture adds to it rather than
+        // being hidden by it. Both bags are initialised (never null) by
+        // TestMeta/FixtureMeta's constructors, but an older results.json
+        // read back through a future reader is still guarded against here.
+        private static IDictionary<string, IList<string>> MergedProperties(TestCaseEntry entry)
+        {
+            var merged = new Dictionary<string, IList<string>>();
+            foreach (var source in new[] { entry.Fixture.Properties, entry.Test.Properties })
+            {
+                if (source == null)
+                    continue;
+                foreach (var pair in source)
+                {
+                    IList<string> values;
+                    if (!merged.TryGetValue(pair.Key, out values))
+                    {
+                        values = new List<string>();
+                        merged[pair.Key] = values;
+                    }
+                    foreach (var value in pair.Value ?? new List<string>())
+                    {
+                        if (!values.Contains(value))
+                            values.Add(value);
+                    }
+                }
+            }
+            return merged;
         }
 
         private static string ToTrxOutcome(ResultKind kind)

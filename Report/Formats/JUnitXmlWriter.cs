@@ -53,22 +53,28 @@ namespace AnyUnit.Report.Formats
                     switch (entry.Result.Kind)
                     {
                         case ResultKind.Fail:
-                            testcase.Add(new XElement("failure",
-                                new XAttribute("message", FirstLine(entry.Result.Output)),
-                                entry.Result.Output ?? string.Empty));
+                            testcase.Add(BuildFailure("failure", entry.Result));
                             break;
                         case ResultKind.Error:
-                            testcase.Add(new XElement("error",
-                                new XAttribute("message", FirstLine(entry.Result.Output)),
-                                entry.Result.Output ?? string.Empty));
+                            testcase.Add(BuildFailure("error", entry.Result));
                             break;
                         case ResultKind.Ignore:
                             var skipped = new XElement("skipped");
-                            if (!string.IsNullOrEmpty(entry.Result.Output))
-                                skipped.Add(new XAttribute("message", FirstLine(entry.Result.Output)));
+                            // SkipReason where there is one; otherwise the
+                            // old first-line-of-log guess, which is all a
+                            // pre-1.2 results.json can offer.
+                            var reason = entry.Result.SkipReason ?? FirstLine(entry.Result.Output);
+                            if (!string.IsNullOrEmpty(reason))
+                                skipped.Add(new XAttribute("message", reason));
                             testcase.Add(skipped);
                             break;
                     }
+
+                    // JUnit's <system-out> is the test's captured log -
+                    // distinct from the failure message, and previously
+                    // never emitted at all.
+                    if (!string.IsNullOrEmpty(entry.Result.Output))
+                        testcase.Add(new XElement("system-out", entry.Result.Output));
 
                     testsuite.Add(testcase);
                 }
@@ -77,6 +83,24 @@ namespace AnyUnit.Report.Formats
             }
 
             new XDocument(new XDeclaration("1.0", "UTF-8", null), testsuites).Save(output);
+        }
+
+        // <failure message="…" type="…">body</failure> - message is the
+        // short exception message, type the exception's type name (real
+        // xUnit's JUnit output emits both), and the body the stack trace.
+        // Every one of the three falls back to what this writer used to do
+        // when the corresponding field is absent, which is exactly the case
+        // for a results.json written before those fields existed.
+        private static XElement BuildFailure(string name, Result result)
+        {
+            var element = new XElement(name,
+                new XAttribute("message", result.Message ?? FirstLine(result.Output)));
+
+            if (!string.IsNullOrEmpty(result.ExceptionType))
+                element.Add(new XAttribute("type", result.ExceptionType));
+
+            element.Add(result.StackTrace ?? result.Output ?? string.Empty);
+            return element;
         }
 
         private static double TotalSeconds(System.Collections.Generic.IEnumerable<TestCaseEntry> entries)
@@ -92,10 +116,11 @@ namespace AnyUnit.Report.Formats
             return (result.EndTime - result.StartTime).TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
         }
 
-        // AnyUnit's Result.Output is the test's whole captured log, not a
-        // separate short exception message - use its first line as the
-        // failure/error "message" attribute (full text still goes in the
-        // element body) so it reads sensibly in a CI summary view.
+        // Kept, but now only as the fallback for a results.json written
+        // before Result.Message/SkipReason existed: back then Output was
+        // the test's whole captured log and there was no separate short
+        // exception message, so its first line was the least-bad "message"
+        // attribute. Delete this once pre-1.2 results files stop mattering.
         private static string FirstLine(string output)
         {
             if (string.IsNullOrEmpty(output))

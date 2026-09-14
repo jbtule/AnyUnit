@@ -206,7 +206,13 @@ namespace AnyUnit.Report.Formats
                 // stack traces, and pasting all of them is how this document
                 // stops fitting.
                 var sample = entry.Bad[0];
-                var excerpt = Excerpt(sample.Output);
+                // The exception's own message, not the whole captured log:
+                // it's already the size an excerpt was trying to cut the log
+                // down to, and it's the part a reader scanning a CI summary
+                // actually wants. Excerpt still applies - a message can
+                // itself be long - and Output remains the fallback for a
+                // results.json written before Message existed.
+                var excerpt = Excerpt(sample.Message ?? sample.Output);
                 if (!string.IsNullOrEmpty(excerpt))
                 {
                     var fence = Fence(excerpt);
