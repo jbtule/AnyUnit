@@ -186,6 +186,49 @@ jobs:
           name: anyunit-runner-osx-x64
           path: publish/osx-x64/anyunit-runner-osx-x64
 
+  # The net48 runners, which the Release page was missing entirely.
+  #
+  # `dotnet build -p:Platform=`, not the `dotnet publish -r <rid>
+  # --self-contained -p:PublishSingleFile=true` every job above uses:
+  # classic .NET Framework has no RuntimeIdentifier/self-contained
+  # deployment model at all, and bitness is a PE-header PlatformTarget
+  # needing one build per variant (see net48-runner.csproj's own
+  # comment). These are still single self-contained .exe files like every
+  # other asset here, just by a different mechanism - the csproj embeds
+  # the dependencies as a zip resource (see its EmbedDependencies target
+  # and DiminishedProgram.cs), so the build output is the .exe alone and
+  # there is nothing extra to attach.
+  #
+  # windows-latest even though the build itself is portable (net48 output
+  # is plain IL and builds fine on Linux/macOS): .NET Framework only RUNS
+  # on Windows, and every other job here likewise publishes on the OS it
+  # targets.
+  publish-net48:
+    if: github.event_name != 'workflow_run'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - platform: x86
+            name: win32
+          - platform: x64
+            name: win64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build net48 runner (${{ matrix.platform }})
+        run: dotnet build Runner/Platforms/net48/net48-runner.csproj -c Release -p:Platform=${{ matrix.platform }}
+      # Named anyunit-runner-* so create-release's existing
+      # `pattern: anyunit-runner-*` download picks these up with
+      # everything else - that's the artifact name, not the file inside
+      # it, which keeps the net48-specific name the csproj gives it.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-runner-net48-${{ matrix.name }}
+          path: Runner/Platforms/net48/bin/${{ matrix.platform }}/Release/net48/anyunit-net48-runner-${{ matrix.name }}.exe
+
   # Creates (or reuses, if it already exists - see below) the GitHub
   # Release for this tag and attaches every RID executable to it.
   # workflow_dispatch is excluded here (github.event_name != 'workflow_run'
@@ -210,6 +253,7 @@ jobs:
       - publish-linux-arm64
       - publish-macos-arm64
       - publish-macos-x64
+      - publish-net48
     runs-on: ubuntu-latest
     permissions:
       contents: write
