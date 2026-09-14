@@ -7,7 +7,7 @@
 //  Licensed under the MIT license - see License.txt in this directory
 //  for the full text and notice.
 //
-//  Alterations Copyright 2013 AnyUnit Contributors, Apache-2.0.
+//  Alterations Copyright 2017-2026 AnyUnit Contributors, Apache-2.0.
 //
 
 namespace AnyUnit.Style.FsUnit
