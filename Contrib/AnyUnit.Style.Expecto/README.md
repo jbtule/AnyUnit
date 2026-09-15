@@ -81,11 +81,13 @@ grouping unit rather than the module.
 `testList`, `testCase`, `testCaseAsync`, `testCaseTask`, and the
 `ptest*` pending forms of each. `[<Tests>]` discovery.
 
-`Expect`: `equal`, `notEqual`, `isTrue`, `isFalse`, `isNull`,
-`isNotNull`, `isSome`, `isNone`, `isOk`, `isError`, `isEmpty`,
-`isNonEmpty`, `contains`, `hasLength`, `hasCountOf`, `isGreaterThan`,
-`isLessThan`, `stringContains`, `sequenceEqual`, `all`, `throws`,
-`throwsT`, plus top-level `failtest`.
+`Expect`: `equal`, `notEqual`, `same`, `isTrue`, `isFalse`, `isNull`,
+`isNotNull`, `isSome`, `isNone`, `isOk`, `isError`, `wantOk`,
+`wantError`, `wantSome`, `isEmpty`, `isNonEmpty`, `contains`,
+`hasLength`, `hasCountOf`, `isGreaterThan`, `isLessThan`,
+`stringContains`, `sequenceEqual`, `all`, `throws`, `throwsT`. Top-level
+`failtest`/`failtestf`, and `Tests.failtest`/`Tests.failtestf` for
+suites that build their own helpers on them.
 
 ## What's not
 
@@ -106,7 +108,52 @@ AnyUnit has its own runners, which is the point of the exercise.
 design, so Expecto's default parallelism (and `Sequenced`/`ParallelWith`)
 has nothing to configure.
 
-## One AnyUnit addition
+## Custom helpers, `Expect.pass`, and an escape hatch
+
+Expecto's idiom for a custom assertion is "throw on failure, do nothing
+on success":
+
+```fsharp
+let hasOkValue v x =
+    match x with
+    | Ok x when x = v -> ()
+    | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
+    | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+```
+
+Expecto has no assert count, so that's fine there. Under AnyUnit, a
+success path that does nothing is indistinguishable from a test that
+asserted nothing, and the test reports `NoError` rather than `Success`.
+In a real port (FsToolkit.ErrorHandling, below) that was **511 of
+1,461 tests**.
+
+The fix is one line on each helper's success path:
+
+```fsharp
+    | Ok x when x = v -> Expect.pass ()
+```
+
+`Expect.pass ()` registers a successful assertion without checking
+anything - an AnyUnit addition with no Expecto counterpart. In that
+port, 11 such lines in the suite's one helper file brought the 511
+down to 45, and those 45 genuinely assert nothing (they are
+compile-shape tests: `fun _ -> ignore Result.ignore`).
+
+**The escape hatch**, for a port that wants Expecto's verdicts first
+and that cleanup later:
+
+```fsharp
+[<assembly: AnyUnit.Style.Expecto.Discovery.ExpectoStyle(CompletionIsPass = true)>]
+```
+
+or per binding, `[<Tests; CompletionIsPass>]`. A test that completes
+without throwing then reports `Success` even with no `Expect` call. The
+cost is the `NoError` signal, for the whole assembly or that binding -
+which is a real loss: it has found genuinely assertion-free tests in
+every real suite ported so far. It's off by default for that reason,
+and it only ever upgrades `NoError`; a failing test still fails.
+
+## One more AnyUnit addition
 
 `requires` has no Expecto counterpart. Attribute-based styles declare a
 platform requirement with `[RequiresCapability(...)]`; a value-based
@@ -185,3 +232,37 @@ expectation. Expecto calls both "Failed"; AnyUnit tells them apart.
 success arm is `()`). Expecto reports them as passing, and cannot tell
 them from a real pass. That distinction is what the ambient assert here
 was designed to preserve - see "How assertions reach AnyUnit" above.
+
+## Validated against a second suite
+
+[FsToolkit.ErrorHandling](https://github.com/demystifyfp/FsToolkit.ErrorHandling)'s
+main test project: **1,461 tests**, about 1,180 of them
+`testCaseAsync`/`testCaseTask`, with its own `Expect` helper module
+built on `Tests.failtestf`. CI green; locally under Expecto:
+1,453 passed, 8 ignored, 0 failed.
+
+After the port, with `CompletionIsPass = true`: **1,453 Success,
+8 Ignore** - identical. Without it, after the 11 `Expect.pass` edits
+above: 1,408 Success, 45 NoError, 8 Ignore - and the 45 are the
+compile-shape tests.
+
+The port: `open Expecto` swapped in 40 files, the entry point removed
+(the `[<Tests>]` root it already carried is the discovery hook),
+`Exe` -> `Library` with `CopyLocalLockFileAssemblies`, the Expecto and
+test-SDK packages swapped for this one, and one unused `ftestCaseTask`
+helper deleted from the suite's own shim - focus is deliberately absent
+here, so it failed to compile rather than silently changing behaviour.
+
+### Found by this port, now fixed
+
+- **`Expect.equal` compared arrays by reference.** It used
+  `Object.Equals`; Expecto's is F#'s structural `=`. 20 tests failed
+  with a message that printed the same array twice. Now `=`.
+- `Expect.wantOk`/`wantError`/`wantSome`, `Expect.same`, and
+  `Tests.failtest`/`failtestf` were missing.
+- **Every F# style package demanded FSharp.Core >= 10.1.x** - the
+  SDK's implicit reference, carried into the nuspec as a hard floor.
+  This suite pins 9.0.300 and could not restore at all. All F#
+  projects in this repo now build against 6.0.1, the conventional
+  floor for a netstandard2.0 F# library, and the test payloads run on
+  it in CI so the floor is known to work rather than merely compile.

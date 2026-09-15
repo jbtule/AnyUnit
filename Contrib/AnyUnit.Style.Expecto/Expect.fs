@@ -85,12 +85,21 @@ module Expect =
         Ambient.get().Okay()
 
     /// `Expect.equal actual expected message`
+    ///
+    /// F#'s `=`, not Object.Equals: the two differ on exactly the values a
+    /// test is likeliest to compare. `=` is structural for arrays, lists,
+    /// tuples, records and unions; Object.Equals on an array is reference
+    /// equality, so `[|1|]` was "not equal" to `[|1|]` - and the failure
+    /// message printed two identical values. Found by porting
+    /// FsToolkit.ErrorHandling: 20 tests comparing arrays failed with
+    /// "Expected [|..|] but got [|..|]" showing the same array twice.
+    /// Expecto's own `equal` is `=`, so this is also the fidelity fix.
     let equal (actual: 'a) (expected: 'a) (message: string) =
-        if Object.Equals(box actual, box expected) then ok ()
+        if actual = expected then ok ()
         else fail (sprintf "%s. Expected %A but got %A." message expected actual)
 
     let notEqual (actual: 'a) (expected: 'a) (message: string) =
-        if Object.Equals(box actual, box expected) then
+        if actual = expected then
             fail (sprintf "%s. Expected a value other than %A." message expected)
         else ok ()
 
@@ -218,5 +227,60 @@ module Expect =
         | Choice2Of2 ex ->
             fail (sprintf "%s. Expected %s but got %s: %s" message typeof<'ex>.Name (ex.GetType().Name) ex.Message)
 
-    /// Unconditional failure, matching Expecto's own `failtest`.
-    let failtest (message: string) : unit = fail message
+    /// Unconditional failure, matching Expecto's own `failtest` - including
+    /// its generic return type, so it can sit in a match arm that has to
+    /// produce a value. It never returns; the type is only so it
+    /// typechecks where Expecto's does.
+    let failtest (message: string) : 'a =
+        fail message
+        Unchecked.defaultof<'a>
+
+    /// AnyUnit addition, no Expecto counterpart: registers a successful
+    /// assertion without checking anything. For the success path of a
+    /// custom helper built on `failtest`:
+    ///
+    ///     let hasOkValue v x =
+    ///         match x with
+    ///         | Ok x when x = v -> Expect.pass ()
+    ///         | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
+    ///         | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+    ///
+    /// Expecto has no assert count, so such helpers idiomatically do
+    /// nothing on success - and under AnyUnit that is indistinguishable
+    /// from a test that asserted nothing, which reports NoError rather
+    /// than Success. One call here on the success path fixes the helper
+    /// for good. Found by porting FsToolkit.ErrorHandling, where 511 of
+    /// 1,461 tests assert only through such helpers.
+    let pass () = ok ()
+
+    /// `Expect.wantOk result message` - asserts Ok and hands back the
+    /// value, as Expecto's does. The want* family was found missing by
+    /// porting FsToolkit.ErrorHandling, along with `same` and
+    /// `Tests.failtestf`.
+    let wantOk (actual: Result<'a, 'b>) (message: string) : 'a =
+        match actual with
+        | Ok v -> ok (); v
+        | Error e -> failtest (sprintf "%s. Expected Ok, got Error %A." message e)
+
+    let wantError (actual: Result<'a, 'b>) (message: string) : 'b =
+        match actual with
+        | Error e -> ok (); e
+        | Ok v -> failtest (sprintf "%s. Expected Error, got Ok %A." message v)
+
+    let wantSome (actual: 'a option) (message: string) : 'a =
+        match actual with
+        | Some v -> ok (); v
+        | None -> failtest (sprintf "%s. Expected Some, got None." message)
+
+    /// Reference equality, as Expecto's `same`.
+    let same (actual: 'a) (expected: 'a) (message: string) =
+        if Object.ReferenceEquals(box actual, box expected) then ok ()
+        else fail (sprintf "%s. Expected the same reference." message)
+
+/// Expecto's `Tests` module, the part of it a test body calls directly.
+/// `Tests.failtestf "%s. Expected Ok, was Error(%A)." message x` is common
+/// in suites that build their own Expect helpers on top of Expecto.
+[<RequireQualifiedAccess>]
+module Tests =
+    let failtest (message: string) : 'a = Expect.failtest message
+    let failtestf (format: Printf.StringFormat<'T, 'a>) : 'T = Printf.ksprintf Expect.failtest format

@@ -67,3 +67,11 @@ type Test =
 [<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Method, AllowMultiple = false)>]
 type TestsAttribute() =
     inherit Attribute()
+
+/// Per-binding escape hatch: every leaf under this `[<Tests>]` binding
+/// that completes without throwing reports Success even if it made no
+/// Expect call. See ExpectoStyleAttribute.CompletionIsPass for the
+/// whole-assembly form and for what is given up.
+[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Method, AllowMultiple = false)>]
+type CompletionIsPassAttribute() =
+    inherit Attribute()

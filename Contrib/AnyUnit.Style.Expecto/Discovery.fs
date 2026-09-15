@@ -34,24 +34,26 @@ type private Leaf =
     { Path: string list
       Code: TestCode
       Pending: bool
-      Requires: TestCapabilities }
+      Requires: TestCapabilities
+      CompletionIsPass: bool }
 
 /// Flattens the tree. `pending` accumulates downward, so ptestList marks
 /// everything beneath it however deeply nested.
-let rec private flatten (prefix: string list) (pending: bool) (requires: TestCapabilities) (test: Tree) : Leaf list =
+let rec private flatten (prefix: string list) (pending: bool) (requires: TestCapabilities) (completionIsPass: bool) (test: Tree) : Leaf list =
     match test with
     | TestCase (name, code, casePending) ->
         [ { Path = List.rev (name :: prefix)
             Code = code
             Pending = pending || casePending
-            Requires = requires } ]
+            Requires = requires
+            CompletionIsPass = completionIsPass } ]
     | TestList (name, tests, listPending) ->
-        tests |> List.collect (flatten (name :: prefix) (pending || listPending) requires)
+        tests |> List.collect (flatten (name :: prefix) (pending || listPending) requires completionIsPass)
     // Accumulates downward, like pending: a requirement declared over a
     // list applies to every leaf under it. Adds no path segment - it
     // describes the tests, it is not one of them.
     | TestRequires (capability, inner) ->
-        flatten prefix pending (requires ||| capability) inner
+        flatten prefix pending (requires ||| capability) completionIsPass inner
 
 /// Expecto's own reporting joins a test's ancestry with '/', so a ported
 /// suite's names look the same here as they did there.
@@ -82,11 +84,25 @@ type private ExpectoTestAttribute(leaf: Leaf) =
             // The ambient IAssert for exactly this test's duration - see
             // Ambient's own comment for why this is how Expect reaches it,
             // and why Assert.GlobalStyle is not.
+            // The escape hatch (see ExpectoStyleAttribute.CompletionIsPass):
+            // a body that ran to completion with no Expect call registers
+            // one success, so it reports Success rather than NoError. Only
+            // when the count is still zero - a test that did assert keeps
+            // its real count. For an asynchronous body this has to happen
+            // AFTER the returned work completes, not after the call that
+            // produced it, so it is chained onto that work; StartImmediate
+            // keeps a never-suspending workflow completing inline, which is
+            // what lets it run on browser-wasm.
+            let completed () =
+                if leaf.CompletionIsPass && helper.Assert.AssertCount = 0 then
+                    helper.Assert.Okay()
+
             Ambient.set helper
             try
                 match leaf.Code with
                 | Sync body ->
                     body ()
+                    completed ()
                     null
                 // Handed back rather than waited on here: AnyUnit.Run.
                 // AsyncTestResult owns that decision, including refusing to
@@ -94,8 +110,16 @@ type private ExpectoTestAttribute(leaf: Leaf) =
                 // StartImmediateAsTask, not StartAsTask - it runs on THIS
                 // thread until a real suspension, so a workflow that never
                 // suspends comes back already completed and works there too.
-                | AsyncCode body -> box (Async.StartImmediateAsTask body)
-                | TaskCode body -> box (body ())
+                | AsyncCode body ->
+                    box (Async.StartImmediateAsTask(async {
+                        do! body
+                        completed ()
+                    }))
+                | TaskCode body ->
+                    box (Async.StartImmediateAsTask(async {
+                        do! body () |> Async.AwaitTask
+                        completed ()
+                    }))
             finally
                 Ambient.clear ())
 
@@ -145,9 +169,14 @@ let private testProperties (t: Type) =
         && p.GetGetMethod() <> null
         && p.GetCustomAttributes(typeof<TestsAttribute>, true).Length > 0)
 
-let private fixturesFor (t: Type) : Fixture seq =
+let private fixturesFor (assemblyWideCompletionIsPass: bool) (t: Type) : Fixture seq =
     testProperties t
     |> Seq.choose (fun property ->
+        // Assembly-wide via [<assembly: ExpectoStyle(CompletionIsPass = true)>],
+        // or this one binding via [<CompletionIsPass>] beside its [<Tests>].
+        let completionIsPass =
+            assemblyWideCompletionIsPass
+            || property.GetCustomAttributes(typeof<CompletionIsPassAttribute>, true).Length > 0
         // Evaluating the binding here runs the user's own test-tree
         // construction at DISCOVERY time. That is inherent to a
         // value-based style - the leaves cannot be counted or named
@@ -163,10 +192,10 @@ let private fixturesFor (t: Type) : Fixture seq =
             let name, leaves =
                 match root with
                 | TestList (name, tests, pending) ->
-                    name, tests |> List.collect (flatten [] pending TestCapabilities.None)
+                    name, tests |> List.collect (flatten [] pending TestCapabilities.None completionIsPass)
                 // A bare testCase, or a requires wrapping one, has no list
                 // to name the fixture, so the binding's own name serves.
-                | _ -> property.Name, flatten [] false TestCapabilities.None root
+                | _ -> property.Name, flatten [] false TestCapabilities.None completionIsPass root
             if List.isEmpty leaves then None
             else Some(ExpectoFixture(t, name, property.GetGetMethod(), leaves) :> Fixture))
 
@@ -178,5 +207,23 @@ let private fixturesFor (t: Type) : Fixture seq =
 [<AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)>]
 type ExpectoStyleAttribute() =
     inherit TestFixtureDiscoveryAttributeBase()
-    override _.Generator =
-        FixtureGenerator(fun assembly -> assembly.AllTypes() |> Seq.collect fixturesFor)
+
+    /// Escape hatch: a test that completes without throwing reports
+    /// Success even if it made no Expect call.
+    ///
+    /// Off by default, deliberately. AnyUnit reports a test that asserted
+    /// nothing as NoError rather than Success - a distinction Expecto does
+    /// not have, and one that has found genuinely assertion-free tests in
+    /// real suites (4 in cwtools, 5 in a 595-test MSTest suite). But
+    /// Expecto's own idiom for a custom helper is "throw on failure, do
+    /// nothing on success", which is indistinguishable from asserting
+    /// nothing: porting FsToolkit.ErrorHandling reported 511 of 1,461
+    /// tests as NoError for exactly that reason. The proper fix is
+    /// `Expect.pass ()` on each helper's success path; this is for a port
+    /// that wants Expecto's verdicts first and that cleanup later - at the
+    /// cost of the NoError signal for the whole assembly. Per-binding:
+    /// [<CompletionIsPass>] beside [<Tests>].
+    member val CompletionIsPass = false with get, set
+
+    override this.Generator =
+        FixtureGenerator(fun assembly -> assembly.AllTypes() |> Seq.collect (fixturesFor this.CompletionIsPass))

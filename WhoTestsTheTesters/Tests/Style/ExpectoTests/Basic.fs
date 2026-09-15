@@ -17,6 +17,17 @@ let basics =
         testCase "notEqual_Success" <| fun () ->
             Expect.notEqual 1 2 "one is not two"
 
+        // Structural, not reference: two separately-allocated arrays with
+        // the same contents are equal under F#'s `=`, which is what
+        // Expecto's `equal` is. Object.Equals would say otherwise - and
+        // did, in a port of a real suite, failing 20 tests with a message
+        // that printed the same array twice.
+        testCase "equalArray_Success" <| fun () ->
+            Expect.equal [| "Hi"; "Hello" |] [| "Hi"; "Hello" |] "arrays compare structurally"
+
+        testCase "equalArray_Fail" <| fun () ->
+            Expect.equal [| 1; 2 |] [| 1; 3 |] "deliberately different"
+
         testCase "equal_Fail" <| fun () ->
             Expect.equal (2 + 2) 5 "deliberately wrong"
 
@@ -183,4 +194,68 @@ let asyncTests =
                 do! Async.Sleep 1
                 Expect.isTrue true "resumes on a platform that can yield"
             })
+    ]
+
+// A custom helper in Expecto's own idiom: throws on failure, does
+// nothing on success. Under AnyUnit that success path is indistinguishable
+// from asserting nothing - unless it registers itself with Expect.pass.
+let private hasOkValue v x =
+    match x with
+    | Ok x when x = v -> Expect.pass ()
+    | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
+    | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+
+// The same helper WITHOUT Expect.pass - the shape a real ported suite has
+// before any cleanup.
+let private hasOkValueSilent v x =
+    match x with
+    | Ok x when x = v -> ()
+    | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
+    | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+
+[<Tests>]
+let helpers =
+    testList "Helpers" [
+        testCase "passRegisters_Success" <| fun () ->
+            hasOkValue 1 (Ok 1)
+
+        testCase "passRegistersFailure_Fail" <| fun () ->
+            hasOkValue 1 (Ok 2)
+
+        // No Expect.pass and no escape hatch: correctly reported as having
+        // asserted nothing, which is what it looks like from outside.
+        testCase "silentHelper_NoError" <| fun () ->
+            hasOkValueSilent 1 (Ok 1)
+    ]
+
+// The per-binding escape hatch: every leaf here that completes without
+// throwing is Success, even the ones that never touch Expect. The
+// failing ones must still fail - the hatch only ever upgrades NoError.
+[<Tests; CompletionIsPass>]
+let completionIsPass =
+    testList "CompletionIsPass" [
+        testCase "silentHelper_Success" <| fun () ->
+            hasOkValueSilent 1 (Ok 1)
+
+        testCase "nothingAtAll_Success" <| fun () ->
+            ()
+
+        testCase "stillFails_Fail" <| fun () ->
+            hasOkValueSilent 1 (Ok 2)
+
+        // The hatch has to fire AFTER an asynchronous body finishes, not
+        // after the call that merely produced the Task - otherwise the
+        // count is checked before the body has run.
+        testCaseAsync "async_Success" <| async {
+            let! v = async { return Ok 1 }
+            hasOkValueSilent 1 v
+        }
+
+        testCaseTask "task_Success" <| fun () ->
+            System.Threading.Tasks.Task.CompletedTask
+
+        testCaseAsync "asyncStillFails_Fail" <| async {
+            let! v = async { return Ok 2 }
+            hasOkValueSilent 1 v
+        }
     ]

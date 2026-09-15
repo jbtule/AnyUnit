@@ -62,5 +62,6 @@ module Builders =
     let requires (capability: AnyUnit.Run.TestCapabilities) (test: Test) =
         TestRequires(capability, test)
 
-    /// Unconditional failure, as Expecto's own top-level `failtest`.
-    let failtest (message: string) : unit = Expect.failtest message
+    /// Unconditional failure, as Expecto's own top-level `failtest`/`failtestf`.
+    let failtest (message: string) : 'a = Expect.failtest message
+    let failtestf (format: Printf.StringFormat<'T, 'a>) : 'T = Tests.failtestf format
