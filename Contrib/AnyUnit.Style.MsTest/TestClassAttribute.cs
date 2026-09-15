@@ -156,9 +156,7 @@ namespace AnyUnit.Style.MsTest
 
         /// <summary>
         /// Class-level [TestCategory] and [Owner]. See
-        /// TestMethodAttribute.GetCategories for why [Owner] is rendered
-        /// into this flat list and what replaces that once the schema
-        /// carries key/value properties (1.2 target T2).
+        /// [TestCategory] names on the class, verbatim.
         /// </summary>
         public override IList<string> GetCategories(Type type)
         {
@@ -168,10 +166,20 @@ namespace AnyUnit.Style.MsTest
                                     .SelectMany(it => it.TestCategories)
                                     .Where(it => !string.IsNullOrEmpty(it)));
 
-            categories.AddRange(type.GetAttributes<OwnerAttribute>()
-                                    .Select(it => "Owner:" + it.Owner));
-
             return categories;
+        }
+
+        /// <summary>
+        /// Class-level [Owner], as a property - see
+        /// TestMethodAttribute.GetProperties for why it is no longer
+        /// rendered into the category list.
+        /// </summary>
+        public override IDictionary<string, IList<string>> GetProperties(Type type)
+        {
+            var properties = new Dictionary<string, IList<string>>(StringComparer.Ordinal);
+            foreach (var owner in type.GetAttributes<OwnerAttribute>())
+                TestMethodAttribute.Add(properties, "Owner", owner.Owner);
+            return properties;
         }
 
         public override string GetDescription(Type type)
