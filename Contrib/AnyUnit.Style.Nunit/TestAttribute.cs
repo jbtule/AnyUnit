@@ -240,6 +240,11 @@ namespace AnyUnit.Style.Nunit
                       .Select(trait => trait.Name)).ToList();
         }
 
+        public override IDictionary<string, IList<string>> GetProperties(MethodInfo method)
+        {
+            return PropertyAttribute.Collect(method.GetCustomAttributes(typeof(PropertyAttribute), true));
+        }
+
         public override string GetDescription(MethodInfo method)
         {
             return Description ?? method.GetCustomAttributes(typeof (DescriptionAttribute), true)
