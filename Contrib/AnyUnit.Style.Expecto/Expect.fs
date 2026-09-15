@@ -41,9 +41,12 @@ open AnyUnit.Run
 /// each test by Discovery's TestInvoke; the engine runs tests
 /// sequentially, so there is never more than one live at a time.
 module internal Ambient =
-    let private current = AsyncLocal<IAssert>()
+    // The whole IAssertionHelper, not just its IAssert: Expect needs the
+    // assert, and the Logging shim needs the log, and both belong to the
+    // same running test.
+    let private current = AsyncLocal<IAssertionHelper>()
 
-    let set (assert_: IAssert) = current.Value <- assert_
+    let set (helper: IAssertionHelper) = current.Value <- helper
     let clear () = current.Value <- null
 
     let get () =
@@ -54,7 +57,16 @@ module internal Ambient =
                     + "assert through the test's own IAssert, which only exists while a test "
                     + "is executing - calling them from module initialisation or from a "
                     + "helper invoked outside a test body cannot work."))
-        | value -> value
+        | helper -> helper.Assert
+
+    /// The running test's log, or None outside a test. Unlike `get` this
+    /// does not raise: logging from module initialisation is legitimate
+    /// (Expecto suites routinely create a logger at the top of a file),
+    /// and the caller falls back to the console there.
+    let tryLog () =
+        match current.Value with
+        | null -> None
+        | helper -> Some helper.Log
 
 /// Expecto's assertion vocabulary.
 ///
@@ -141,6 +153,32 @@ module Expect =
         let e = List.ofSeq expected
         if a = e then ok ()
         else fail (sprintf "%s. Expected %A but got %A." message e a)
+
+    /// `Expect.contains actual element message` - the sequence holds the element.
+    /// Found missing by porting a real Expecto suite (cwtools), along with
+    /// the three below it.
+    let contains (actual: seq<'a>) (element: 'a) (message: string) =
+        if actual |> Seq.exists (fun x -> x = element) then ok ()
+        else fail (sprintf "%s. Expected the sequence to contain %A." message element)
+
+    let isNonEmpty (actual: seq<'a>) (message: string) =
+        if Seq.isEmpty actual then fail (sprintf "%s. Expected a non-empty sequence." message)
+        else ok ()
+
+    /// `Expect.hasLength actual expected message` - exact element count.
+    let hasLength (actual: seq<'a>) (expected: int) (message: string) =
+        let n = Seq.length actual
+        if n = expected then ok ()
+        else fail (sprintf "%s. Expected length %d but got %d." message expected n)
+
+    /// `Expect.hasCountOf actual expected selector message` - exactly
+    /// `expected` elements satisfy `selector`. Expecto's own signature
+    /// takes the count as uint32, which is preserved so `10u` at a real
+    /// call site keeps compiling.
+    let hasCountOf (actual: seq<'a>) (expected: uint32) (selector: 'a -> bool) (message: string) =
+        let n = actual |> Seq.filter selector |> Seq.length |> uint32
+        if n = expected then ok ()
+        else fail (sprintf "%s. Expected %d matching elements but found %d." message expected n)
 
     /// Every element satisfies the predicate.
     let all (actual: seq<'a>) (predicate: 'a -> bool) (message: string) =

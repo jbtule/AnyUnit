@@ -82,7 +82,7 @@ type private ExpectoTestAttribute(leaf: Leaf) =
             // The ambient IAssert for exactly this test's duration - see
             // Ambient's own comment for why this is how Expect reaches it,
             // and why Assert.GlobalStyle is not.
-            Ambient.set helper.Assert
+            Ambient.set helper
             try
                 match leaf.Code with
                 | Sync body ->
