@@ -132,12 +132,18 @@ namespace MsTestTests
             Assert.IsTrue(true);
         }
 
+        // [TestProperty] is AllowMultiple, and a KEY can repeat - both
+        // "Layer" values must survive into Properties["Layer"] as a list,
+        // not collapse to one. Exercises the multi-value branch of the
+        // schema's properties bag, which nothing else in the corpus did.
         [TestMethod]
         [Description("Carries every metadata attribute at once")]
         [TestCategory("Fast", "Unit")]
         [Owner("anyunit")]
         [Priority(1)]
         [TestProperty("Layer", "core")]
+        [TestProperty("Layer", "public")]
+        [TestProperty("Tracker", "AB-42")]
         public void Metadata_Success()
         {
             Assert.IsNotNull(TestContext);
@@ -147,6 +153,9 @@ namespace MsTestTests
         }
     }
 
+    // Class-level [Owner]: merges into every test's Properties in the
+    // fixture (see TestClassAttribute.GetProperties).
+    [Owner("fixture-owner")]
     [TestClass]
     public class ExpectedExceptions : AssertionHelper
     {

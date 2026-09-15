@@ -360,44 +360,58 @@ namespace AnyUnit.Style.MsTest
                 .GetValueOrDefault(-1);
         }
 
-        /// <summary>
-        /// [TestCategory] verbatim, plus [Owner]/[Priority]/[TestProperty]
-        /// rendered into the same flat list.
-        ///
-        /// The rendering is a stopgap, and deliberately a visible one. What
-        /// [Owner]/[Priority]/[TestProperty] actually want is a key/value
-        /// property bag, which the results schema does not have yet -
-        /// TestMeta.Properties is being added separately (1.2 target T2,
-        /// which also fixes the matching data loss in Style.Xunit, where
-        /// [Trait(key, value)] currently keeps only the "Category" key and
-        /// silently drops every other one). Until that lands, "Owner:jay" /
-        /// "Priority:1" / "key=value" at least carries the information into
-        /// the JSON rather than dropping it. FOLLOW-UP: once T2 ships, move
-        /// these three to the new Properties slot and leave only real
-        /// [TestCategory] names here.
-        /// </summary>
+        /// <summary>[TestCategory] names, verbatim, and only those.</summary>
         public override IList<string> GetCategories(MethodInfo method)
         {
-            var categories = new List<string>();
+            return method.GetCustomAttributes(typeof(TestCategoryAttribute), true)
+                         .OfType<TestCategoryAttribute>()
+                         .SelectMany(it => it.TestCategories)
+                         .Where(it => !string.IsNullOrEmpty(it))
+                         .ToList();
+        }
 
-            categories.AddRange(method.GetCustomAttributes(typeof(TestCategoryAttribute), true)
-                                    .OfType<TestCategoryAttribute>()
-                                    .SelectMany(it => it.TestCategories)
-                                    .Where(it => !string.IsNullOrEmpty(it)));
+        /// <summary>
+        /// [Owner], [Priority] and [TestProperty] as the key/value bag they
+        /// actually are, under the same keys real MSTest's TRX writer uses
+        /// ("Owner", "Priority", and the property's own name).
+        ///
+        /// These used to be rendered into GetCategories as "Owner:jay" /
+        /// "Priority:1" / "key=value" strings, because the style was built
+        /// in parallel with the schema change that added Properties and
+        /// could not depend on it. That stopgap kept the information but in
+        /// the wrong shape: a report showed "Owner:jay" as a category chip,
+        /// and the key/value rendering the schema was added for never fired
+        /// for an MSTest suite.
+        /// </summary>
+        public override IDictionary<string, IList<string>> GetProperties(MethodInfo method)
+        {
+            var properties = new Dictionary<string, IList<string>>(StringComparer.Ordinal);
 
-            categories.AddRange(method.GetCustomAttributes(typeof(OwnerAttribute), true)
-                                    .OfType<OwnerAttribute>()
-                                    .Select(it => "Owner:" + it.Owner));
+            foreach (var owner in method.GetCustomAttributes(typeof(OwnerAttribute), true).OfType<OwnerAttribute>())
+                Add(properties, "Owner", owner.Owner);
 
-            categories.AddRange(method.GetCustomAttributes(typeof(PriorityAttribute), true)
-                                    .OfType<PriorityAttribute>()
-                                    .Select(it => "Priority:" + it.Priority));
+            foreach (var priority in method.GetCustomAttributes(typeof(PriorityAttribute), true).OfType<PriorityAttribute>())
+                Add(properties, "Priority", priority.Priority.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-            categories.AddRange(method.GetCustomAttributes(typeof(TestPropertyAttribute), true)
-                                    .OfType<TestPropertyAttribute>()
-                                    .Select(it => it.Name + "=" + it.Value));
+            foreach (var property in method.GetCustomAttributes(typeof(TestPropertyAttribute), true).OfType<TestPropertyAttribute>())
+                Add(properties, property.Name, property.Value);
 
-            return categories;
+            return properties;
+        }
+
+        // A key can legitimately repeat ([TestProperty] is AllowMultiple),
+        // hence a list per key rather than a single value.
+        internal static void Add(IDictionary<string, IList<string>> properties, string key, string value)
+        {
+            if (string.IsNullOrEmpty(key))
+                return;
+            IList<string> values;
+            if (!properties.TryGetValue(key, out values))
+            {
+                values = new List<string>();
+                properties[key] = values;
+            }
+            values.Add(value ?? "");
         }
 
         public override string GetDescription(MethodInfo method)
