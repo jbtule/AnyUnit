@@ -102,6 +102,7 @@ one exists, not just cross-compiled and assumed to work).
 | [`AnyUnit.Style.MsTest`](Contrib/AnyUnit.Style.MsTest) | Roughly MSTest-compatible attributes (`[TestClass]`, `[TestMethod]`, `[DataRow]`, `[TestInitialize]`, ...) and assertions - same caveat. |
 | [`AnyUnit.Style.FSharp`](Contrib/AnyUnit.Style.FSharp) | F#'s own idiomatic value-based test style (`test { }`), for when a `[Test]`-attributed method doesn't fit F# as well as a top-level `let` does. |
 | [`AnyUnit.Style.FsUnit`](Contrib/AnyUnit.Style.FsUnit) | FsUnit-style F# assertions. |
+| [`AnyUnit.Style.Expecto`](Contrib/AnyUnit.Style.Expecto) | Expecto's value-based F# style - `testList`/`testCase` trees and the `Expect` vocabulary. |
 | [`AnyUnit.TestingPlatform`](AnyUnit.TestingPlatform) | Microsoft.Testing.Platform (MTP) adapter - opt in with one MSBuild property (`EnableAnyUnitRunner`) to get a real `dotnet test`/`dotnet run` entry point generated for you. |
 | [`AnyUnit.Runner.Bootstrap`](Runner/Bootstrap) | A single static `Runner.Run(platform)` a consumer's own `Main` calls directly - the smallest way to get a real, runnable test entry point (desktop or browser-wasm) without MTP or a CLI. |
 | [`AnyUnit.Runner`](Runner/Platforms/net10) | Standalone CLI (`anyunit-runner`) that discovers and runs tests in one or more assemblies you point it at. |

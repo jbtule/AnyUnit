@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Host-shaped, like FSharpTests.Mtp: ExpectoTests.fsproj stays a plain
+    library and is named here by simple assembly name via
+    AnyUnitTestAssembly, rather than having its sources compiled in.
+    That also means the assembly AnyUnit discovers IS "ExpectoTests", so
+    this leg's results merge with the console runner's in a combined
+    report instead of forking onto a second assembly name - see any
+    Compile-Include .Mtp csproj for the other half of that story.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExpectoTests\AnyUnit.Style.ExpectoTests.fsproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AnyUnitTestAssembly Include="ExpectoTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>

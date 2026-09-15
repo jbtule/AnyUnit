@@ -59,5 +59,12 @@ namespace AnyUnit.Run
         // FSharp constructs them from Test-typed properties) can fill it in
         // without going through an attribute on a method that doesn't exist.
         public TestCapabilities RequiredCapabilities { get; set; }
+
+        // Optional: the name this test is reported and identified under,
+        // replacing the reflected member name. Left null by every
+        // attribute-driven style, where the method name IS the test name.
+        // Set it where one member yields several distinct tests, so each
+        // gets its own identity - see Test's constructor.
+        public string DisplayName { get; set; }
     }
 }

@@ -84,6 +84,26 @@
     <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
+  <!--
+    F# projects reference the LOWEST FSharp.Core they actually need,
+    not whatever the SDK ships. The SDK's implicit reference is the
+    newest (10.1.x with the .NET 10 SDK), and a package built that way
+    carries it as a hard floor: the published 1.1.0 of every F# style
+    demands FSharp.Core >= 10.1.401, so any consumer pinning 8.x or 9.x
+    - a Fable project, anyone on an older SDK - gets NU1605 and cannot
+    restore. Found for real, by porting a third-party Expecto suite that
+    pins 9.0.300.
+
+    6.0.1 is the conventional floor for a netstandard2.0 F# library and
+    everything here builds and runs against it (verified). Applied to
+    every fsproj, not just the packable styles, so the test payloads and
+    MTP twins exercise that floor in CI too - a floor that is only ever
+    compiled against is not a floor that is known to work.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.fsproj'">
+    <FSharpCoreImplicitPackageVersion>6.0.1</FSharpCoreImplicitPackageVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
   </ItemGroup>

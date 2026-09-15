@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Value-based like AnyUnit.Style.FSharp, and discovered the same way
+    (an [<assembly: ExpectoStyle>] opt-in finding static properties of
+    type Test), but a different shape of value: Expecto's unit is a TREE -
+    testList nesting arbitrarily - where Style.FSharp's is a single test.
+    Flattening that onto AnyUnit's fixed Assembly/Fixture/Test is what
+    Discovery.fs mostly does; see its own comments.
+
+    References AnyUnit only. Expecto's Expect vocabulary is implemented
+    here against IAssert rather than layered on AnyUnit.Constraints: the
+    argument orders are genuinely different (Expect is actual-expected-
+    message, with the message REQUIRED), and pretending otherwise would
+    break the call sites this style exists to preserve.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Expecto-style F# tests for AnyUnit - testList/testCase values and the Expect assertion vocabulary, close enough to keep an existing Expecto suite's call sites unchanged.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Expect.fs" />
+    <Compile Include="Logging.fs" />
+    <Compile Include="Builders.fs" />
+    <Compile Include="Discovery.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
