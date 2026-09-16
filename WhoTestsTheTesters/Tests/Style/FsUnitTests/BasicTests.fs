@@ -32,6 +32,8 @@ type BasicTests () =
         "ships" |> this.should not' (startWith "ss")
         "ships" |> this.should endWith "ps"
         "ships" |> this.should not' (endWith "ss")
+        "ships" |> this.should haveSubstring "hip"
+        "ships" |> this.should not' (haveSubstring "hop")
 
     [<Test>]
     member this.``A List, Seq, or Array instance contains or does not contain a value _Success`` ()=

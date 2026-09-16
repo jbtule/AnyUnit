@@ -57,6 +57,17 @@ namespace AnyUnit.TestingPlatform
         // prefix itself (same as the platform's own "results-directory").
         public const string OptionName = "report-anyunit-json";
 
+        // The MTP spelling of anyunit-runner's own -p/-platform-suffix (see
+        // Runner/Platforms/shared/Commands.cs): a label appended to the
+        // auto-detected platform id, for telling apart two runs of the same
+        // assembly on the same OS/arch/framework that are nonetheless
+        // different things - the motivating case being CI running the
+        // in-repo .Mtp projects and, separately, a consumer built against
+        // the packed nupkg, both of which would otherwise report the
+        // identical "net10-osx-arm64-mtp" and collapse into one column of
+        // the merged report.
+        public const string PlatformSuffixOptionName = "platform-suffix";
+
         public string Uid => "AnyUnit.TestingPlatform.AnyUnitJsonReport";
         public string Version => "1.0.0";
         public string DisplayName => "AnyUnit JSON report";
@@ -78,6 +89,11 @@ namespace AnyUnit.TestingPlatform
                     "Write AnyUnit's own results.json. Optionally takes an output path; with none, a generated name under --results-directory is used.",
                     ArgumentArity.ZeroOrOne,
                     isHidden: false),
+                new CommandLineOption(
+                    PlatformSuffixOptionName,
+                    "Optional label appended to the auto-detected platform id (e.g. --platform-suffix ci-nightly).",
+                    ArgumentArity.ExactlyOne,
+                    isHidden: false),
             };
         }
 
@@ -91,6 +107,9 @@ namespace AnyUnit.TestingPlatform
             // caller never asked for.
             if (commandOption.Name == OptionName && arguments.Length == 1 && string.IsNullOrWhiteSpace(arguments[0]))
                 return ValidationResult.InvalidTask("--" + OptionName + " was given an empty path.");
+
+            if (commandOption.Name == PlatformSuffixOptionName && string.IsNullOrWhiteSpace(arguments[0]))
+                return ValidationResult.InvalidTask("--" + PlatformSuffixOptionName + " was given an empty label.");
 
             return ValidationResult.ValidTask;
         }
@@ -141,6 +160,18 @@ namespace AnyUnit.TestingPlatform
                 DateTimeOffset.Now);
 
             return Path.Combine(directory, name);
+        }
+
+        /// <summary>
+        /// The label to append to the platform id, or null when the flag
+        /// wasn't passed.
+        /// </summary>
+        public static string ResolvePlatformSuffix(IServiceProvider serviceProvider)
+        {
+            string[] arguments;
+            if (!serviceProvider.GetCommandLineOptions().TryGetOptionArgumentList(PlatformSuffixOptionName, out arguments))
+                return null;
+            return arguments != null && arguments.Length > 0 ? arguments[0] : null;
         }
 
         private static string EntryAssemblyName()

@@ -67,7 +67,8 @@ namespace AnyUnit.TestingPlatform
                 (_, serviceProvider) => new AnyUnitTestFramework(
                     testAssemblies,
                     capabilities.TrxReport,
-                    AnyUnitJsonReportOptions.ResolveOutputPath(serviceProvider)));
+                    AnyUnitJsonReportOptions.ResolveOutputPath(serviceProvider),
+                    AnyUnitJsonReportOptions.ResolvePlatformSuffix(serviceProvider)));
         }
     }
 }
