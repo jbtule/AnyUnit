@@ -58,7 +58,6 @@ namespace XunitTests
             throw new NotImplementedException();
         }
 
-        [RequiresCapability(TestCapabilities.Timeouts)]
         // Traits with keys OTHER than "Category" - these used to be
         // silently dropped by this style, and are the reason the schema
         // grew a Properties bag. "Layer" repeats on purpose.
@@ -71,6 +70,7 @@ namespace XunitTests
             Assert.True(true);
         }
 
+        [RequiresCapability(TestCapabilities.Timeouts)]
         [Fact(Timeout = 2000),Trait("Category", "Timeout")]
         public void TestTimeout2_Error()
         {
