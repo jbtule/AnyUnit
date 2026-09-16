@@ -81,13 +81,14 @@ treats as a failure rather than as "nothing ran".
 dotnet run -- --report-anyunit-json --platform-suffix nightly
 ```
 
-The platform id an MTP run reports is the auto-detected one with
-`-mtp` appended (`net10-osx-arm64-mtp`). `--platform-suffix` appends a
-label after that (`net10-osx-arm64-mtp-nightly`) - the same thing
-`anyunit-runner run -p` does for the console runners - for when two
-runs of the same assembly on the same OS/arch/framework are genuinely
-different things and should not merge into one column of a combined
-report.
+The platform id an MTP run reports is the auto-detected one
+(`net10-osx-arm64`), the same as the console runners report.
+`--platform-suffix` appends a label to it (`net10-osx-arm64-nightly`) -
+the same thing `anyunit-runner run -p` does - for when two runs of the
+same assembly on the same OS/arch/framework are genuinely different
+things and should not merge into one column of a combined report.
+(Before 1.2.1 an MTP run always reported `-mtp` on the end; if you were
+relying on that, pass `--platform-suffix mtp`.)
 
 ## Other MTP extensions (TRX, and anything else)
 

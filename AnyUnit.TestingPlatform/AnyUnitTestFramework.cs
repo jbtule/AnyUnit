@@ -125,14 +125,18 @@ namespace AnyUnit.TestingPlatform
             // Fully qualified: AnyUnit.Run.Runner, the discovery/execution
             // engine - not just "Runner", to keep it unambiguous alongside
             // this namespace's own TestingPlatformBuilderHook/AnyUnitTestFramework.
-            // PlatformId.Current (see AnyUnit.Util), not a hardcoded "mtp" -
-            // that alone couldn't distinguish an MTP host built for net10
-            // vs one built for net48, or one OS/arch from another; "-mtp"
-            // stays appended so it's still distinguishable from the same
-            // assembly run through the plain console runner instead.
-            // Any --platform-suffix goes after "-mtp", the same place the
-            // console runners' -p puts theirs after their own id.
-            var platform = AnyUnit.Util.PlatformId.Current + "-mtp";
+            // PlatformId.Current (see AnyUnit.Util), exactly as the console
+            // runners report it - an MTP run of a test assembly on a given
+            // OS/arch/framework IS that platform, not a different one. This
+            // used to append "-mtp" unconditionally, so the same assembly
+            // run through anyunit-runner and through MTP got separate
+            // columns in a merged report; that only ever mattered to this
+            // repo's own CI, which runs both, and every other consumer paid
+            // for it with "net10-linux-x64-mtp" in their reports. Now
+            // --platform-suffix carries that distinction where it's wanted
+            // (run-mtp-tests.sh passes "mtp"), the same way the console
+            // runners' -p does.
+            var platform = AnyUnit.Util.PlatformId.Current;
             if (!string.IsNullOrEmpty(_platformSuffix))
                 platform += "-" + _platformSuffix;
             var runner = AnyUnit.Run.Runner.Create(platform, _testAssemblies);

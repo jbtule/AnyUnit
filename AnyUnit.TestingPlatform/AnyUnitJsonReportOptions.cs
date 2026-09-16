@@ -61,11 +61,12 @@ namespace AnyUnit.TestingPlatform
         // Runner/Platforms/shared/Commands.cs): a label appended to the
         // auto-detected platform id, for telling apart two runs of the same
         // assembly on the same OS/arch/framework that are nonetheless
-        // different things - the motivating case being CI running the
-        // in-repo .Mtp projects and, separately, a consumer built against
-        // the packed nupkg, both of which would otherwise report the
-        // identical "net10-osx-arm64-mtp" and collapse into one column of
-        // the merged report.
+        // different things - the motivating cases both being this repo's
+        // own CI: the same assembly run through the console runner and
+        // through MTP on one OS, and the in-repo .Mtp projects vs a
+        // consumer built against the packed nupkg, each pair of which would
+        // otherwise report the identical "net10-linux-x64" and collapse
+        // into one column of the merged report.
         public const string PlatformSuffixOptionName = "platform-suffix";
 
         public string Uid => "AnyUnit.TestingPlatform.AnyUnitJsonReport";
