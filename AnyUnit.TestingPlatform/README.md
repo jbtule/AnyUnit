@@ -10,6 +10,7 @@ AnyUnit test project - C# or F# alike.
 
 ```xml
 <PropertyGroup>
+  <OutputType>Exe</OutputType>
   <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
 </PropertyGroup>
 
@@ -18,13 +19,20 @@ AnyUnit test project - C# or F# alike.
 </ItemGroup>
 ```
 
-That's it - a real entry point is generated for you (`OutputType` is
-switched to `Exe` automatically too, via Microsoft.Testing.Platform.
-MSBuild's own official generator), and the project becomes directly
-runnable: `dotnet run`, or `dotnet test` if it's included in your
+That's it - a real entry point is generated for you, via Microsoft.
+Testing.Platform.MSBuild's own official generator, and the project
+becomes directly runnable: `dotnet run`, or `dotnet test` if it's included in your
 solution. This works the same way for an `.fsproj` as a `.csproj` - the
 generator genuinely emits real F# source there, not just C#, so there's
 no F#-specific setup needed.
+
+`OutputType` is set by the project, not by the package, for the same
+reason MSTest's `EnableMSTestRunner` asks the same of you: the package
+does set it as a fallback, but from its `.targets`, which is after the
+SDK has already decided the output's extension - fine for a .NET 10
+build (which is a `.dll` either way), but a `net48` build would come
+out as `Tests.dll` instead of `Tests.exe`. Found by a real consumer
+adding a net48 target.
 
 By default the generated entry point tests the project's own entry
 assembly - the normal case, when `EnableAnyUnitRunner` is set directly on
