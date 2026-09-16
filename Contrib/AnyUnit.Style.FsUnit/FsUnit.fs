@@ -92,6 +92,11 @@ module TopLevelOperators =
 
     let startWith (s:string) = StartsWithConstraint s
 
+    // FsUnit's own name for "string contains" - `contain` already reaches
+    // SubstringConstraint for a string actual, but a ported suite says
+    // haveSubstring, and shouldn't have to be edited to say otherwise.
+    let haveSubstring (s:string) = SubstringConstraint s
+
     let ofExactType<'a> = ExactTypeConstraint(typeof<'a>)
 
     let instanceOfType<'a> = InstanceOfTypeConstraint(typeof<'a>)

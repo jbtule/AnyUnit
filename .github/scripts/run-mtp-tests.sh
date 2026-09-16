@@ -16,7 +16,9 @@
 #            already ends in "-mtp" on its own (PlatformId.Current +
 #            "-mtp", see AnyUnitTestFramework), so an MTP run is
 #            distinguishable from the same assembly's console-runner run
-#            without any -p/-platform-suffix equivalent here.
+#            without needing the adapter's own --platform-suffix (which
+#            exists for the packed-consumer leg, see test-packed-mtp in
+#            build.yml, and isn't needed here).
 #
 # Same "the exit code is not the signal" contract as run-tests.sh: every
 # one of these assemblies deliberately contains Fail/Error cases, so a

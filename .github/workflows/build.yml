@@ -585,6 +585,84 @@ jobs:
           path: /tmp/*.json
           if-no-files-found: warn
 
+  # The third packed-consumer job, for AnyUnit.TestingPlatform - the
+  # one package that is neither a tool to install nor a plain library
+  # to reference, but MSBuild machinery (EnableAnyUnitRunner) that has
+  # to work from inside a nupkg. Every in-repo .Mtp project imports that
+  # machinery from source, which is not the same thing: 1.2.0-alpha.0.15
+  # shipped with EnableAnyUnitRunner doing nothing at all from the
+  # package (an Exe with an empty Main, zero tests) while every
+  # from-source leg stayed green. Found by a real third-party consumer,
+  # which is one consumer too late. WhoTestsTheTesters/PackedConsumer is
+  # a real PackageReference consumer of the packed nupkgs, gated by the
+  # same ConventionTestProcessor as everything else.
+  test-packed-mtp:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: packages
+
+      # The consumer project is outside every solution/filter on purpose
+      # (see its own comment) - its packages only exist here, at the
+      # version the pack job computed. "AnyUnit.TestingPlatform.[0-9]*"
+      # picks out the version the same way test-packed-tool's step does.
+      - name: Build the packed-package consumer against the local feed
+        shell: bash
+        run: |
+          set -e
+          version=$(ls packages/AnyUnit.TestingPlatform.[0-9]*.nupkg | head -1 | sed -E 's#.*/AnyUnit\.TestingPlatform\.##; s/\.nupkg$//')
+          echo "Consuming AnyUnit packages $version"
+          dotnet build WhoTestsTheTesters/PackedConsumer --configuration Release \
+            -p:AnyUnitPackageVersion="$version" \
+            -p:RestoreAdditionalProjectSources="$PWD/packages"
+
+      # --platform-suffix: without it this reports the identical
+      # "net10-linux-x64-mtp" as build-and-test's own ubuntu-latest
+      # FsUnitTests.Mtp run and the two would collapse into one column
+      # of the merged report - see test-packed-tool's own identical
+      # comment. Same "exit code is not the signal" contract as every
+      # other leg: FsUnitTests deliberately contains _Fail cases.
+      - name: Run the consumer through its generated MTP entry point
+        shell: bash
+        run: |
+          rm -f /tmp/FsUnitTests-packed-mtp.json
+          dotnet WhoTestsTheTesters/PackedConsumer/bin/Release/net10.0/FsUnitTests.dll \
+            --report-anyunit-json /tmp/FsUnitTests-packed-mtp.json \
+            --platform-suffix packed-mtp || true
+          if [ ! -f /tmp/FsUnitTests-packed-mtp.json ]; then
+            echo "packed consumer produced no results file - EnableAnyUnitRunner did not take effect from the nupkg" >&2
+            exit 1
+          fi
+
+      # Built from source here only to run the gate; nothing from the
+      # ci.slnf feeds the consumer above.
+      - name: Verify results match naming convention
+        shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-packed-mtp
+          path: /tmp/*.json
+          if-no-files-found: warn
+
   # Same idea as test-packed-tool, for AnyUnit.Runner.BrowserWasm
   # (anyunit-browser-wasm) - arguably the more important of the two to
   # cover this way: its own packed wwwroot content (browser-wasm-runner-host's
@@ -799,7 +877,7 @@ jobs:
   # artifact's *.json here is the identical mechanism, just pointed at
   # every platform's files instead of one job's own.
   convention-summary:
-    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool, pack]
+    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool, test-packed-mtp, pack]
     if: always()
     runs-on: ubuntu-latest
     steps:

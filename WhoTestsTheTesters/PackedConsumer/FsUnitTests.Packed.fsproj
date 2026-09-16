@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A real consumer of the PACKED AnyUnit.TestingPlatform: PackageReference
+    to the nupkgs the pack job produced, no ProjectReference to anything
+    in this repo. Every other .Mtp project here imports
+    AnyUnit.TestingPlatform's build/*.targets from source, which is a
+    subtly different thing from the package importing them - different
+    enough that EnableAnyUnitRunner shipped in 1.2.0-alpha.0.15 doing
+    nothing at all from the nupkg (an Exe with an empty Main) while every
+    in-repo leg stayed green. This project exists so that cannot happen
+    silently again; it is built by the test-packed-mtp job in build.yml
+    and by nothing else.
+
+    Deliberately NOT in AnyUnit.slnx or AnyUnit.ci.slnf: the packages it
+    references only exist after a pack, at whatever version MinVer
+    computed, so it cannot restore as part of a normal solution build.
+    AnyUnitPackageVersion is passed in by the job.
+
+    F#, not C#, on purpose: the generated entry point is real F# source
+    for an .fsproj, which is the path that broke for the real consumer
+    that found the bug. The payload is FsUnitTests' own sources, so the
+    same conformance gate (ConventionTestProcessor) applies, and the
+    assembly keeps that name so its column lines up in the merged report.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>FsUnitTests</AssemblyName>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Tests\Style\FsUnitTests\BasicTests.fs" Link="Shared\BasicTests.fs" />
+    <Compile Include="..\Tests\Style\FsUnitTests\LightBulbTest.fs" Link="Shared\LightBulbTest.fs" />
+    <Compile Include="..\Tests\Style\FsUnitTests\BowlingTest.fs" Link="Shared\BowlingTest.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AnyUnit.TestingPlatform" Version="$(AnyUnitPackageVersion)" />
+    <PackageReference Include="AnyUnit.Style.FsUnit" Version="$(AnyUnitPackageVersion)" />
+    <PackageReference Include="AnyUnit.Style.Xunit" Version="$(AnyUnitPackageVersion)" />
+    <PackageReference Include="AnyUnit.Constraints" Version="$(AnyUnitPackageVersion)" />
+  </ItemGroup>
+
+</Project>

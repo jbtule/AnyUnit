@@ -67,7 +67,7 @@ namespace AnyUnit.TestingPlatform
         // own testAssemblies parameter) needs to say so explicitly - the
         // entry assembly would otherwise be the host itself, which has no
         // tests of its own, and Runner.Create would (silently) find zero.
-        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies, AnyUnitTrxReportCapability trxReportCapability, string anyUnitJsonPath)
+        public AnyUnitTestFramework(IEnumerable<Assembly> testAssemblies, AnyUnitTrxReportCapability trxReportCapability, string anyUnitJsonPath, string platformSuffix = null)
         {
             var assemblies = (testAssemblies ?? Enumerable.Empty<Assembly>()).ToArray();
             _testAssemblies = assemblies.Length > 0
@@ -76,7 +76,10 @@ namespace AnyUnit.TestingPlatform
             _trxReportCapability = trxReportCapability;
             _anyUnitJsonPath = anyUnitJsonPath;
             _resultsFile = anyUnitJsonPath != null ? new ResultsFile() : null;
+            _platformSuffix = platformSuffix;
         }
+
+        private readonly string _platformSuffix;
 
         public string Uid => "AnyUnit.TestingPlatform";
         public string Version => "1.0.0";
@@ -127,7 +130,12 @@ namespace AnyUnit.TestingPlatform
             // vs one built for net48, or one OS/arch from another; "-mtp"
             // stays appended so it's still distinguishable from the same
             // assembly run through the plain console runner instead.
-            var runner = AnyUnit.Run.Runner.Create(AnyUnit.Util.PlatformId.Current + "-mtp", _testAssemblies);
+            // Any --platform-suffix goes after "-mtp", the same place the
+            // console runners' -p puts theirs after their own id.
+            var platform = AnyUnit.Util.PlatformId.Current + "-mtp";
+            if (!string.IsNullOrEmpty(_platformSuffix))
+                platform += "-" + _platformSuffix;
+            var runner = AnyUnit.Run.Runner.Create(platform, _testAssemblies);
 
             if (context.Request is DiscoverTestExecutionRequest discover)
             {
