@@ -104,6 +104,29 @@ edges: `--list-tests` prints the summary rather than the names, and an
 error path that prints usage (an unknown option, say) crashes looking
 up the process's own path.
 
+**F# on wasm: one extra line in the harness.** An `.fsproj` cannot host
+the entry point Microsoft.Testing.Platform.MSBuild generates on wasm:
+the F# template ends in `Async.RunSynchronously`, which on the
+single-threaded runtime blocks the only thread the first time MTP
+suspends (banner, then nothing, forever), and F# has no async `Main`
+the runtime could await instead. So for an F# project targeting
+browser-wasm the targets skip that entry point, keep the project a
+library, and the entry point comes from `AnyUnit.TestingPlatform.WasmEntry`
+- a tiny C# assembly shipped in this package - which the harness names
+as the main assembly:
+
+```js
+const instance = await dotnet
+    .withMainAssembly('AnyUnit.TestingPlatform.WasmEntry')
+    .withApplicationArguments(...args)
+    .create();
+```
+
+Nothing else changes: `EnableAnyUnitRunner=true`, the same
+`--report-anyunit-json`, the same copy-out of the results file. The
+line is harmless on a C# project too. `WhoTestsTheTesters/Tests/Style/
+FsUnitTests.Wasm.Mtp` is the in-repo example and CI runs it.
+
 ## Other MTP extensions (TRX, and anything else)
 
 `EnableAnyUnitRunner` registers `AnyUnit.TestingPlatform` as a

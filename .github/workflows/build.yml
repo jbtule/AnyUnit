@@ -612,6 +612,7 @@ jobs:
       - name: Build
         run: |
           dotnet build WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp --configuration Release
+          dotnet build WhoTestsTheTesters/Tests/Style/FsUnitTests.Wasm.Mtp --configuration Release
           dotnet build WhoTestsTheTesters/ConventionTestProcessor --configuration Release
 
       # --platform-suffix mtp, the same label run-mtp-tests.sh gives the
@@ -623,9 +624,14 @@ jobs:
       - name: Run through MTP under bun
         shell: bash
         run: |
-          cd WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp/bin/Release/net10.0-browser/wwwroot
-          bun runtests.mjs --report-anyunit-json /tmp/BasicTests-wasm-mtp.json --platform-suffix mtp || true
+          (cd WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp/bin/Release/net10.0-browser/wwwroot \
+            && bun runtests.mjs --report-anyunit-json /tmp/BasicTests-wasm-mtp.json --platform-suffix mtp) || true
           test -f /tmp/BasicTests-wasm-mtp.json
+          # The F# one runs through AnyUnit.TestingPlatform.WasmEntry (its
+          # harness names it as the main assembly) - see that csproj.
+          (cd WhoTestsTheTesters/Tests/Style/FsUnitTests.Wasm.Mtp/bin/Release/net10.0-browser/wwwroot \
+            && bun runtests.mjs --report-anyunit-json /tmp/FsUnitTests-wasm-mtp.json --platform-suffix mtp) || true
+          test -f /tmp/FsUnitTests-wasm-mtp.json
 
       - name: Verify results match naming convention
         shell: bash

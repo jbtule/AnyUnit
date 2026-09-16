@@ -9,6 +9,20 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
+### 1.2.2 - in development
+
+- F# test projects work on browser-wasm through MTP under node/bun. The
+  entry point Microsoft.Testing.Platform.MSBuild generates for an
+  `.fsproj` blocks in `Async.RunSynchronously` on the single-threaded
+  runtime; `AnyUnit.TestingPlatform` now ships
+  `AnyUnit.TestingPlatform.WasmEntry`, an awaitable entry point the JS
+  harness names with `withMainAssembly`, and its targets skip the
+  generated one for F#-on-wasm. `EnableAnyUnitRunner=true` is still all
+  the project says.
+- The browser-wasm runner's README lists what hangs a run there
+  (`Async.RunSynchronously` regardless of the workflow, blocking waits)
+  and how to find the test.
+
 ### 1.2.1 - 2026-09-16
 
 - `AnyUnit.Run.AmbientTest.Current` (and `Assert.Current`): the running

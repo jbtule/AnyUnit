@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    FsUnitTests (F#) as a browser-wasm build through MTP, under node/bun
+    - the F# twin of BasicTests.Wasm.Mtp, and the reason
+    AnyUnit.TestingPlatform.WasmEntry exists. An .fsproj cannot host the
+    generated MTP entry point on wasm (it ends in Async.RunSynchronously,
+    which blocks the only thread - see WasmEntry's own csproj), so the
+    targets skip generating one here, keep this a Library, and the
+    harness starts the runtime with WasmEntry as the main assembly. From
+    this project's point of view that is all invisible: it is
+    EnableAnyUnitRunner=true and the test sources, exactly like its C#
+    counterpart.
+
+    Same AssemblyName as FsUnitTests so its results merge into that
+    assembly's row of a combined report as another platform.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <AssemblyName>FsUnitTests</AssemblyName>
+    <RootNamespace>FsUnitTests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+    <!-- WasmEntry is an Exe-typed project (it has to carry an entry-point
+         token); from source that is a ProjectReference to an executable,
+         which the SDK refuses from a self-contained one by default
+         (NETSDK1150). From the package it is just a dll in lib/. -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <Compile Include="..\FsUnitTests\BasicTests.fs" Link="Shared\BasicTests.fs" />
+    <Compile Include="..\FsUnitTests\LightBulbTest.fs" Link="Shared\LightBulbTest.fs" />
+    <Compile Include="..\FsUnitTests\BowlingTest.fs" Link="Shared\BowlingTest.fs" />
+    <Compile Include="..\FsUnitTests\ModuleTests.fs" Link="Shared\ModuleTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Constraints\AnyUnit.Constraints.csproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.FsUnit\AnyUnit.Style.FsUnit.fsproj" />
+    <ProjectReference Include="..\..\..\..\Contrib\AnyUnit.Style.Xunit\AnyUnit.Style.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+    <!-- From the package this comes along in lib/; from source it is its own project. -->
+    <ProjectReference Include="..\..\..\..\AnyUnit.TestingPlatform.WasmEntry\AnyUnit.TestingPlatform.WasmEntry.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot/index.html" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/index.html" />
+    <None Include="wwwroot/runtests.mjs" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/runtests.mjs" />
+    <None Include="wwwroot/package.json" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/package.json" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>

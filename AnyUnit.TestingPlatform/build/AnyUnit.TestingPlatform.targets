@@ -51,9 +51,44 @@
     <IsTestingPlatformApplication>$(EnableAnyUnitRunner)</IsTestingPlatformApplication>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
+  <!--
+    An F# project on browser-wasm does not get the generated entry point:
+    Microsoft.Testing.Platform.MSBuild's F# template ends in
+    Async.RunSynchronously, which on the single-threaded wasm runtime
+    blocks the only thread the first time MTP suspends, and F# has no
+    async Main for the runtime to await instead. The entry point lives in
+    AnyUnit.TestingPlatform.WasmEntry (shipped in this package; see its
+    csproj), which the JS harness names with dotnet.withMainAssembly().
+    The project itself stays a Library - with no entry point of its own,
+    Exe would only earn it FS0988 - and says which assembly holds the
+    tests through the AnyUnit.TestAssembly host configuration option
+    below, since WasmEntry is then the entry assembly and the
+    AssemblyMetadata route reads the entry assembly.
+  -->
+  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true' and '$(MSBuildProjectExtension)' == '.fsproj' and ('$(TargetPlatformIdentifier)' == 'browser' or '$(RuntimeIdentifier)' == 'browser-wasm')">
+    <_AnyUnitWasmEntry>true</_AnyUnitWasmEntry>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+    <!-- Sdk.BlazorWebAssembly defaults to Exe; with no entry point of its
+         own that is FS0988 ("main module is empty") for an F# project. -->
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true' and '$(_AnyUnitWasmEntry)' != 'true'">
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+
+  <!--
+    Which assembly holds the tests, as runtime host configuration (it
+    lands in runtimeconfig.json / the wasm boot config and reads back as
+    AppContext.GetData). The satellite list when there is one, else this
+    project. Emitted for every EnableAnyUnitRunner project, not just the
+    F#-on-wasm one, so WasmEntry works for any wasm test project and the
+    same harness can be used regardless of language.
+  -->
+  <ItemGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
+    <RuntimeHostConfigurationOption Include="AnyUnit.TestAssembly" Value="@(AnyUnitTestAssembly)" Condition="'@(AnyUnitTestAssembly)' != ''" />
+    <RuntimeHostConfigurationOption Include="AnyUnit.TestAssembly" Value="$(AssemblyName)" Condition="'@(AnyUnitTestAssembly)' == ''" />
+  </ItemGroup>
 
   <!--
     !!! IMPORTANT !!!
