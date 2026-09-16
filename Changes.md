@@ -9,7 +9,7 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
-### 1.2 - in development
+### 1.2 - 2026-09-16
 
 - `AnyUnit.TestingPlatform` can write AnyUnit's own JSON results file
   (`--report-anyunit-json`), so the MTP path is a first-class results
@@ -31,6 +31,14 @@ ordinary "what changed in this version" question the eras don't answer.
   (async continuations, timeout enforcement) and is reported Ignored -
   with the reason - where the platform lacks it, replacing a hard-coded
   category exclusion that lived in one host.
+- `AnyUnit.TestingPlatform`'s `EnableAnyUnitRunner` now works from the
+  package (the entry-point generator is a real package dependency), and
+  a new `--platform-suffix` flag labels an MTP run the way the console
+  runners' `-p` does. CI consumes the packed package to keep it that way.
+- `AnyUnit.Style.FsUnit` gains `haveSubstring`; `AnyUnit.Style.Nunit`
+  gains `[Property]`/`[Author]`; `AnyUnit.Style.MsTest` reports
+  `[Owner]`/`[Priority]`/`[TestProperty]` as properties. Mono is named
+  in platform ids (`mono6-osx-x64`) instead of `unknown`.
 
 
 ### 1.1 - 2026-09-13
