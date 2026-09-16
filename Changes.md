@@ -9,7 +9,7 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
-### 1.2.1 - in development
+### 1.2.1 - 2026-09-16
 
 - `AnyUnit.Run.AmbientTest.Current` (and `Assert.Current`): the running
   test's assertion helper, set by the engine around every test body, for
@@ -23,6 +23,10 @@ ordinary "what changed in this version" question the eras don't answer.
   That suffix only ever served AnyUnit's own CI, which runs the same
   assemblies both ways; it now passes `--platform-suffix mtp` itself.
   Pass that yourself if you were relying on the old label.
+- `EnableAnyUnitRunner` works in a browser-wasm project run under
+  node/bun (see `WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp`); `mono`
+  is named in platform ids; `Style.FSharp`'s README reframes it as the
+  tests-as-values style now that module-level tests need nothing extra.
 
 ### 1.2 - 2026-09-16
 
