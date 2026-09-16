@@ -19,6 +19,7 @@
       "WhoTestsTheTesters/RoughRunner/RoughRunner.csproj",
       "WhoTestsTheTesters/Tests/BasicTests.Mtp/BasicTests.Mtp.csproj",
       "WhoTestsTheTesters/Tests/BasicTests/BasicTests.csproj",
+      "WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp/BasicTests.Wasm.Mtp.csproj",
       "WhoTestsTheTesters/Tests/BootstrapTests.Wasm/BootstrapTests.Wasm.csproj",
       "WhoTestsTheTesters/Tests/BootstrapTests/BootstrapTests.csproj",
       "WhoTestsTheTesters/Tests/ConstraintsTests.Mtp/ConstraintsTests.Mtp.csproj",

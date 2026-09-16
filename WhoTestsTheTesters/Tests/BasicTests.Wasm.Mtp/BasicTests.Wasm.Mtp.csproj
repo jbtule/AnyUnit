@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    BasicTests, as a browser-wasm build with an MTP entry point, run under
+    node/bun - no headless browser, no dev server, no PuppeteerSharp.
+
+    The fourth way the same BasicTests sources get run, and the second
+    on the wasm runtime: anyunit-browser-wasm (test-browser-wasm) hosts
+    them in a real Blazor app in headless Chrome, while this is a plain
+    console Main that dotnet.js boots directly when the JS host isn't a
+    browser (see BootstrapTests.Wasm, the same recipe with the Bootstrap
+    runner instead of MTP). Nothing here is wasm-specific except the SDK
+    and TFM: EnableAnyUnitRunner generates the entry point exactly as it
+    does for BasicTests.Mtp, and Microsoft.Testing.Platform runs
+    unmodified on Mono-wasm under node/bun - found out by trying it,
+    since MTP doesn't list browser-wasm as a supported platform.
+
+    Same AssemblyName as BasicTests.Mtp, for the same reason it has one:
+    the assembly AnyUnit discovers is "BasicTests", so this leg's results
+    merge into that assembly's row of a combined report as another
+    platform (net10-browser-wasm-mtp, via the platform-suffix flag) instead of
+    forking off a separate assembly.
+
+    wwwroot/runtests.mjs is the JS side: boot, run Main with argv, and
+    copy the results file back out of Emscripten's in-memory filesystem
+    onto the real disk - the one thing a non-browser wasm host has to do
+    for itself that a desktop MTP exe gets for free.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <AssemblyName>BasicTests</AssemblyName>
+    <RootNamespace>BasicTests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
+
+  <ItemGroup>
+    <Compile Include="..\BasicTests\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AnyUnit\AnyUnit.csproj" />
+    <ProjectReference Include="..\..\..\AnyUnit.TestingPlatform\AnyUnit.TestingPlatform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Satisfies Sdk.BlazorWebAssembly's own build requirements; Main
+         never builds a WebAssemblyHostBuilder - same as BootstrapTests.Wasm. -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Explicit copies: Blazor's static-web-assets pipeline only runs at
+         publish, and a plain build has to be enough to run this (see
+         browser-wasm-runner-host/Readme.md's "two gotchas"). -->
+    <None Include="wwwroot/index.html" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/index.html" />
+    <None Include="wwwroot/runtests.mjs" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/runtests.mjs" />
+    <None Include="wwwroot/package.json" CopyToOutputDirectory="PreserveNewest" Link="wwwroot/package.json" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.targets" />
+
+</Project>
