@@ -125,6 +125,11 @@ namespace AnyUnit.Style.Nunit
             return cats;
         }
 
+        public override IDictionary<string, IList<string>> GetProperties(Type type)
+        {
+            return PropertyAttribute.Collect(type.GetTypeInfo().GetCustomAttributes(typeof(PropertyAttribute), true));
+        }
+
         public override string GetDescription(Type type)
         {
             return Description ?? type

@@ -30,7 +30,7 @@ but narrow case, not something ordinary test methods ever run into.
   parameter with no explicit data source)
 - `[SetUp]` / `[TearDown]` / `[OneTimeSetUp]` / `[OneTimeTearDown]`
 - `[Values]` / `[ValueSource]` / `[Range]` / `[Random]`
-- `[Ignore]`, `[Category]`, `[Description]`, `[Platform]`, `[Timeout]`
+- `[Ignore]`, `[Category]`, `[Property]`, `[Author]`, `[Description]`, `[Platform]`, `[Timeout]`
 - `ITestAction` (method/fixture-level before/after hooks)
 - `Assert.That`/`Assert.AreEqual`/classic-model asserts, `Is`/`Has`/`Does`/
   `Throws` constraints (via [`AnyUnit.Constraints`](../AnyUnit.Constraints))

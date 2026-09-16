@@ -74,6 +74,21 @@ namespace NunitTests
               Assert.Okay();
         }
 
+        // NUnit's key/value metadata, all three ways it is written in real
+        // suites: [Property] directly (string and int overloads, and a
+        // repeated key), the built-in [Author] subclass, and a custom
+        // subclass whose property name comes from its class name.
+        [Test]
+        [Property("Bug", "1234")]
+        [Property("Bug", 5678)]
+        [Property("Weight", 2.5)]
+        [Author("anyunit", "dev@example.invalid")]
+        [Severity("High")]
+        public void TestProperties_Success()
+        {
+            Assert.Okay();
+        }
+
         [Test]
         public void TestNothing_NoError()
         {
@@ -126,5 +141,13 @@ namespace NunitTests
             Assert.False(i == 3, String.Format("expected {0} to be greater than 3", i));
         }
 
+    }
+
+    // The subclassing pattern NUnit's own docs show: the property name is
+    // the class name with "Attribute" removed, so this is Severity=High.
+    [System.AttributeUsage(System.AttributeTargets.Method | System.AttributeTargets.Class, AllowMultiple = false)]
+    public class SeverityAttribute : PropertyAttribute
+    {
+        public SeverityAttribute(string level) : base((object)level) { }
     }
 }
