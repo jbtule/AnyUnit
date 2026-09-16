@@ -151,8 +151,8 @@ jobs:
       # through its existing /tmp/*.json glob with no change of its own -
       # and so does "Stage results for upload", which feeds convention-
       # summary. There they show up as their own platform rather than
-      # merging into the console runner's, because AnyUnitTestFramework
-      # stamps PlatformId.Current + "-mtp".
+      # merging into the console runner's, because run-mtp-tests.sh
+      # passes --platform-suffix mtp.
       - name: Run every *.Mtp project through MTP and write AnyUnit JSON
         shell: bash
         run: .github/scripts/run-mtp-tests.sh net10-mtp
@@ -628,8 +628,8 @@ jobs:
             -p:RestoreAdditionalProjectSources="$PWD/packages"
 
       # --platform-suffix: without it this reports the identical
-      # "net10-linux-x64-mtp" as build-and-test's own ubuntu-latest
-      # FsUnitTests.Mtp run and the two would collapse into one column
+      # "net10-linux-x64" as build-and-test's own ubuntu-latest
+      # FsUnitTests run and the two would collapse into one column
       # of the merged report - see test-packed-tool's own identical
       # comment. Same "exit code is not the signal" contract as every
       # other leg: FsUnitTests deliberately contains _Fail cases.

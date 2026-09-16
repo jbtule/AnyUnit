@@ -9,6 +9,14 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
+### 1.2.1 - in development
+
+- `AnyUnit.TestingPlatform` reports the plain platform id (`net10-linux-x64`),
+  the same as the console runners, instead of always appending `-mtp`.
+  That suffix only ever served AnyUnit's own CI, which runs the same
+  assemblies both ways; it now passes `--platform-suffix mtp` itself.
+  Pass that yourself if you were relying on the old label.
+
 ### 1.2 - 2026-09-16
 
 - `AnyUnit.TestingPlatform` can write AnyUnit's own JSON results file

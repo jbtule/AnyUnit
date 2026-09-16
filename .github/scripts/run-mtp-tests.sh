@@ -11,14 +11,13 @@
 # --report-anyunit-json rather than anyunit-runner's -o.
 #
 # Usage: run-mtp-tests.sh <suffix>
-#   suffix   tag appended to each output filename, e.g. net10-mtp. Note
-#            this only names the FILE; the Platform value inside the JSON
-#            already ends in "-mtp" on its own (PlatformId.Current +
-#            "-mtp", see AnyUnitTestFramework), so an MTP run is
-#            distinguishable from the same assembly's console-runner run
-#            without needing the adapter's own --platform-suffix (which
-#            exists for the packed-consumer leg, see test-packed-mtp in
-#            build.yml, and isn't needed here).
+#   suffix   tag appended to each output filename, e.g. net10-mtp. This
+#            only names the FILE; the Platform value inside the JSON is
+#            PlatformId.Current plus the "--platform-suffix mtp" passed
+#            below, so an MTP run stays distinguishable from the same
+#            assembly's console-runner run on the same OS (the adapter
+#            itself no longer appends "-mtp" - a consumer's MTP run is
+#            just that platform, and only this repo runs both ways).
 #
 # Same "the exit code is not the signal" contract as run-tests.sh: every
 # one of these assemblies deliberately contains Fail/Error cases, so a
@@ -71,7 +70,7 @@ run() {
   # confirmed real Windows CI failure (see build.yml's report-trx step).
   # Passing it whole here is exactly what run-tests.sh already does with
   # anyunit-runner's own -o.
-  dotnet "$exe" --report-anyunit-json "$out" || true
+  dotnet "$exe" --report-anyunit-json "$out" --platform-suffix mtp || true
   if [ ! -f "$out" ]; then
     echo "run-mtp-tests.sh: '$name' produced no output file at $out" >&2
     exit 1
