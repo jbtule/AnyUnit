@@ -11,6 +11,15 @@
       tooling honors for exactly this.
     -->
     <IsTestProject>false</IsTestProject>
+    <!--
+      Microsoft.Testing.Platform's own targets default this to true for
+      anything that references it - which, now that this project also
+      references Microsoft.Testing.Platform.MSBuild (below), would have
+      the entry-point generator run against this library. Off here;
+      build/AnyUnit.TestingPlatform.targets turns it on in a consumer,
+      and only when EnableAnyUnitRunner is.
+    -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
     <IsPackable>true</IsPackable>
     <Description>Microsoft.Testing.Platform (MTP) adapter for AnyUnit - property-based opt-in via EnableAnyUnitRunner.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -30,6 +39,24 @@
          Microsoft.Testing.Platform 2.0.0 reference too, and NuGet treats
          a transitive bump past that as a downgrade error). -->
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" Version="2.0.0" />
+    <!--
+      The entry-point generator EnableAnyUnitRunner relies on. A real
+      package dependency, deliberately - and PrivateAssets="none" so its
+      build assets flow through to the consuming test project, which is
+      where the generator has to run. The first packaged version tried
+      instead to add this as a PackageReference from inside
+      build/AnyUnit.TestingPlatform.targets: that works for the in-repo
+      .Mtp projects (they import the targets file from source, so the
+      item exists at restore time) and cannot work from the nupkg (a
+      package's own targets aren't imported until AFTER restore has
+      already decided the dependency graph - and under central package
+      management it's an NU1008 error on top). Found by porting a real
+      third-party test project against the packed 1.2 prerelease:
+      EnableAnyUnitRunner built an Exe with an empty Main and no tests.
+      MSTest.TestAdapter carries Microsoft.Testing.Platform.MSBuild the
+      same way, for the same reason.
+    -->
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.0.0" PrivateAssets="none" />
   </ItemGroup>
 
   <ItemGroup>
