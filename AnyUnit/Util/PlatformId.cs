@@ -33,7 +33,7 @@ namespace AnyUnit.Util
     // means one silently disappears on merge).
     public static class PlatformId
     {
-        // e.g. "net10-osx-arm64", "net48-win-x86".
+        // e.g. "net10-osx-arm64", "net48-win-x86", "mono6-osx-x64".
         public static string Current
         {
             get { return ShortFrameworkName() + "-" + Rid(); }
@@ -65,6 +65,19 @@ namespace AnyUnit.Util
             {
                 var version = ParseLeadingVersion(description.Substring(".NET ".Length));
                 return version != null ? "net" + version.Major : "net";
+            }
+
+            // "Mono 6.12.0.162 (2020-02/2ca650f1f62 ...)": a net48 test
+            // assembly run under mono on macOS/Linux - which is how a net48
+            // leg gets run at all off Windows - is a genuinely different
+            // runtime from .NET Framework, so it gets its own name rather
+            // than being mislabeled net48 (or, as it was before this branch
+            // existed, "unknown"). Major only, same convention as modern
+            // .NET; "mono6" today.
+            if (description.StartsWith("Mono ", StringComparison.OrdinalIgnoreCase))
+            {
+                var version = ParseLeadingVersion(description.Substring("Mono ".Length));
+                return version != null ? "mono" + version.Major : "mono";
             }
 
             return "unknown";
