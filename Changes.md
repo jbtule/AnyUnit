@@ -9,7 +9,7 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
-### 1.2.2 - in development
+### 1.2.2 - 2026-09-16
 
 - F# test projects work on browser-wasm through MTP under node/bun. The
   entry point Microsoft.Testing.Platform.MSBuild generates for an
