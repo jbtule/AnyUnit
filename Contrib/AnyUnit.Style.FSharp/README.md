@@ -21,7 +21,7 @@ that gap in 1.2.1.)
 Reach for `test { }` when the test being a value is the point:
 
 - **Composition** - a `Test` can be built by a function, stored in a
-  list, or wrapped by another `test { }` (`return! inner`), which an
+  list, or wrapped by another `test { }` (`return! inner.Run`), which an
   attributed method can't be.
 - **Start/stop resources** - `use`/`use!` inside the body gives a
   disposable a scope that is exactly the test, with no setup/teardown
