@@ -52,10 +52,14 @@ AnyUnit's `Assert` is deliberately an instance a fixture gets (not a
 fully-static class the way real NUnit's is): a shared/global assert can't
 reliably tell a test that made real assertions and passed apart from one
 that made none at all and trivially "passed" by doing nothing - an
-instance scoped to exactly one test's own run tracks that correctly
-(AnyUnit does still offer a global-style escape hatch, `Assert.
-GlobalStyle`, but it's `[Obsolete]` for exactly this reason - it's there
-for genuinely global helper code, not as the default way to assert).
+instance scoped to exactly one test's own run tracks that correctly.
+Code with no `this` to assert through - a module-level F# `let` test, a
+free-function vocabulary like FsUnit's `should` - reaches that same
+instance via `AnyUnit.Run.AmbientTest.Current` (or `Assert.Current` for
+the IAssert alone), which the engine sets around every test body. The
+older `Assert.GlobalStyle` still exists but is `[Obsolete]` for exactly
+the reason above: it hands back a throwaway assert and degrades the
+distinction for the whole run.
 
 Styles can also be mixed in one project, not just chosen between: a
 single assembly can have both NUnit-style and xUnit-style fixtures side

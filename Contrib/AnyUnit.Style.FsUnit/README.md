@@ -31,8 +31,11 @@ type MyTests() =
 `this.printf`/`this.printfn` write to the test's captured `Log` the same
 way `Console.printf` would write to the console.
 
-Free-function `should`/`shouldFail` (no `this.` receiver) also exist for
-compatibility with real FsUnit's own top-level style, but are `[<Obsolete>]`:
-they go through `AnyUnit.Run.Assert.GlobalStyle`, which can't distinguish
-a passing assertion from a test with no assertions at all (see that
-property's own warning) - prefer the instance members above.
+Free-function `should`/`shouldFail` (no `this.` receiver) work exactly as
+in real FsUnit, including from a module-level `[<Fact>] let` test with no
+`this` at all: they assert through the running test (`AnyUnit.Run.
+AmbientTest`, which the engine sets around every test body), so the
+counts are real and a test with no assertion still reports `NoError`.
+Before 1.2.1 they went through the global `Assert.GlobalStyle` and were
+`[<Obsolete>]` for it; they now only fall back to that outside a running
+test.

@@ -24,13 +24,32 @@ namespace AnyUnit.Run
         internal static bool _globalStyleUsed =false;
 
         [Obsolete("If use global style asserts you will lose the ability"
-            + " to distinguish passed tests from tests that have no assertions.")]
+            + " to distinguish passed tests from tests that have no assertions."
+            + " Use Assert.Current, which asserts through the running test.")]
         public static IAssert GlobalStyle
         {
             get
             {
                 _globalStyleUsed = true;
                 return new Assert();
+            }
+        }
+
+        /// <summary>
+        /// The running test's own IAssert - what a style's extension
+        /// methods (`Assert.Throws&lt;T&gt;(...)` and the like) can be called
+        /// on from code with no `this`, such as a module-level F# test.
+        /// Falls back to <see cref="GlobalStyle"/>, with all of its
+        /// drawbacks, only outside a running test.
+        /// </summary>
+        public static IAssert Current
+        {
+            get
+            {
+                var helper = AmbientTest.Current;
+#pragma warning disable 618
+                return helper != null ? helper.Assert : GlobalStyle;
+#pragma warning restore 618
             }
         }
 

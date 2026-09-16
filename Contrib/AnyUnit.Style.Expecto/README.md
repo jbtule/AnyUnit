@@ -176,8 +176,8 @@ whose awaits all complete synchronously - the overwhelmingly common case
 
 `Expect.equal actual expected "msg"` is a free function with no receiver,
 and keeping that call site is the whole point of the style. It asserts
-through an ambient `IAssert` set and cleared around each test body, so
-the counts are real: a test that makes no assertion at all still reports
+through the running test (`AnyUnit.Run.AmbientTest`, which the engine
+sets around every test body), so the counts are real: a test that makes no assertion at all still reports
 `NoError` rather than a false `Success`, which is the distinction
 AnyUnit's instance-scoped `Assert` exists to preserve.
 

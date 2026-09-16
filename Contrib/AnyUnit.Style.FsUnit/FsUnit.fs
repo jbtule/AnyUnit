@@ -12,15 +12,13 @@
 
 namespace AnyUnit.Style.FsUnit
 
-// `should`/`shouldFail` below are deliberately marked [<Obsolete>] themselves
-// (steering callers toward the newer `this.should`/`this.shouldFail`
-// instance-style API), but still need to reference the also-Obsolete
-// AnyUnit.Run.Assert.GlobalStyle internally to keep working during the
-// deprecation period. C# auto-suppresses an Obsolete-member warning when
-// the calling member is itself Obsolete; F# doesn't have that suppression,
-// so FS0044 still fires here even though the usage is intentional and
-// already flagged at the call site by the containing function's own
-// attribute.
+// `should`/`shouldFail` reach the running test through AnyUnit.Run.
+// AmbientTest (set by the engine around every test body), so a bare
+// `x |> should equal y` in a module-level test asserts against that
+// test's own helper - counted, so a test with no assertion still reports
+// NoError. Only outside a running test do they fall back to the obsolete
+// Assert.GlobalStyle, which C# would auto-suppress the warning for in an
+// obsolete caller but F# does not; hence the nowarn.
 #nowarn "44"
 
 open AnyUnit
@@ -53,9 +51,18 @@ module TopLevelOperators =
             | _ -> y
         asserter.That(y, c)
 
-    [<System.Obsolete("Uses Global Assertion, so anyunit goes into global assertion mode,  use `this.should` instead")>]
+    /// The running test's IAssert, or - only outside a test body - the
+    /// global fallback.
+    let internal currentAssert () : AnyUnit.IAssert =
+        match AnyUnit.Run.AmbientTest.Current with
+        | null -> AnyUnit.Run.Assert.GlobalStyle
+        | helper -> helper.Assert
+
+    /// `actual |> should equal expected` - asserts through the running
+    /// test (see the top of this file). `this.should` is the same thing
+    /// spelled explicitly, for a test that has a `this`.
     let should (f : 'a -> #Constraint) x (y : obj) =
-        shouldHelper AnyUnit.Run.Assert.GlobalStyle f x y
+        shouldHelper (currentAssert ()) f x y
     
     let equal x = EqualConstraint(x)
 
@@ -84,9 +91,8 @@ module TopLevelOperators =
     let internal shouldFailHelper (asserter:AnyUnit.IAssert) (f : unit -> unit) =
         TestDelegate(f) |> shouldHelper asserter throw typeof<AssertionException>
           
-    [<System.Obsolete("Uses Global Assertion, so anyunit goes into global assertion mode, use `this.shouldFail` instead")>]
     let shouldFail (f : unit -> unit) =
-        shouldFailHelper AnyUnit.Run.Assert.GlobalStyle f
+        shouldFailHelper (currentAssert ()) f
 
     let endWith (s:string) = EndsWithConstraint s
 

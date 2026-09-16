@@ -253,16 +253,29 @@ namespace AnyUnit.Run
                             CapabilityUnavailablePrefix, missing));
                     }
 
-                    var result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
+                    // The running test, for anything that asserts without
+                    // a `this` to go through - see AmbientTest. Wrapped
+                    // around the unwrap too, not just the call: an async
+                    // body is still running until Unwrap says otherwise.
+                    object result;
+                    AmbientTest.Enter(helper);
+                    try
+                    {
+                        result = _invoke(helper, _method, fixture, _methodArgs.Parameters);
 
-                    // An async test method hands back a Task (or ValueTask,
-                    // or an F# Async) that is very possibly not finished yet,
-                    // and that holds any exception the body raised instead of
-                    // throwing it out of the call above. Wait for it here, so
-                    // the bool/IReturnedResult inspection below sees the real
-                    // produced value and the catch below sees the real
-                    // exception. See AsyncTestResult for the whole story.
-                    result = AsyncTestResult.Unwrap(result);
+                        // An async test method hands back a Task (or ValueTask,
+                        // or an F# Async) that is very possibly not finished yet,
+                        // and that holds any exception the body raised instead of
+                        // throwing it out of the call above. Wait for it here, so
+                        // the bool/IReturnedResult inspection below sees the real
+                        // produced value and the catch below sees the real
+                        // exception. See AsyncTestResult for the whole story.
+                        result = AsyncTestResult.Unwrap(result);
+                    }
+                    finally
+                    {
+                        AmbientTest.Exit();
+                    }
 
                     //If the test method returns a boolean, true increments assertion
                     if (result as bool? ?? false)

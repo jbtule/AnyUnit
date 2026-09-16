@@ -35,22 +35,18 @@ open AnyUnit.Run
 /// [Obsolete]), and setting its `_globalStyleUsed` static degrades
 /// pass/no-assert reporting for every other style sharing the process.
 ///
-/// AsyncLocal rather than ThreadStatic because it flows across an await -
-/// `testCaseAsync` resumes on whatever thread the continuation lands on,
-/// and a ThreadStatic would simply be gone there. Set and cleared around
-/// each test by Discovery's TestInvoke; the engine runs tests
-/// sequentially, so there is never more than one live at a time.
+/// The slot itself lives in the core (AnyUnit.Run.AmbientTest, set by
+/// the engine around every test body, AsyncLocal so it survives an
+/// await); it started life here, private to this style, and moved so
+/// FsUnit's `should` and anything else with no `this` could use it too.
 module internal Ambient =
-    // The whole IAssertionHelper, not just its IAssert: Expect needs the
-    // assert, and the Logging shim needs the log, and both belong to the
-    // same running test.
-    let private current = AsyncLocal<IAssertionHelper>()
-
-    let set (helper: IAssertionHelper) = current.Value <- helper
-    let clear () = current.Value <- null
-
+    // AnyUnit.Run.AmbientTest is the engine's own slot for the running
+    // test, set around every test body for every style; this is just the
+    // Expecto-shaped view of it. The whole IAssertionHelper, not just its
+    // IAssert: Expect needs the assert, and the Logging shim needs the
+    // log, and both belong to the same running test.
     let get () =
-        match current.Value with
+        match AmbientTest.Current with
         | null ->
             raise (InvalidOperationException(
                     "Expect was called outside a running AnyUnit test. The Expect functions "
@@ -64,7 +60,7 @@ module internal Ambient =
     /// (Expecto suites routinely create a logger at the top of a file),
     /// and the caller falls back to the console there.
     let tryLog () =
-        match current.Value with
+        match AmbientTest.Current with
         | null -> None
         | helper -> Some helper.Log
 
