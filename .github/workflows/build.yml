@@ -585,6 +585,64 @@ jobs:
           path: /tmp/*.json
           if-no-files-found: warn
 
+  # BasicTests as a browser-wasm build with an MTP entry point, run under
+  # bun - no browser at all. The other wasm leg (test-browser-wasm) needs
+  # anyunit-browser-wasm's real Blazor host and headless Chrome; this one
+  # is dotnet.js booting a plain console Main because the JS host isn't
+  # a browser, which is how BootstrapTests.Wasm has always worked, now
+  # with Microsoft.Testing.Platform's own pipeline on top. See
+  # BasicTests.Wasm.Mtp.csproj. bun rather than node only because it is
+  # the faster install; runtests.mjs works under either.
+  test-wasm-mtp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: oven-sh/setup-bun@v2
+
+      # A plain build is enough for a runnable wwwroot/_framework/ (no
+      # publish) - see browser-wasm-runner-host/Readme.md. The
+      # ConventionTestProcessor build is for the gate below.
+      - name: Build
+        run: |
+          dotnet build WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp --configuration Release
+          dotnet build WhoTestsTheTesters/ConventionTestProcessor --configuration Release
+
+      # --platform-suffix mtp, the same label run-mtp-tests.sh gives the
+      # desktop MTP legs, so this reports net10-browser-wasm-mtp next to
+      # test-browser-wasm's net10-browser-wasm. Same "exit code is not
+      # the signal" contract as every other leg (BasicTests deliberately
+      # fails); runtests.mjs itself fails if no results file came out of
+      # the virtual filesystem, and the gate needs the file regardless.
+      - name: Run through MTP under bun
+        shell: bash
+        run: |
+          cd WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp/bin/Release/net10.0-browser/wwwroot
+          bun runtests.mjs --report-anyunit-json /tmp/BasicTests-wasm-mtp.json --platform-suffix mtp || true
+          test -f /tmp/BasicTests-wasm-mtp.json
+
+      - name: Verify results match naming convention
+        shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release --no-build -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-wasm-mtp
+          path: /tmp/*.json
+          if-no-files-found: warn
+
   # The third packed-consumer job, for AnyUnit.TestingPlatform - the
   # one package that is neither a tool to install nor a plain library
   # to reference, but MSBuild machinery (EnableAnyUnitRunner) that has
@@ -877,7 +935,7 @@ jobs:
   # artifact's *.json here is the identical mechanism, just pointed at
   # every platform's files instead of one job's own.
   convention-summary:
-    needs: [build-and-test, test-browser-wasm, test-packed-tool, test-packed-wasm-tool, test-packed-mtp, pack]
+    needs: [build-and-test, test-browser-wasm, test-wasm-mtp, test-packed-tool, test-packed-wasm-tool, test-packed-mtp, pack]
     if: always()
     runs-on: ubuntu-latest
     steps:

@@ -10,6 +10,11 @@ be.
  - **BootstrapTests** / **BootstrapTests.Wasm** - proves
    `AnyUnit.Runner.Bootstrap` works end to end, on desktop and under
    browser-wasm (run via `node`/`bun`, no headless browser needed).
+ - **BasicTests.Wasm.Mtp** - BasicTests as a browser-wasm build with an
+   MTP entry point (`EnableAnyUnitRunner`), run the same `node`/`bun` way
+   by CI's `test-wasm-mtp` job: Microsoft.Testing.Platform on Mono-wasm
+   with no browser. Its `wwwroot/runtests.mjs` copies the results file
+   back out of the virtual filesystem.
  - **`Style/`** - one pair of projects per style (`NunitTests`,
    `XunitTests`, `MsTestTests`, `FSharpTests`, `FsUnitTests`, and `ComboTests`/
    `ComboTests.FSharp` mixing more than one style's attributes in the same

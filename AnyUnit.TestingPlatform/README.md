@@ -90,6 +90,20 @@ things and should not merge into one column of a combined report.
 (Before 1.2.1 an MTP run always reported `-mtp` on the end; if you were
 relying on that, pass `--platform-suffix mtp`.)
 
+## browser-wasm, without a browser
+
+`EnableAnyUnitRunner` works in a browser-wasm project too (an
+`Sdk.BlazorWebAssembly` project with a plain console `Main` - see
+`WhoTestsTheTesters/Tests/BasicTests.Wasm.Mtp`). `dotnet.js` boots such
+a build directly under `node` or `bun`, and Microsoft.Testing.Platform's
+pipeline runs unmodified on Mono-wasm there. One difference from a
+desktop run: a results file lands in Emscripten's in-memory filesystem,
+so the JS harness copies it out afterwards - that project's
+`wwwroot/runtests.mjs` is the whole recipe, a dozen lines. Known rough
+edges: `--list-tests` prints the summary rather than the names, and an
+error path that prints usage (an unknown option, say) crashes looking
+up the process's own path.
+
 ## Other MTP extensions (TRX, and anything else)
 
 `EnableAnyUnitRunner` registers `AnyUnit.TestingPlatform` as a
