@@ -1,0 +1,5 @@
+{
+  "//": "Makes node treat the generated _framework/*.js as ES modules. Node 22+ guesses correctly on its own; older versions and bun both need this explicit.",
+  "type": "module",
+  "private": true
+}

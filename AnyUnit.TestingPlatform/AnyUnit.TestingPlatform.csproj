@@ -61,6 +61,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AnyUnit\AnyUnit.csproj" />
+    <!--
+      Built alongside and shipped in this package's lib folder (below), so
+      every consumer references it - inert except on browser-wasm, where
+      a JS harness names it as the main assembly. ReferenceOutputAssembly
+      false: nothing here calls into it, it only has to be built first.
+    -->
+    <ProjectReference Include="..\AnyUnit.TestingPlatform.WasmEntry\AnyUnit.TestingPlatform.WasmEntry.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\AnyUnit.TestingPlatform.WasmEntry\bin\$(Configuration)\netstandard2.0\AnyUnit.TestingPlatform.WasmEntry.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="false" />
   </ItemGroup>
 
   <!--

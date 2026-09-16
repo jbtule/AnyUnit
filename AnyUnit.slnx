@@ -49,6 +49,7 @@
     <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj" />
+    <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests.Wasm.Mtp/FsUnitTests.Wasm.Mtp.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/MsTestTests.Mtp/MsTestTests.Mtp.csproj" />
     <Project Path="WhoTestsTheTesters/Tests/Style/MsTestTests/MsTestTests.csproj" />
@@ -60,5 +61,6 @@
   <Project Path="AnyUnit/AnyUnit.csproj" />
   <Project Path="Runner/Bootstrap/AnyUnit.Runner.Bootstrap.csproj" />
   <Project Path="AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj" />
+  <Project Path="AnyUnit.TestingPlatform.WasmEntry/AnyUnit.TestingPlatform.WasmEntry.csproj" />
   <Project Path="Report/AnyUnit.Report.csproj" />
 </Solution>

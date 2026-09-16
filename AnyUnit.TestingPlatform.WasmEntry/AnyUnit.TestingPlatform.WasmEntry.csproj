@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The entry point for an MTP test run on browser-wasm when the test
+    project cannot host one itself - which is to say, when it is F#.
+
+    The wasm runtime awaits an `async Task<int> Main`, and only finds one
+    by recognising the C# compiler's synchronous stub (IL `specialname`,
+    a `<Main>` name) and looking past it. Microsoft.Testing.Platform.
+    MSBuild's F# entry-point template has no such stub - F# has no async
+    Main to wrap - so it ends in `Async.RunSynchronously`, which on the
+    single-threaded wasm runtime blocks the only thread the first time
+    MTP suspends. The banner prints, then nothing, forever. Found by
+    porting a real F# suite.
+
+    So the entry point lives here instead, in a C# assembly the test
+    project merely references (this ships inside the AnyUnit.
+    TestingPlatform package's lib folder), and the JS harness starts the
+    runtime with `dotnet.withMainAssembly("AnyUnit.TestingPlatform.WasmEntry")`.
+    Main does what the generated entry point would have: build the MTP
+    app, register every TestingPlatformBuilderHook in reach, run. Which
+    assembly holds the tests comes from the AnyUnit.TestAssembly runtime
+    host configuration option the targets emit (AppContext data at run
+    time), since this assembly is the entry assembly and carries no
+    metadata of the test project's own.
+
+    netstandard2.0 + OutputType Exe: an entry-point token is all the
+    runtime needs, and netstandard keeps it loadable by any wasm TFM.
+    UseAppHost=false because there is no desktop host for it, on purpose.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <UseAppHost>false</UseAppHost>
+    <IsTestProject>false</IsTestProject>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AnyUnit.TestingPlatform</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Platform" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>

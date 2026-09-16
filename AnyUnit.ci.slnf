@@ -3,6 +3,7 @@
     "path": "AnyUnit.slnx",
     "projects": [
       "AnyUnit.TestingPlatform/AnyUnit.TestingPlatform.csproj",
+      "AnyUnit.TestingPlatform.WasmEntry/AnyUnit.TestingPlatform.WasmEntry.csproj",
       "AnyUnit/AnyUnit.csproj",
       "Contrib/AnyUnit.Constraints/AnyUnit.Constraints.csproj",
       "Contrib/AnyUnit.Style.Expecto/AnyUnit.Style.Expecto.fsproj",
@@ -33,6 +34,7 @@
       "WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp/FSharpTests.Mtp.fsproj",
       "WhoTestsTheTesters/Tests/Style/FSharpTests/FSharpTests.fsproj",
       "WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp/FsUnitTests.Mtp.csproj",
+      "WhoTestsTheTesters/Tests/Style/FsUnitTests.Wasm.Mtp/FsUnitTests.Wasm.Mtp.fsproj",
       "WhoTestsTheTesters/Tests/Style/FsUnitTests/FsUnitTests.fsproj",
       "WhoTestsTheTesters/Tests/Style/MsTestTests.Mtp/MsTestTests.Mtp.csproj",
       "WhoTestsTheTesters/Tests/Style/MsTestTests/MsTestTests.csproj",

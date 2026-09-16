@@ -156,6 +156,9 @@ rather download one directly than install it.
   reimplementation of that framework's API (see each style's own README
   for what's actually covered).
 - **`AnyUnit.TestingPlatform`** - the Microsoft.Testing.Platform adapter.
+  **`AnyUnit.TestingPlatform.WasmEntry`** beside it is the awaitable
+  entry point that ships inside that package for F# test projects on
+  browser-wasm (see the adapter's README).
 - **`Runner`** - every runner *except* the MTP adapter above:
   - **`Runner/Bootstrap`** - the minimal `Runner.Run(platform)` library
     form, for a consumer that wants a real entry point with no CLI/MTP

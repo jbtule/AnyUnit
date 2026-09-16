@@ -15,6 +15,11 @@ be.
    by CI's `test-wasm-mtp` job: Microsoft.Testing.Platform on Mono-wasm
    with no browser. Its `wwwroot/runtests.mjs` copies the results file
    back out of the virtual filesystem.
+ - **Style/FsUnitTests.Wasm.Mtp** - the F# twin of that, run by the same
+   job. Its entry point is `AnyUnit.TestingPlatform.WasmEntry` (an F#
+   project cannot host MTP's generated one on wasm - it blocks in
+   `Async.RunSynchronously`); the project itself is just
+   `EnableAnyUnitRunner` and the sources.
  - **`Style/`** - one pair of projects per style (`NunitTests`,
    `XunitTests`, `MsTestTests`, `FSharpTests`, `FsUnitTests`, and `ComboTests`/
    `ComboTests.FSharp` mixing more than one style's attributes in the same

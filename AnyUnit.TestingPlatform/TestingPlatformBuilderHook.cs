@@ -44,7 +44,7 @@ namespace AnyUnit.TestingPlatform
     {
         public static void AddExtensions(ITestApplicationBuilder builder, string[] args)
         {
-            builder.AddAnyUnitTestFramework(TestAssembliesFromMetadata());
+            builder.AddAnyUnitTestFramework(TestAssemblies());
         }
 
         // AnyUnitTestAssembly items (see AnyUnit.TestingPlatform.targets)
@@ -55,16 +55,28 @@ namespace AnyUnit.TestingPlatform
         // unlike the old hand-rolled generated Main, has no room for a
         // per-project extra parameter the generator could thread through
         // at the call site.
-        private static Assembly[] TestAssembliesFromMetadata()
+        //
+        // The entry assembly is not always the test project, though: on
+        // browser-wasm from an F# project it is
+        // AnyUnit.TestingPlatform.WasmEntry (see that project), which
+        // carries none of the test project's metadata. So the targets also
+        // emit the same names as a runtime host configuration option, which
+        // reaches here as AppContext data, and that is the fallback.
+        private static Assembly[] TestAssemblies()
         {
             var entry = Assembly.GetEntryAssembly();
-            if (entry == null)
-                return Array.Empty<Assembly>();
+            var fromMetadata = entry == null
+                ? Array.Empty<Assembly>()
+                : entry.GetCustomAttributes<AssemblyMetadataAttribute>()
+                    .Where(a => a.Key == "AnyUnit.TestAssembly" && !string.IsNullOrEmpty(a.Value))
+                    .Select(a => Assembly.Load(a.Value))
+                    .ToArray();
+            if (fromMetadata.Length > 0)
+                return fromMetadata;
 
-            return entry.GetCustomAttributes<AssemblyMetadataAttribute>()
-                .Where(a => a.Key == "AnyUnit.TestAssembly" && !string.IsNullOrEmpty(a.Value))
-                .Select(a => Assembly.Load(a.Value))
-                .ToArray();
+            var names = (AppContext.GetData("AnyUnit.TestAssembly") as string ?? "")
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            return names.Select(n => Assembly.Load(n.Trim())).ToArray();
         }
     }
 }
