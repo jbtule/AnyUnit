@@ -33,15 +33,27 @@
     TestingPlatformBuilderHook.cs for how this reaches it without any
     per-project generated code).
   -->
-  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
-    <OutputType>Exe</OutputType>
-    <IsTestingPlatformApplication>true</IsTestingPlatformApplication>
+  <!--
+    IsTestingPlatformApplication is set unconditionally, not just when
+    EnableAnyUnitRunner is: Microsoft.Testing.Platform's own targets
+    default it to true for any project that references it, so without
+    this a plain library that merely references AnyUnit.TestingPlatform
+    (a satellite runner's test assembly, say) would get an entry point
+    generated into it. Same shape as MSTest.TestAdapter.targets'
+    IsTestingPlatformApplication=$(EnableMSTestRunner).
+
+    Microsoft.Testing.Platform and Microsoft.Testing.Platform.MSBuild are
+    NOT added as PackageReferences here - they're real dependencies of
+    the AnyUnit.TestingPlatform package itself (see its csproj for why a
+    PackageReference in a package's own targets can never work).
+  -->
+  <PropertyGroup>
+    <IsTestingPlatformApplication>$(EnableAnyUnitRunner)</IsTestingPlatformApplication>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
-    <PackageReference Include="Microsoft.Testing.Platform" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.0.0" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
   <!--
     !!! IMPORTANT !!!
