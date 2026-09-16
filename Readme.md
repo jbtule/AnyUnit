@@ -9,6 +9,14 @@ the tests themselves per platform.
 
 [![build](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml/badge.svg)](https://github.com/jbtule/AnyUnit/actions/workflows/build.yml)
 
+> **Not mature yet.** The 1.x line is real and released, but it is
+> moving fast: APIs, package layout and even reported behaviour (what a
+> platform id looks like, which assert a free function goes through)
+> have all changed between point releases, and will keep doing so as
+> real suites get ported onto it and find things. Pin a version, read
+> [`Changes.md`](Changes.md) before bumping, and expect to touch your
+> test project when you do. See "Status" below.
+
 **Design philosophy:** keep the tests you already have, not rewrite them
 - write them once, and don't have to keep rewriting them as the platforms
 you need to run on change over time - and run those same tests on every
@@ -172,8 +180,15 @@ rather download one directly than install it.
 
 ## Status
 
-1.1 is released and on nuget.org; 1.2 is in development (see
-[`Changes.md`](Changes.md) for per-release notes). This is a genuinely
+1.2 is released and on nuget.org; 1.2.1 is in development (see
+[`Changes.md`](Changes.md) for per-release notes). **Treat all of 1.x as
+pre-stabilisation**: releases are frequent, and each one so far has
+changed something a consumer can see - the results schema grew, the
+MTP adapter's platform label changed, FsUnit's free-function `should`
+stopped being global - because each was driven by porting a real
+third-party suite and fixing what it hit. That is the intended way for
+this to mature, and it means a minor or patch version bump is not yet
+a promise of source or behavioural compatibility. This is a genuinely
 old project - the core ideas here go back 13 years, to a
 PCL/Silverlight-era predecessor - and getting to 1.0 meant catching up a
 lot of that history in one pass, so expect some rough edges: a style
