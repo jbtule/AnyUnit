@@ -11,6 +11,13 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ### 1.2.1 - in development
 
+- `AnyUnit.Run.AmbientTest.Current` (and `Assert.Current`): the running
+  test's assertion helper, set by the engine around every test body, for
+  code with no `this` to assert through. FsUnit's free-function `should`/
+  `shouldFail` now use it - counted against the test, `NoError` intact -
+  and are no longer `[<Obsolete>]`; Expecto's `Expect` moves onto the
+  same slot.
+
 - `AnyUnit.TestingPlatform` reports the plain platform id (`net10-linux-x64`),
   the same as the console runners, instead of always appending `-mtp`.
   That suffix only ever served AnyUnit's own CI, which runs the same

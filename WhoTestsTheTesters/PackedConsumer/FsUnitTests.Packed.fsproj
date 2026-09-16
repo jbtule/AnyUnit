@@ -33,6 +33,7 @@
     <Compile Include="..\Tests\Style\FsUnitTests\BasicTests.fs" Link="Shared\BasicTests.fs" />
     <Compile Include="..\Tests\Style\FsUnitTests\LightBulbTest.fs" Link="Shared\LightBulbTest.fs" />
     <Compile Include="..\Tests\Style\FsUnitTests\BowlingTest.fs" Link="Shared\BowlingTest.fs" />
+    <Compile Include="..\Tests\Style\FsUnitTests\ModuleTests.fs" Link="Shared\ModuleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

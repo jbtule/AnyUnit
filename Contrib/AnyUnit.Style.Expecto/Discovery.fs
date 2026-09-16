@@ -81,9 +81,8 @@ type private ExpectoTestAttribute(leaf: Leaf) =
             if leaf.Pending then
                 raise (IgnoreException("Pending (ptest)"))
 
-            // The ambient IAssert for exactly this test's duration - see
-            // Ambient's own comment for why this is how Expect reaches it,
-            // and why Assert.GlobalStyle is not.
+            // Expect reaches this test's IAssert through AnyUnit.Run.
+            // AmbientTest, which the engine sets around this whole call.
             // The escape hatch (see ExpectoStyleAttribute.CompletionIsPass):
             // a body that ran to completion with no Expect call registers
             // one success, so it reports Success rather than NoError. Only
@@ -97,31 +96,27 @@ type private ExpectoTestAttribute(leaf: Leaf) =
                 if leaf.CompletionIsPass && helper.Assert.AssertCount = 0 then
                     helper.Assert.Okay()
 
-            Ambient.set helper
-            try
-                match leaf.Code with
-                | Sync body ->
-                    body ()
+            match leaf.Code with
+            | Sync body ->
+                body ()
+                completed ()
+                null
+            // Handed back rather than waited on here: AnyUnit.Run.
+            // AsyncTestResult owns that decision, including refusing to
+            // block on a runtime that can never resume (browser-wasm).
+            // StartImmediateAsTask, not StartAsTask - it runs on THIS
+            // thread until a real suspension, so a workflow that never
+            // suspends comes back already completed and works there too.
+            | AsyncCode body ->
+                box (Async.StartImmediateAsTask(async {
+                    do! body
                     completed ()
-                    null
-                // Handed back rather than waited on here: AnyUnit.Run.
-                // AsyncTestResult owns that decision, including refusing to
-                // block on a runtime that can never resume (browser-wasm).
-                // StartImmediateAsTask, not StartAsTask - it runs on THIS
-                // thread until a real suspension, so a workflow that never
-                // suspends comes back already completed and works there too.
-                | AsyncCode body ->
-                    box (Async.StartImmediateAsTask(async {
-                        do! body
-                        completed ()
-                    }))
-                | TaskCode body ->
-                    box (Async.StartImmediateAsTask(async {
-                        do! body () |> Async.AwaitTask
-                        completed ()
-                    }))
-            finally
-                Ambient.clear ())
+                }))
+            | TaskCode body ->
+                box (Async.StartImmediateAsTask(async {
+                    do! body () |> Async.AwaitTask
+                    completed ()
+                })))
 
     override _.GetTimeout(_: MethodInfo) = Threading.Timeout.Infinite
     override _.GetCategories(_: MethodInfo) : IList<string> = upcast List<string>()

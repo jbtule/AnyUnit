@@ -1,13 +1,33 @@
 # AnyUnit.Style.FSharp
 
-F#'s own idiomatic, value-based test style for
-[AnyUnit](https://github.com/jbtule/AnyUnit) - a test is a `Test` value
-built with the `test { }` computation expression, not a `[Test]`-
-attributed instance method the way `AnyUnit.Style.Nunit`/
-`AnyUnit.Style.Xunit`/`AnyUnit.Style.FsUnit` all work. If your F# test
-suite already reaches for real NUnit/xUnit's attribute style, use one of
-those instead - reach for this one when a top-level `let` reads more
-naturally than a class full of `[Test]` methods.
+Tests as *values* for [AnyUnit](https://github.com/jbtule/AnyUnit): a
+test is a `Test` built with the `test { }` computation expression, not
+an attributed method the way `AnyUnit.Style.Nunit`/`AnyUnit.Style.Xunit`/
+`AnyUnit.Style.FsUnit` work.
+
+## When to use this - and when not to
+
+Plain F# module-level tests do **not** need this style. A top-level
+`[<Fact>] let ``adds`` () = 1 + 1 |> should equal 2` is discovered by
+`AnyUnit.Style.Xunit` as it is, and its bare `should` (or
+`AnyUnit.Run.Assert.Current` for any style's assertion vocabulary)
+asserts through the running test with real per-test counting. That is
+the least ceremony for the common case, and what a suite arriving from
+real xUnit + FsUnit already looks like. (This style predates that: it was
+written when a module-level `let` had no way to reach a test's own
+`IAssert` without a class to hang it on. `AnyUnit.Run.AmbientTest` closed
+that gap in 1.2.1.)
+
+Reach for `test { }` when the test being a value is the point:
+
+- **Composition** - a `Test` can be built by a function, stored in a
+  list, or wrapped by another `test { }` (`return! inner.Run`), which an
+  attributed method can't be.
+- **Start/stop resources** - `use`/`use!` inside the body gives a
+  disposable a scope that is exactly the test, with no setup/teardown
+  attribute pair to keep in step.
+- **The log as a value** - `let! log = log` alongside `let! Assert =
+  assertion`, both from the same running test.
 
 ## Usage
 

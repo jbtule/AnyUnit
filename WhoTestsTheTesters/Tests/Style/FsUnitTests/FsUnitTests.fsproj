@@ -10,6 +10,7 @@
     <None Include="Script.fsx" />
     <Compile Include="LightBulbTest.fs" />
     <Compile Include="BowlingTest.fs" />
+    <Compile Include="ModuleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
