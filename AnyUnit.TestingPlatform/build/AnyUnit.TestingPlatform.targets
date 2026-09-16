@@ -91,6 +91,41 @@
   </ItemGroup>
 
   <!--
+    `dotnet run` for a browser-wasm test project. The wasm SDK's own
+    RunCommand is WasmAppHost - a dev server plus a browser, which is not
+    what running a test project means. Point it at the JS harness under
+    bun instead (AnyUnitWasmJsHost=node to use node), the same
+    wwwroot/runtests.mjs the CI legs use; MTP's own arguments pass
+    through as they would to any MTP exe. MTP's _MTPAddArguments appends
+    those to RunArguments right before ComputeRunArguments, so this runs
+    before it - a target rather than a plain property because the wasm
+    SDK's values are evaluated properties and this has to win regardless
+    of import order.
+
+    `dotnet test` is NOT this: in MTP mode it launches the app the same
+    way (so it did reach bun) but then talks to it over a named pipe,
+    and System.IO.Pipes is unsupported on the wasm runtime - it dies in
+    NamedPipeClient before discovery. The IDE test explorers are the
+    same story over TCP. IsTestProject=false below keeps a solution-wide
+    `dotnet test` from trying; `dotnet run` (or the harness directly, as
+    CI does) is how a wasm test project is run.
+  -->
+  <PropertyGroup Condition="'$(EnableAnyUnitRunner)' == 'true' and ('$(TargetPlatformIdentifier)' == 'browser' or '$(RuntimeIdentifier)' == 'browser-wasm')">
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+  <Target Name="_AnyUnitWasmRunCommand" BeforeTargets="_MTPAddArguments;ComputeRunArguments"
+          Condition="'$(EnableAnyUnitRunner)' == 'true' and ('$(TargetPlatformIdentifier)' == 'browser' or '$(RuntimeIdentifier)' == 'browser-wasm')">
+    <PropertyGroup>
+      <_AnyUnitWasmHarness>$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), $(OutDir), 'wwwroot', 'runtests.mjs'))</_AnyUnitWasmHarness>
+      <AnyUnitWasmJsHost Condition="'$(AnyUnitWasmJsHost)' == ''">bun</AnyUnitWasmJsHost>
+      <RunCommand>$(AnyUnitWasmJsHost)</RunCommand>
+      <RunArguments>&quot;$(_AnyUnitWasmHarness)&quot;</RunArguments>
+      <RunWorkingDirectory>$([System.IO.Path]::GetDirectoryName($(_AnyUnitWasmHarness)))</RunWorkingDirectory>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_AnyUnitWasmHarness)')" Text="No wwwroot/runtests.mjs in the output directory. A browser-wasm test project needs a JS harness to boot under node/bun - see AnyUnit.TestingPlatform's README (browser-wasm, without a browser)." />
+  </Target>
+
+  <!--
     !!! IMPORTANT !!!
     DO NOT CHANGE THE GUID - Microsoft.Testing.Platform.MSBuild's own
     entry-point generator uses it to dedupe/order every referenced
