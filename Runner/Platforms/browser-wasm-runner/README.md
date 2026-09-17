@@ -50,13 +50,17 @@ hung before the first test. Two traps found on real ports:
   on a wait handle that can never be signalled. `async { return x } |>
   Async.RunSynchronously` hangs. Use `Async.StartImmediateAsTask` (runs
   on the calling thread until the first real suspension, so a
-  non-suspending workflow comes back completed) or hand the `Task` to
+  non-suspending workflow comes back completed), hand the `Task` to
   the engine as the test's return value and mark the test
-  `[<RequiresCapability(TestCapabilities.AsyncYield)>]`.
+  `[<RequiresCapability(TestCapabilities.AsyncYield)>]`, or - if the
+  blocking is the point - mark it
+  `[<RequiresCapability(TestCapabilities.Threads)>]` and it is reported
+  Ignored here instead of hanging.
 - **`.Result`/`.Wait()`/`GetAwaiter().GetResult()` on anything that
-  actually suspends** - same reason. The engine itself never blocks on
-  a returned `Task` here (see `AsyncTestResult`), but it cannot see a
-  wait inside the body.
+  actually runs elsewhere** - same reason, same
+  `TestCapabilities.Threads` declaration. The engine itself never
+  blocks on a returned `Task` here (see `AsyncTestResult`), but it
+  cannot see a wait inside the body.
 
 To find which test it is: the console runner and the MTP legs print
 progress as they go, this host relays output only at the end - so run

@@ -247,6 +247,22 @@ namespace BasicTests
             Assert.True(true);
         }
 
+        // A synchronous body that blocks on work running on another
+        // thread. Nothing about this test is async from the engine's point
+        // of view - it returns void - so [RequiresCapability(AsyncYield)]
+        // would not describe it; what it needs is a second thread for the
+        // Task.Run to run on while this one waits. On single-threaded
+        // browser-wasm that wait can never be satisfied and, with no
+        // timeout enforcement there either, it would hang the run
+        // outright; declared, it is reported Ignored there instead.
+        [RequiresCapability(TestCapabilities.Threads)]
+        [Test]
+        public void TestBlockingWait_Success()
+        {
+            var result = Task.Run(() => 21 * 2).Result;
+            Assert.True(result == 42);
+        }
+
         // [Timeout] against a test that hangs *in the await itself*, rather
         // than in a busy loop like TestTimeout_Error above. This is the one
         // genuinely new interaction async introduces: the engine now blocks

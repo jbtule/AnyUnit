@@ -52,9 +52,15 @@ runs normally everywhere else. An undeclared one gets a clear `Error`
 rather than hanging the page.
 
 `[RequiresCapability]` is read by the engine, not by any one runner, so
-it works in every style and every host at once - `TestCapabilities.Timeouts`
-is the other current value, for tests that exist to prove `[Timeout]`
-actually fires.
+it works in every style and every host at once. The other values:
+`TestCapabilities.Timeouts`, for tests that exist to prove `[Timeout]`
+actually fires; and `TestCapabilities.Threads`, for a body that *blocks*
+waiting on work that runs on another thread - `Task.Run(...).Wait()`,
+`.Result`, F#'s `Async.RunSynchronously` under a synchronization context
+(which Blazor has, so even a never-suspending workflow hangs there). The
+engine can see a returned `Task`; it cannot see a wait inside the body,
+and on single-threaded wasm nothing else can rescue it, so an undeclared
+one hangs the run.
 
 See [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the
 smallest way to actually call `Runner.Create`/`RunAll` from your own
