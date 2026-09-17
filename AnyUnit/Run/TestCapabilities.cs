@@ -68,6 +68,26 @@ namespace AnyUnit.Run
         /// to prove a timeout fires cannot prove anything there.
         /// </remarks>
         Timeouts = 2,
+
+        /// <summary>
+        /// More than one thread exists, so a test may block waiting for
+        /// work that runs on another one: <c>Task.Run(...).Wait()</c>,
+        /// <c>.Result</c> on something that genuinely runs elsewhere, F#'s
+        /// <c>Async.RunSynchronously</c> under a synchronization context.
+        /// </summary>
+        /// <remarks>
+        /// Absent under a single-threaded runtime (Mono on browser-wasm),
+        /// where such a wait can never be satisfied: the work it waits for
+        /// needs the very thread that is blocked. The engine cannot see a
+        /// wait inside a test body the way it sees a returned Task (see
+        /// <see cref="AsyncYield"/>), and timeouts cannot rescue it either,
+        /// so an undeclared one hangs the run outright - found on a real
+        /// F# port, where <c>async { return x } |> Async.RunSynchronously</c>
+        /// hung the browser host: FSharp.Core hands the workflow to the
+        /// thread pool when a SynchronizationContext is present, and
+        /// Blazor has one. Declared, it is reported Ignored there instead.
+        /// </remarks>
+        Threads = 4,
     }
 
     /// <summary>
@@ -84,7 +104,7 @@ namespace AnyUnit.Run
         public static readonly TestCapabilities Available =
             Utility.IsSingleThreadedRuntime
                 ? TestCapabilities.None
-                : TestCapabilities.AsyncYield | TestCapabilities.Timeouts;
+                : TestCapabilities.AsyncYield | TestCapabilities.Timeouts | TestCapabilities.Threads;
 
         /// <summary>
         /// The subset of <paramref name="required"/> this platform does not

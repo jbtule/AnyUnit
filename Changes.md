@@ -16,6 +16,12 @@ ordinary "what changed in this version" question the eras don't answer.
   dev server and a browser. `dotnet test` cannot follow (it needs a
   named pipe the wasm runtime lacks); such projects are now
   `IsTestProject=false` so a solution-wide `dotnet test` skips them.
+- `TestCapabilities.Threads`: for a test body that blocks waiting on
+  work running on another thread (`Task.Run(...).Wait()`, `.Result`,
+  F#'s `Async.RunSynchronously` under a synchronization context).
+  Absent on single-threaded browser-wasm, where such a wait hangs the
+  run and nothing can interrupt it; declared, the test is reported
+  Ignored there.
 
 ### 1.2.2 - 2026-09-16
 
