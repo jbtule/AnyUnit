@@ -99,10 +99,25 @@ a build directly under `node` or `bun`, and Microsoft.Testing.Platform's
 pipeline runs unmodified on Mono-wasm there. One difference from a
 desktop run: a results file lands in Emscripten's in-memory filesystem,
 so the JS harness copies it out afterwards - that project's
-`wwwroot/runtests.mjs` is the whole recipe, a dozen lines. Known rough
-edges: `--list-tests` prints the summary rather than the names, and an
-error path that prints usage (an unknown option, say) crashes looking
-up the process's own path.
+`wwwroot/runtests.mjs` is the whole recipe, a dozen lines.
+
+`dotnet run` runs it: the targets point the project's run command at
+that harness under `bun` (`-p:AnyUnitWasmJsHost=node` for node) instead
+of the wasm SDK's dev-server-plus-browser, and MTP's arguments pass
+through as usual:
+
+```
+dotnet run -- --report-anyunit-json results.json
+```
+
+`dotnet test` does **not**, and cannot: in MTP mode it talks to the
+test app over a named pipe, and the IDE test explorers over TCP -
+neither exists on the wasm runtime, so both die before discovery. The
+targets mark a wasm test project `IsTestProject=false` so a
+solution-wide `dotnet test` skips it rather than failing on it. Known
+rough edges: `--list-tests` prints the summary rather than the names,
+and an error path that prints usage (an unknown option, say) crashes
+looking up the process's own path.
 
 **F# on wasm: one extra line in the harness.** An `.fsproj` cannot host
 the entry point Microsoft.Testing.Platform.MSBuild generates on wasm:

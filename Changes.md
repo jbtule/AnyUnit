@@ -9,6 +9,14 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
+### 1.2.3 - in development
+
+- `dotnet run` on a browser-wasm test project runs the tests under bun
+  (or node) through its JS harness instead of launching the wasm SDK's
+  dev server and a browser. `dotnet test` cannot follow (it needs a
+  named pipe the wasm runtime lacks); such projects are now
+  `IsTestProject=false` so a solution-wide `dotnet test` skips them.
+
 ### 1.2.2 - 2026-09-16
 
 - F# test projects work on browser-wasm through MTP under node/bun. The
