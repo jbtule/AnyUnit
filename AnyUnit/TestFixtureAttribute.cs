@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -43,6 +44,10 @@ namespace AnyUnit
 
         public override FixtureParameterSetProducer ParameterSets
         {
+            // IL2070/IL2075: GetMethod on ParameterMethodSource / the fixture
+            // type itself - see TestAttribute.ParameterSets.
+            [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
+            [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
             get
             {
                 if (String.IsNullOrEmpty(ParameterMethod))

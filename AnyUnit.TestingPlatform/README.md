@@ -142,6 +142,41 @@ Nothing else changes: `EnableAnyUnitRunner=true`, the same
 line is harmless on a C# project too. `WhoTestsTheTesters/Tests/Style/
 FsUnitTests.Wasm.Mtp` is the in-repo example and CI runs it.
 
+## Native AOT
+
+An `EnableAnyUnitRunner` project publishes as a Native AOT executable
+the ordinary way:
+
+```xml
+<PropertyGroup>
+  <PublishAot>true</PublishAot>
+</PropertyGroup>
+```
+
+```
+dotnet publish -r linux-x64
+./bin/Release/net10.0/linux-x64/publish/MyTests --report-anyunit-json results.json
+```
+
+`EnableAnyUnitRunner` also adds the test assembly (the project itself,
+or each `AnyUnitTestAssembly`) as a `TrimmerRootAssembly`: AnyUnit finds
+fixtures by reflection, nothing references a test class statically, and
+an unrooted publish trims them all and discovers zero tests. A plain
+build ignores the item.
+
+AnyUnit's own reflection is trim-clean on that basis (each site is
+suppressed with that justification - see `AnyUnit/Util/
+TrimmerAttributes.cs`), with one exception: the F# `Async<'T>` bridge
+(`AsyncTestResult.FSharpAsyncToTask`) still uses `MakeGenericMethod`,
+so ILC reports IL2026/IL2060/IL2075/IL3050 there. With
+`TreatWarningsAsErrors` on, `-p:IlcTreatWarningsAsErrors=false` keeps
+those as warnings without touching the C# compiler's. An F# `Async<'T>`
+test with a value-type `'T` may not have its instantiation available
+under AOT; C# `Task`/`Task<T>` tests are fine. CI runs
+`WhoTestsTheTesters/Tests/BasicTests.Mtp` this way on every build
+(`test-aot-mtp`), and the whole suite comes out right, async tests
+included.
+
 ## Other MTP extensions (TRX, and anything else)
 
 `EnableAnyUnitRunner` registers `AnyUnit.TestingPlatform` as a

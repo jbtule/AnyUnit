@@ -23,6 +23,11 @@
 # unfiltered AnyUnit.slnx (after publishing browser-wasm-runner-host itself),
 # since it's the one job that actually needs browser-wasm-runner built.
 #
+# test-aot-mtp is likewise its own single-OS job: BasicTests.Mtp
+# published with Native AOT and run as a native executable - the one leg
+# where AnyUnit itself is trimmed and compiled ahead of time rather than
+# JIT-compiled (see that job's own comment for what it catches).
+#
 # `pack` builds every NuGet package this repo ships and uploads the
 # .nupkg files as a workflow artifact, on every run - not gated behind
 # a release tag, specifically so a prerelease package (MinVer versions
@@ -649,6 +654,103 @@ jobs:
           path: /tmp/*.json
           if-no-files-found: warn
 
+  # BasicTests.Mtp published as a Native AOT executable and run as one.
+  # Every other leg - the self-contained single-file RID publishes in
+  # build-and-test included - still JIT-compiles managed code at run time,
+  # so none of them ever exercises what ILC's trimming does to AnyUnit's
+  # reflection-driven discovery (Assembly.GetTypes(), attribute walks,
+  # MethodInfo.Invoke, Task<T>.Result read by name). With MTP the test
+  # assembly IS the executable, which makes it the one shape where the
+  # framework itself gets compiled ahead of time - and the shape a real
+  # consumer wanting AOT tests would use. Two things this leg found the
+  # first time it ran locally, both now fixed on the source side and both
+  # of which would otherwise have shipped: unrooted test types are trimmed
+  # to zero discovered tests (AnyUnit.TestingPlatform.targets now emits
+  # TrimmerRootAssembly for the test assembly), and Task<T>.get_Result was
+  # trimmed so every async test errored (AsyncTestResult.TaskValue now
+  # carries a DynamicDependency).
+  #
+  # One OS, ubuntu-latest: the AOT toolchain needs a native linker
+  # (clang here; MSVC on Windows), the image has it, and what ILC does to
+  # the IL is the same on every host - same "same information three times
+  # over" reasoning as the coverage job. IlcTreatWarningsAsErrors=false
+  # for the one site AnyUnit cannot make trim-clean yet:
+  # AsyncTestResult.FSharpAsyncToTask (Assembly.GetType by name plus
+  # MakeGenericMethod - IL2026/IL2060/IL2075/IL3050), the F# Async<'T>
+  # bridge; every other reflection site carries an
+  # UnconditionalSuppressMessage justified by the TrimmerRootAssembly
+  # (see AnyUnit/Util/TrimmerAttributes.cs). Directory.Build.props makes
+  # warnings errors everywhere, and this is the ILC-only knob, so the C#
+  # compiler's own warnings-as-errors still applies to this publish.
+  # Resolving that F# site and dropping the flag is the follow-up.
+  # AnyUnitPublishAot rather than a global PublishAot - see
+  # BasicTests.Mtp.csproj for why.
+  test-aot-mtp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish BasicTests.Mtp as Native AOT
+        run: |
+          dotnet publish WhoTestsTheTesters/Tests/BasicTests.Mtp --configuration Release -r linux-x64 \
+            -p:AnyUnitPublishAot=true -p:IlcTreatWarningsAsErrors=false -o publish/aot
+          test -x publish/aot/BasicTests
+          # A real native image, not a managed app under an apphost: the
+          # AOT publish leaves no BasicTests.dll beside the executable.
+          test ! -f publish/aot/BasicTests.dll
+
+      # --platform-suffix aot-mtp, so this reports net10-linux-x64-aot-mtp
+      # next to build-and-test's net10-linux-x64-mtp for the very same
+      # assembly on the very same OS - JIT vs AOT is exactly the
+      # difference this leg exists to make visible. Same "exit code is not
+      # the signal" contract as every other leg (BasicTests deliberately
+      # fails), and the same zero-results check run-mtp-tests.sh does: an
+      # over-trimmed image would run cleanly and find nothing.
+      - name: Run the Native AOT executable through MTP
+        shell: bash
+        run: |
+          rm -f /tmp/BasicTests-aot-mtp.json
+          publish/aot/BasicTests --report-anyunit-json /tmp/BasicTests-aot-mtp.json --platform-suffix aot-mtp || true
+          if [ ! -f /tmp/BasicTests-aot-mtp.json ]; then
+            echo "the Native AOT executable produced no results file" >&2
+            exit 1
+          fi
+          python3 -c '
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8-sig") as fh:
+              doc = json.load(fh)
+          count = sum(len(t.get("Results", []))
+                      for a in doc.get("Assemblies", [])
+                      for f in a.get("Fixtures", [])
+                      for t in f.get("Tests", []))
+          if count == 0:
+              print("the Native AOT executable ran but discovered no tests - the test assembly was trimmed", file=sys.stderr)
+              sys.exit(1)
+          print(f"{count} results")
+          ' /tmp/BasicTests-aot-mtp.json
+
+      - name: Verify results match naming convention
+        shell: bash
+        env:
+          ANYUNIT_SKIP_GH_SUMMARY: 'true'
+        run: |
+          set -e
+          dotnet run --project WhoTestsTheTesters/ConventionTestProcessor/ConventionTestProcessor.csproj --configuration Release -- /tmp/*.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: anyunit-results-aot-mtp
+          path: /tmp/*.json
+          if-no-files-found: warn
+
   # The third packed-consumer job, for AnyUnit.TestingPlatform - the
   # one package that is neither a tool to install nor a plain library
   # to reference, but MSBuild machinery (EnableAnyUnitRunner) that has
@@ -941,7 +1043,7 @@ jobs:
   # artifact's *.json here is the identical mechanism, just pointed at
   # every platform's files instead of one job's own.
   convention-summary:
-    needs: [build-and-test, test-browser-wasm, test-wasm-mtp, test-packed-tool, test-packed-wasm-tool, test-packed-mtp, pack]
+    needs: [build-and-test, test-browser-wasm, test-wasm-mtp, test-aot-mtp, test-packed-tool, test-packed-wasm-tool, test-packed-mtp, pack]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -966,7 +1068,8 @@ jobs:
           path: packages
 
       # Each anyunit-results-* artifact (build-and-test's 6-OS matrix,
-      # test-browser-wasm, test-packed-tool, test-packed-wasm-tool) into
+      # test-browser-wasm, test-wasm-mtp, test-aot-mtp, test-packed-tool,
+      # test-packed-wasm-tool, test-packed-mtp) into
       # its own subdirectory under all-results/, NOT merge-multiple's
       # flattened single directory: run-tests.sh's own suffix argument
       # ("net10") is the same literal string across every build-and-test

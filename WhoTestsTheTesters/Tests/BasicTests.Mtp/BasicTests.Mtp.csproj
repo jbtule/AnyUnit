@@ -41,6 +41,21 @@
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
 
+  <!--
+    Native AOT opt-in for build.yml's test-aot-mtp job:
+    `dotnet publish -p:AnyUnitPublishAot=true -r <rid>`. Not a plain
+    -p:PublishAot=true on the command line: a global property flows into
+    every ProjectReference too, and AnyUnit/AnyUnit.TestingPlatform are
+    netstandard2.0, which fails the publish outright with NETSDK1207
+    ("Ahead-of-time compilation is not supported for the target
+    framework") before ILC ever runs. Scoped here, PublishAot only ever
+    applies to this executable, which is the only place it means anything.
+    Nothing else about the project changes for a plain build.
+  -->
+  <PropertyGroup Condition="'$(AnyUnitPublishAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
   <Import Project="..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>

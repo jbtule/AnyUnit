@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -29,6 +30,10 @@ namespace AnyUnit.Run
     {
         public override FixtureGenerator Generator
         {
+            // IL2026 is Assembly.GetTypes() itself: the trimmer cannot know
+            // which types survive. Under a rooted test assembly all of them
+            // do, which is the whole point of the rooting.
+            [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = Trimming.Rooted)]
             get
             {
                 // GetTypes(), not GetExportedTypes(): an internal [TestFixture] class is a
@@ -93,6 +98,15 @@ namespace AnyUnit.Run
         {
             return ToListJson();
         }
+
+
+        // IL2026: assembly.GetTypes() for [SetUpFixture] discovery - same
+
+
+        // reasoning as DefaultDiscovery.Generator above.
+
+
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = Trimming.Rooted)]
 
 
         public static Runner Create(string platformId, IEnumerable<Assembly> assemblies)

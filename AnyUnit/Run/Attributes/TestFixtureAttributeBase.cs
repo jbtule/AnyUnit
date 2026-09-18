@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Reflection;
 using AnyUnit.Util;
@@ -39,6 +40,9 @@ namespace AnyUnit.Run.Attributes
     {
         public virtual FixtureInitializer FixtureInit
         {
+            // IL2067: Activator.CreateInstance on a fixture type, whose
+            // constructors the analyzer cannot see are kept.
+            [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
             get { return (type, args) =>  type.IsStatic() ? null :  Activator.CreateInstance(type,args); }
         }
         public virtual FixtureParameterSetProducer ParameterSets { get { return ParameterSet.GetDefaultParameterSet; } }
