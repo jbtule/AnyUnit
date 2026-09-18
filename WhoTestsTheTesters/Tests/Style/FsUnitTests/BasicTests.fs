@@ -161,3 +161,34 @@ type BasicTests () =
     [<Test>]
     member this.TestUnique_Success () =
         [1;2;3] |> this.should be unique
+
+    // A core [<Test>] whose body is an F# async. Nothing F#-side converts
+    // it (AnyUnit.Style.FsUnit is assertion vocabulary only; the attribute
+    // is AnyUnit's own), so this is the one path that reaches the engine's
+    // Async<'T> handling in AnyUnit.Run.AsyncTestResult - Style.Expecto's
+    // testCaseAsync converts to a Task in typed F# before the engine sees
+    // it. Both a unit (reference type) and a bool (value type) result, as
+    // under Native AOT those are different cases for the engine.
+    [<Test>]
+    member this.TestAsync_Success () = async {
+        let! value = async { return 42 }
+        value |> this.should equal 42
+    }
+
+    [<Test>]
+    member this.TestAsync_Fail () = async {
+        let! value = async { return 1 }
+        value |> this.should equal 2
+    }
+
+    [<Test>]
+    member _.TestAsyncReturn_Success () = async {
+        let! value = async { return 1 }
+        return value = 1
+    }
+
+    [<Test>]
+    member _.TestAsyncReturn_Fail () = async {
+        let! value = async { return 1 }
+        return value = 2
+    }

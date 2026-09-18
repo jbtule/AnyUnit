@@ -48,6 +48,8 @@ namespace AnyUnit.Util
     public static class Utility
     {
 
+        // IL2026: GetExportedTypes on a test assembly - see Trimming.Rooted.
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = Trimming.Rooted)]
         public static IEnumerable<Type> AllTypes(this Assembly asm){
             return asm.GetExportedTypes();
         }
@@ -248,6 +250,7 @@ namespace AnyUnit.Util
             return type.IsInstanceOfType(obj);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static IEnumerable<Type> Interfaces(this Type type){
             return type.GetTypeInfo().GetInterfaces();
         }

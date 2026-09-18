@@ -673,16 +673,18 @@ jobs:
   # One OS, ubuntu-latest: the AOT toolchain needs a native linker
   # (clang here; MSVC on Windows), the image has it, and what ILC does to
   # the IL is the same on every host - same "same information three times
-  # over" reasoning as the coverage job. IlcTreatWarningsAsErrors=false
-  # for the one site AnyUnit cannot make trim-clean yet:
-  # AsyncTestResult.FSharpAsyncToTask (Assembly.GetType by name plus
-  # MakeGenericMethod - IL2026/IL2060/IL2075/IL3050), the F# Async<'T>
-  # bridge; every other reflection site carries an
-  # UnconditionalSuppressMessage justified by the TrimmerRootAssembly
-  # (see AnyUnit/Util/TrimmerAttributes.cs). Directory.Build.props makes
-  # warnings errors everywhere, and this is the ILC-only knob, so the C#
-  # compiler's own warnings-as-errors still applies to this publish.
-  # Resolving that F# site and dropping the flag is the follow-up.
+  # over" reasoning as the coverage job. No IlcTreatWarningsAsErrors
+  # override: Directory.Build.props makes warnings errors everywhere and
+  # AnyUnit itself publishes with zero ILC warnings - every reflection
+  # site carries an UnconditionalSuppressMessage justified by the
+  # TrimmerRootAssembly or the F# rd.xml (see AnyUnit/Util/
+  # TrimmerAttributes.cs), so a new trim-unsafe site in the core fails
+  # this job rather than becoming a warning nobody reads. Only
+  # BasicTests.Mtp for now: FsUnitTests.Mtp (the F# Async<'T> path, plus
+  # the AnyUnitTestAssembly satellite shape) publishes and its async
+  # tests pass, but AnyUnit.Constraints' Has.Length/Has.Count look up
+  # BCL properties by name that ILC trims, and Constraints/Style.Xunit/
+  # FSharp.Core still warn - adding it here waits on that.
   # AnyUnitPublishAot rather than a global PublishAot - see
   # BasicTests.Mtp.csproj for why.
   test-aot-mtp:
@@ -699,7 +701,7 @@ jobs:
       - name: Publish BasicTests.Mtp as Native AOT
         run: |
           dotnet publish WhoTestsTheTesters/Tests/BasicTests.Mtp --configuration Release -r linux-x64 \
-            -p:AnyUnitPublishAot=true -p:IlcTreatWarningsAsErrors=false -o publish/aot
+            -p:AnyUnitPublishAot=true -o publish/aot
           test -x publish/aot/BasicTests
           # A real native image, not a managed app under an apphost: the
           # AOT publish leaves no BasicTests.dll beside the executable.

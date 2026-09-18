@@ -134,30 +134,67 @@ namespace AnyUnit.Run
             return null;
         }
 
+        // Reflection over FSharp.Core, which this assembly cannot reference
+        // (see ToTask). What the analyzer flags here is real - the type is
+        // found by name and the method instantiated at run time - and is
+        // answered on the build side rather than here: AnyUnit.TestingPlatform.
+        // targets hands ILC an rd.xml asking for StartImmediateAsTask<unit>
+        // and <bool> whenever FSharp.Core is referenced, so under Native AOT
+        // those instantiations exist and MakeGenericMethod finds them. Any
+        // other 'T, or a trimmed FSharp.Core, is a loud Error below naming
+        // that file - never a silently un-awaited test.
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = Trimming.FSharpAsync)]
+        [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = Trimming.FSharpAsync)]
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.FSharpAsync)]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = Trimming.FSharpAsync)]
         private static Task FSharpAsyncToTask(object result, Type type)
         {
+            // Every failure past the name check throws rather than returning
+            // null. A null here means "not something to await", and the
+            // caller then treats the Async<'T> object as the test's plain
+            // return value: the body never runs to completion, whatever it
+            // would have asserted is never observed, and the test passes.
+            // That is exactly the bug awaiting was added to fix, and under
+            // Native AOT with FSharp.Core trimmed it came back as four
+            // silently-green F# tests (confirmed with FsUnitTests.Mtp).
             var asyncModule = type.GetTypeInfo().Assembly.GetType("Microsoft.FSharp.Control.FSharpAsync");
-            if (asyncModule == null)
-            {
-                return null;
-            }
-
-            var start = asyncModule
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .FirstOrDefault(it => it.Name == "StartImmediateAsTask"
-                                      && it.IsGenericMethodDefinition
-                                      && it.GetParameters().Length == 2);
+            var start = asyncModule == null
+                ? null
+                : asyncModule
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .FirstOrDefault(it => it.Name == "StartImmediateAsTask"
+                                          && it.IsGenericMethodDefinition
+                                          && it.GetParameters().Length == 2);
             if (start == null)
             {
-                return null;
+                throw new NotSupportedException(
+                    "This test returned an F# " + type.Name + " but FSharp.Core's Async.StartImmediateAsTask could not be found "
+                    + "(FSharp.Core " + type.GetTypeInfo().Assembly.GetName().Version + "). "
+                    + FSharpAsyncHint);
             }
 
-            // Second argument is FSharpOption<CancellationToken>; null is
-            // None, i.e. "no cancellation token", the same as omitting the
-            // optional parameter from F#.
-            return start.MakeGenericMethod(type.GenericArgs()[0])
-                        .Invoke(null, new object[] { result, null }) as Task;
+            var resultType = type.GenericArgs()[0];
+            try
+            {
+                // Second argument is FSharpOption<CancellationToken>; null is
+                // None, i.e. "no cancellation token", the same as omitting the
+                // optional parameter from F#.
+                return start.MakeGenericMethod(resultType)
+                            .Invoke(null, new object[] { result, null }) as Task;
+            }
+            catch (NotSupportedException ex)
+            {
+                // Native AOT: no compiled instantiation for this 'T.
+                throw new NotSupportedException(
+                    "This test returned an F# Async<" + resultType.Name + ">, and Async.StartImmediateAsTask<" + resultType.Name
+                    + "> has no native code in this Native AOT build. " + FSharpAsyncHint, ex);
+            }
         }
+
+        private const string FSharpAsyncHint =
+            "Under Native AOT, AnyUnit.TestingPlatform supplies the Async<unit> and Async<bool> instantiations "
+            + "(build/FSharpAsync.rd.xml); for another result type add an RdXmlFile item naming it, "
+            + "or return a Task (async { ... } |> Async.StartImmediateAsTask) instead.";
 
         private static void Block(Task task)
         {

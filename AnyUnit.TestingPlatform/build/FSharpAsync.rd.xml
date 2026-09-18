@@ -1,0 +1,32 @@
+<!--
+  Native AOT runtime directives for F# Async<'T> test bodies.
+
+  AnyUnit.Run.AsyncTestResult starts an Async<'T> a test returns through
+  FSharp.Core's Async.StartImmediateAsTask<'T>, found by reflection since
+  the core cannot reference FSharp.Core. Under Native AOT a generic
+  instantiation only exists if the compiler saw it: nothing in a test
+  assembly calls StartImmediateAsTask<unit> itself, so MakeGenericMethod
+  fails at run time with "missing native code" - rooting the method
+  definition does not help, confirmed for real. This asks ILC for the two
+  instantiations the engine gives meaning to: unit (an async body with no
+  result) and bool (the engine's "returned false means Fail"). A test
+  returning Async<SomethingElse> gets a clear Error under AOT naming this
+  file; add your own RdXmlFile with that type to support it.
+
+  Added by AnyUnit.TestingPlatform.targets only when FSharp.Core is
+  among the project's references (_AnyUnitFSharpAsyncRdXml).
+-->
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <Assembly Name="FSharp.Core">
+      <Type Name="Microsoft.FSharp.Control.FSharpAsync">
+        <Method Name="StartImmediateAsTask" Dynamic="Required">
+          <GenericArgument Name="Microsoft.FSharp.Core.Unit" />
+        </Method>
+        <Method Name="StartImmediateAsTask" Dynamic="Required">
+          <GenericArgument Name="System.Boolean" />
+        </Method>
+      </Type>
+    </Assembly>
+  </Application>
+</Directives>

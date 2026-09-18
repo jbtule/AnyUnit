@@ -28,8 +28,13 @@ ordinary "what changed in this version" question the eras don't answer.
   (reflection-discovered fixtures were otherwise trimmed to zero tests),
   and `Task<T>.Result` is kept for async tests (its getter was trimmed,
   so every async test errored), and every other reflection site is
-  suppressed on the strength of that rooting, leaving only the F#
-  `Async<'T>` bridge with trim warnings. CI publishes and runs
+  suppressed on the strength of that rooting. An F# `[<Test>]` body
+  that is an `async { ... }` works too: `EnableAnyUnitRunner` hands ILC
+  an rd.xml for the `Async<unit>`/`Async<bool>` instantiations whenever
+  FSharp.Core is referenced (a generic instantiation reflection asks
+  for at run time has to have been compiled in), and any `Async<'T>` the
+  engine cannot start is now a clear Error rather than a test that
+  passes without its body ever being awaited. CI publishes and runs
   BasicTests.Mtp this way on every build.
 
 ### 1.2.2 - 2026-09-16
