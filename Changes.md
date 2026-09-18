@@ -23,6 +23,13 @@ ordinary "what changed in this version" question the eras don't answer.
   run and nothing can interrupt it; declared, the test is reported
   Ignored there.
 
+- Native AOT: an `EnableAnyUnitRunner` project publishes and runs with
+  `PublishAot=true`. The targets root the test assembly for the trimmer
+  (reflection-discovered fixtures were otherwise trimmed to zero tests),
+  and `Task<T>.Result` is kept for async tests (its getter was trimmed,
+  so every async test errored). CI publishes and runs BasicTests.Mtp
+  this way on every build.
+
 ### 1.2.2 - 2026-09-16
 
 - F# test projects work on browser-wasm through MTP under node/bun. The

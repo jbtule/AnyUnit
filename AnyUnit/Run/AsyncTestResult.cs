@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -220,6 +221,17 @@ namespace AnyUnit.Run
             task.GetAwaiter().GetResult();
         }
 
+        // Under Native AOT nothing in the image calls Task<T>.Result
+        // statically (this is the only reader, and it goes through
+        // reflection), so without this the getter is trimmed away and
+        // InstanceProperty("Result") comes back null: confirmed for real
+        // with BasicTests.Mtp published PublishAot=true - every async test
+        // errored with a NullReferenceException here, and with just a null
+        // guard the Task<bool> ones silently lost their return value.
+        // DynamicDependency on the open generic keeps get_Result on every
+        // instantiation. The attribute itself is the internal copy in
+        // Util/DynamicDependencyAttribute.cs (netstandard2.0 has none).
+        [DynamicDependency("get_Result", typeof(Task<>))]
         private static object TaskValue(Task task)
         {
             // Task<T>.Result, read only after the task completed successfully

@@ -91,6 +91,23 @@
   </ItemGroup>
 
   <!--
+    Native AOT / PublishTrimmed. AnyUnit discovers fixtures by walking
+    Assembly.GetTypes() and reading attributes - nothing references a
+    test class statically, so the trimmer would otherwise drop every one
+    of them and the published executable would discover zero tests
+    (confirmed: that is exactly what PublishAot=true on BasicTests.Mtp
+    did before this). Rooting the test assembly keeps all of its types and
+    members, which is what reflection-driven discovery needs. Same list
+    as AnyUnit.TestAssembly above: the satellite assemblies when there
+    are any, else this project. TrimmerRootAssembly is only consulted by
+    a trimmed/AOT publish; a plain build ignores it.
+  -->
+  <ItemGroup Condition="'$(EnableAnyUnitRunner)' == 'true'">
+    <TrimmerRootAssembly Include="@(AnyUnitTestAssembly)" Condition="'@(AnyUnitTestAssembly)' != ''" />
+    <TrimmerRootAssembly Include="$(AssemblyName)" Condition="'@(AnyUnitTestAssembly)' == ''" />
+  </ItemGroup>
+
+  <!--
     `dotnet run` for a browser-wasm test project. The wasm SDK's own
     RunCommand is WasmAppHost - a dev server plus a browser, which is not
     what running a test project means. Point it at the JS harness under
