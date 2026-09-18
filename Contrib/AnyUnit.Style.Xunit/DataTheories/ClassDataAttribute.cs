@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.Xunit
 {
@@ -50,6 +51,8 @@ namespace AnyUnit.Style.Xunit
         }
 
         /// <inheritdoc/>
+        // IL2077: Activator.CreateInstance on the [ClassData] type, which the test names.
+        [UnconditionalSuppressMessage("Trimming", "IL2077", Justification = Trimming.Rooted)]
         public override IEnumerable<object[]> GetData(MethodInfo methodUnderTest, Type[] parameterTypes)
         {
             return (IEnumerable<object[]>)Activator.CreateInstance(@class);

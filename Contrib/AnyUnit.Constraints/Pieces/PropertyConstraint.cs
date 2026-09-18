@@ -49,7 +49,11 @@ namespace AnyUnit.Constraints.Pieces
             if (actualType == null)
                 actualType = actual.GetType();
 
-            PropertyInfo property = actualType.InstanceProperty(name,includeNonPublic:true);
+            object ignored;
+            if (!(actual is Type) && PropertyLookup.TryGetWellKnown(actual, name, out ignored))
+                return true;
+
+            PropertyInfo property = PropertyLookup.Find(actualType, name);
 
             return property != null;
         }
@@ -118,12 +122,17 @@ namespace AnyUnit.Constraints.Pieces
             if ( actualType == null )
                 actualType = actual.GetType();
 
-            PropertyInfo property = actualType.InstanceProperty(name,includeNonPublic:true);
+            // See PropertyLookup: Length/Count on a BCL array, string or
+            // collection without reflection, everything else through it.
+            if (!PropertyLookup.TryGetWellKnown(actual, name, out propValue))
+            {
+                PropertyInfo property = PropertyLookup.Find(actualType, name);
 
-            if (property == null)
-                throw new ArgumentException(string.Format("Property {0} was not found",name), "name");
+                if (property == null)
+                    throw new ArgumentException(string.Format("Property {0} was not found",name), "name");
 
-			propValue = property.GetValue( actual, null );
+                propValue = property.GetValue( actual, null );
+            }
 			return baseConstraint.Matches( propValue );
 		}
 
@@ -163,4 +172,68 @@ namespace AnyUnit.Constraints.Pieces
             return string.Format("<property {0} {1}>", name, baseConstraint);
         }
 	}
+
+    /// <summary>
+    /// The property lookup PropertyExistsConstraint and PropertyConstraint
+    /// share. Has.Length and Has.Count are by far the common uses, and the
+    /// values they are applied to are mostly BCL collections and strings:
+    /// under Native AOT a BCL property nothing calls statically is trimmed
+    /// (Array.Length, List&lt;T&gt;.Count, Exception.Message - confirmed with
+    /// FsUnitTests.Mtp and ConstraintsTests.Mtp published PublishAot=true:
+    /// "Property Length was not found"), so the names Has/Throws hand out
+    /// are answered by a typed check first and reflection only
+    /// handles what is left - a property on a type from the test assembly
+    /// itself, which AnyUnit.TestingPlatform roots for exactly this reason.
+    /// </summary>
+    internal static class PropertyLookup
+    {
+        public static bool TryGetWellKnown(object actual, string name, out object value)
+        {
+            if (name == "Length")
+            {
+                var array = actual as Array;
+                if (array != null)
+                {
+                    value = array.Length;
+                    return true;
+                }
+                var text = actual as string;
+                if (text != null)
+                {
+                    value = text.Length;
+                    return true;
+                }
+            }
+            else if (name == "Message" || name == "InnerException")
+            {
+                // Has.Message / Has.InnerException / Throws.InnerException.
+                var exception = actual as Exception;
+                if (exception != null)
+                {
+                    value = name == "Message" ? (object)exception.Message : exception.InnerException;
+                    return true;
+                }
+            }
+            else if (name == "Count")
+            {
+                // Not for an array: it implements ICollection.Count only
+                // explicitly, so as a property named Count it does NOT
+                // exist on it (ConstraintsTests.HasTest.CountExists_Fail),
+                // and reflection below rightly says so.
+                var collection = actual as System.Collections.ICollection;
+                if (collection != null && !(actual is Array))
+                {
+                    value = collection.Count;
+                    return true;
+                }
+            }
+            value = null;
+            return false;
+        }
+
+        public static PropertyInfo Find(Type actualType, string name)
+        {
+            return actualType.InstanceProperty(name, includeNonPublic: true);
+        }
+    }
 }

@@ -88,6 +88,24 @@ namespace AnyUnit.Util
         public static readonly bool IsSingleThreadedRuntime =
             RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
+        // Native AOT: the framework has been trimmed to what the program
+        // reaches statically, so reflection by name over a framework type
+        // sees only that (TestCapabilities.FrameworkReflection). The AOT
+        // publish sets RuntimeFeature.IsDynamicCodeSupported false as a
+        // host configuration switch (DynamicCodeSupport in the SDK's
+        // publish targets) and AppContext is where that lands - readable
+        // from netstandard2.0, where RuntimeFeature itself is not. A JIT
+        // runtime never sets the switch at all, so TryGetSwitch is false
+        // there and this stays false; only an explicit false counts.
+        public static readonly bool IsFrameworkTrimmed = ProbeFrameworkTrimmed();
+
+        private static bool ProbeFrameworkTrimmed()
+        {
+            bool dynamicCode;
+            return AppContext.TryGetSwitch("System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported", out dynamicCode)
+                   && !dynamicCode;
+        }
+
         public static bool MatchesGenericDef(this Type type, Type def){
             return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition().Equals(def);
         }

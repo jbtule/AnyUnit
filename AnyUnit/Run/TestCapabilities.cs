@@ -88,6 +88,29 @@ namespace AnyUnit.Run
         /// Blazor has one. Declared, it is reported Ignored there instead.
         /// </remarks>
         Threads = 4,
+
+        /// <summary>
+        /// Every member of every framework type is present for reflection
+        /// by name - <c>typeof(DateTime).GetProperty("Day")</c> finds it
+        /// whether or not anything in the program uses it. A test that
+        /// reflects over a type it does not own (<c>Has.Property("Day")</c>
+        /// on a <c>DateTime</c>, say) needs this; one that reflects over
+        /// the test assembly's own types does not - AnyUnit.TestingPlatform
+        /// roots that assembly, so they are always whole.
+        /// </summary>
+        /// <remarks>
+        /// Absent under Native AOT, where the compiler keeps only the
+        /// framework members something reaches statically and reflection
+        /// truthfully reports the rest as not there: a constraint asserting
+        /// a property does NOT exist is satisfied for the wrong reason.
+        /// Found by ConstraintsTests.HasTest.NoProperty_Fail under
+        /// PublishAot=true. Detected through the
+        /// RuntimeFeature.IsDynamicCodeSupported host switch the AOT
+        /// publish sets to false (see Utility.IsFrameworkTrimmed) - not a
+        /// probe of some framework member, which would only ask the same
+        /// question of one arbitrary type.
+        /// </remarks>
+        FrameworkReflection = 8,
     }
 
     /// <summary>
@@ -99,12 +122,16 @@ namespace AnyUnit.Run
         /// Capabilities available here. Computed once, from the same
         /// single-threaded-runtime probe Test.Run and AsyncTestResult
         /// already branch on, so the three cannot disagree about what this
-        /// platform can do.
+        /// platform can do; and from the trimmed-framework probe for
+        /// <see cref="TestCapabilities.FrameworkReflection"/>.
         /// </summary>
         public static readonly TestCapabilities Available =
-            Utility.IsSingleThreadedRuntime
+            (Utility.IsSingleThreadedRuntime
                 ? TestCapabilities.None
-                : TestCapabilities.AsyncYield | TestCapabilities.Timeouts | TestCapabilities.Threads;
+                : TestCapabilities.AsyncYield | TestCapabilities.Timeouts | TestCapabilities.Threads)
+            | (Utility.IsFrameworkTrimmed
+                ? TestCapabilities.None
+                : TestCapabilities.FrameworkReflection);
 
         /// <summary>
         /// The subset of <paramref name="required"/> this platform does not

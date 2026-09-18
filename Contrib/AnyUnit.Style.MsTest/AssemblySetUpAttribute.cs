@@ -14,8 +14,10 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.MsTest
 {
@@ -58,6 +60,8 @@ namespace AnyUnit.Style.MsTest
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class AssemblySetUpAttribute : SetUpFixtureAttributeBase
     {
+        // IL2067: Activator.CreateInstance on the assembly-init class.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override FixtureOneTimeSetUpAction OneTimeSetUp
         {
             get
@@ -104,6 +108,8 @@ namespace AnyUnit.Style.MsTest
             }
         }
 
+        // IL2067: Activator.CreateInstance on the assembly-init class.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override FixtureOneTimeTearDownAction OneTimeTearDown
         {
             get

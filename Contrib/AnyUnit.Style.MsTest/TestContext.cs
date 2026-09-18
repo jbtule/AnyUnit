@@ -14,7 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.MsTest
 {
@@ -146,6 +148,9 @@ namespace AnyUnit.Style.MsTest
         /// runtime type finds whichever property the class actually
         /// declares, so both shapes work.
         /// </summary>
+        // IL2070/IL2075: a TestContext property a test class declares itself.
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
         internal static void Inject(object target, TestContext context)
         {
             if (target == null)
@@ -162,6 +167,22 @@ namespace AnyUnit.Style.MsTest
             // own `TestContext` identifier binds to - and stops there.
             for (var current = type; current != null; current = current.GetTypeInfo().BaseType)
             {
+                // Our own AssertionHelper.TestContext is set directly, not
+                // found by name: this assembly is not the rooted test
+                // assembly, and under Native AOT a property nothing sets
+                // statically is trimmed - confirmed with MsTestTests.Mtp
+                // published PublishAot=true ("TestContext was never
+                // injected"). Reached only when no more-derived class
+                // declared its own, which the walk above has already
+                // established.
+                if (current == typeof(AssertionHelper))
+                {
+                    var helper = target as AssertionHelper;
+                    if (helper != null)
+                        helper.TestContext = context;
+                    return;
+                }
+
                 var property = current.GetTypeInfo().GetDeclaredProperty("TestContext");
 
                 if (property == null)

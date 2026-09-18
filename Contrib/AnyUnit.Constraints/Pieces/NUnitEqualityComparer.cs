@@ -180,7 +180,18 @@ namespace AnyUnit.Constraints.Pieces
 
     	private static bool InvokeFirstIEquatableEqualsSecond(object first, object second)
     	{
-    		MethodInfo equals = typeof (IEquatable<>).MakeGenericType(second.GetType()).Method("Equals");
+            // The IEquatable<T> instantiation is taken from first's own
+            // interface list, not built with MakeGenericType: the caller
+            // has already established first implements IEquatable of
+            // second's type (GetEquatableGenericArguments), so it is there,
+            // and under Native AOT (IL3050) a constructed generic type has
+            // native code only if the compiler saw it - which, for an
+            // interface the object implements, it did.
+            var secondType = second.GetType();
+    		MethodInfo equals = first.GetType().Interfaces()
+                .First(@interface => @interface.MatchesGenericDef(typeof (IEquatable<>))
+                                     && @interface.GenericArgs()[0] == secondType)
+                .Method("Equals");
 
     		return (bool) equals.Invoke(first, new object[] {second});
     	}

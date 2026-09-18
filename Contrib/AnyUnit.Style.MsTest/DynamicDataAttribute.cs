@@ -14,10 +14,12 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Util;
 
 namespace AnyUnit.Style.MsTest
 {
@@ -75,6 +77,8 @@ namespace AnyUnit.Style.MsTest
         /// <summary>Null means "the test class itself", as in real MSTest.</summary>
         public Type DynamicDataDeclaringType { get; private set; }
 
+        // IL2075: the data-source member lives on a type in the test assembly.
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
         public IEnumerable<object[]> GetData(MethodInfo method, Type[] parameterTypes)
         {
             if (method == null)

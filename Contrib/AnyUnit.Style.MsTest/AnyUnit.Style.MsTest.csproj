@@ -26,6 +26,12 @@
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
   </ItemGroup>
 
+  <!-- The core's internal trimming-attribute copies, compiled in here too -
+       see AnyUnit.Style.Xunit.csproj's identical item for why. -->
+  <ItemGroup>
+    <Compile Include="..\..\AnyUnit\Util\TrimmerAttributes.cs" Link="Util\TrimmerAttributes.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

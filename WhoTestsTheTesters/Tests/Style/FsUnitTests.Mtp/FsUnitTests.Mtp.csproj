@@ -32,6 +32,11 @@
        PublishAot. -->
   <PropertyGroup Condition="'$(AnyUnitPublishAot)' == 'true'">
     <PublishAot>true</PublishAot>
+    <!-- FSharp.Core's own trim/AOT analysis warnings (the per-assembly
+         summary codes), not anything in this repo; with warnings as
+         errors everywhere they would fail the publish. Only these two:
+         a warning from AnyUnit's own assemblies still fails it. -->
+    <NoWarn>$(NoWarn);IL2104;IL3053</NoWarn>
   </PropertyGroup>
 
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />

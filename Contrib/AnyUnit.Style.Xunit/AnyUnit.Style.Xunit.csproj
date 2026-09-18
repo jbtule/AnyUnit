@@ -11,6 +11,17 @@
     <ProjectReference Include="..\..\AnyUnit\AnyUnit.csproj" />
   </ItemGroup>
 
+  <!--
+    The core's internal copies of the trimming attributes (netstandard2.0
+    has none), compiled into this assembly too - internal, so a second
+    copy is the only way to reach them from here, and the one
+    justification string (Trimming.Rooted) stays identical across every
+    assembly that uses it. See that file's own header.
+  -->
+  <ItemGroup>
+    <Compile Include="..\..\AnyUnit\Util\TrimmerAttributes.cs" Link="Util\TrimmerAttributes.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

@@ -62,6 +62,16 @@ engine can see a returned `Task`; it cannot see a wait inside the body,
 and on single-threaded wasm nothing else can rescue it, so an undeclared
 one hangs the run.
 
+`TestCapabilities.FrameworkReflection` is the one that is not about
+threads: it says every member of every *framework* type is present for
+reflection by name. Under Native AOT the compiler keeps only what the
+program reaches statically, so `typeof(DateTime).GetProperty("Day")`
+truthfully returns null when nothing uses `Day` - a test asserting on
+that (`Has.No.Property("Day")` on a `DateTime`, say) is answered for the
+wrong reason and should declare it. Reflection over the test assembly's
+own types is unaffected: `AnyUnit.TestingPlatform` roots that assembly,
+so those are always whole.
+
 See [`AnyUnit.Runner.Bootstrap`](../Runner/Bootstrap) for the
 smallest way to actually call `Runner.Create`/`RunAll` from your own
 entry point, or [`AnyUnit.TestingPlatform`](../AnyUnit.TestingPlatform)
