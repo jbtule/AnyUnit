@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -38,6 +39,7 @@ namespace AnyUnit.Style.Xunit
 
         public override FixtureInitializer FixtureInit
         {
+            [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
             get
             {
                 return (t, a) =>
@@ -46,7 +48,14 @@ namespace AnyUnit.Style.Xunit
 
                                if (a.Length == 2)
                                {
-                                   ((Type)a[0]).Method("SetFixture").Invoke(fixture, new[] { a[1] });
+                                   // The class's own SetFixture, not IUseFixture<T>'s: the
+                                   // test class is in the rooted test assembly, the interface
+                                   // is in this one, where under Native AOT an interface
+                                   // method nothing calls statically is trimmed - confirmed
+                                   // with XunitTests.Mtp published PublishAot=true, where
+                                   // SetFixture silently never ran.
+                                   var fixtureType = ((Type)a[0]).GenericArgs().Single();
+                                   fixture.GetType().Method("SetFixture", new[] { fixtureType }).Invoke(fixture, new[] { a[1] });
                                }
 
                                return fixture;
@@ -56,6 +65,18 @@ namespace AnyUnit.Style.Xunit
 
         public override FixtureParameterSetProducer ParameterSets
         {
+            // IL2072: Activator.CreateInstance on the IUseFixture<T> type
+            // argument - a type the fixture in the test assembly names.
+            //
+            // DynamicDependency: nothing calls IUseFixture<T> statically -
+            // this is the only reader, through the interface list - and
+            // under Native AOT an interface with no static use is trimmed
+            // even off a rooted implementing class, which then simply does
+            // not list it: t.Interfaces() came back without it and
+            // SetFixture never ran (confirmed with XunitTests.Mtp published
+            // PublishAot=true). Naming its method keeps the interface.
+            [DynamicDependency("SetFixture", typeof(IUseFixture<>))]
+            [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = Trimming.Rooted)]
             get
             {
                 return t =>

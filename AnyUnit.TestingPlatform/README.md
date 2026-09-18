@@ -166,10 +166,21 @@ build ignores the item.
 
 AnyUnit's own reflection is trim-clean on that basis (each site is
 suppressed with that justification - see `AnyUnit/Util/
-TrimmerAttributes.cs`), so a C# test project publishes with no ILC
-warnings from AnyUnit. CI runs `WhoTestsTheTesters/Tests/BasicTests.Mtp`
-this way on every build (`test-aot-mtp`), and the whole suite comes out
-right, async tests included.
+TrimmerAttributes.cs`), and so are `AnyUnit.Constraints` and the NUnit/
+xUnit/MSTest/FsUnit styles, so a test project publishes with no ILC
+warnings from any AnyUnit package. CI publishes and runs every C#-hosted
+`*.Mtp` self-test project this way on every build (`test-aot-mtp`), and
+every suite comes out right, async tests included.
+
+What reflection cannot survive is a *framework* member nothing uses:
+`typeof(DateTime).GetProperty("Day")` is null under AOT unless something
+in the program reads `Day`. `Has.Length`/`Has.Count`/`Has.Message`/
+`Has.InnerException` answer without reflection for arrays, strings,
+collections and exceptions, and a `Has.Property("X")` on one of your own
+types works because that assembly is rooted; a test that reflects by
+name over a type it does not own should declare
+`[RequiresCapability(TestCapabilities.FrameworkReflection)]` and is
+reported Ignored under AOT (see the core Readme).
 
 ### F# `Async<'T>` test bodies
 

@@ -34,8 +34,18 @@ ordinary "what changed in this version" question the eras don't answer.
   FSharp.Core is referenced (a generic instantiation reflection asks
   for at run time has to have been compiled in), and any `Async<'T>` the
   engine cannot start is now a clear Error rather than a test that
-  passes without its body ever being awaited. CI publishes and runs
-  BasicTests.Mtp this way on every build.
+  passes without its body ever being awaited. `AnyUnit.Constraints` and
+  the NUnit/xUnit/MSTest/FsUnit styles are trim-clean too, with the AOT
+  bugs each hid fixed: `Has.Length`/`Count`/`Message`/`InnerException`
+  on BCL values (their properties were trimmed), xUnit's `IUseFixture<T>`
+  (the interface was trimmed off its implementing class, so `SetFixture`
+  never ran), MSTest's `TestContext` (never injected). CI publishes and
+  runs every C#-hosted `*.Mtp` self-test project this way on every
+  build.
+- `TestCapabilities.FrameworkReflection`: for a test that reflects by
+  name over a *framework* type it does not own. Absent under Native AOT,
+  where an unused framework member is trimmed and reflection truthfully
+  reports it missing; declared, the test is reported Ignored there.
 
 ### 1.2.2 - 2026-09-16
 

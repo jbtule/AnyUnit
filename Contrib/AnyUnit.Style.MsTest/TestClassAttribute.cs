@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -65,6 +66,8 @@ namespace AnyUnit.Style.MsTest
             }
         }
 
+        // IL2067: Activator.CreateInstance on the test class.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override FixtureOneTimeSetUpAction OneTimeSetUp
         {
             get
@@ -90,6 +93,8 @@ namespace AnyUnit.Style.MsTest
             }
         }
 
+        // IL2067: Activator.CreateInstance on the test class.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override FixtureOneTimeTearDownAction OneTimeTearDown
         {
             get

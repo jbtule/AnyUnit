@@ -24,6 +24,13 @@
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
 
+  <!-- Native AOT opt-in for build.yml's test-aot-mtp job - see
+       BasicTests.Mtp.csproj's own copy of this for why not a global
+       PublishAot. -->
+  <PropertyGroup Condition="'$(AnyUnitPublishAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>

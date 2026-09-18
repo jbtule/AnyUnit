@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -72,6 +73,8 @@ namespace AnyUnit.Style.Nunit
             }
         }
 
+        // IL2067: Activator.CreateInstance on the fixture type.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override Run.Attributes.FixtureOneTimeSetUpAction OneTimeSetUp
         {
             get
@@ -94,6 +97,8 @@ namespace AnyUnit.Style.Nunit
             }
         }
 
+        // IL2067: Activator.CreateInstance on the fixture type.
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = Trimming.Rooted)]
         public override Run.Attributes.FixtureOneTimeTearDownAction OneTimeTearDown
         {
             get

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using AnyUnit;
 using AnyUnit.Constraints;
+using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 
 namespace ConstraintsTests
 {
@@ -96,7 +98,13 @@ namespace ConstraintsTests
         {
             Assert.That(1, Has.No.Property("Day"));
         }
+        // DateTime.Day looked up by name: under Native AOT the property is
+        // trimmed unless something uses it, and Has.No.Property is then
+        // satisfied for the wrong reason - see
+        // TestCapabilities.FrameworkReflection. Ignored there, Fail
+        // everywhere else.
         [Test]
+        [RequiresCapability(TestCapabilities.FrameworkReflection)]
         public void NoProperty_Fail()
         {
             Assert.That(DateTime.Today, Has.No.Property("Day"));
