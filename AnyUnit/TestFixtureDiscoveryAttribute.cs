@@ -56,8 +56,16 @@ namespace AnyUnit
                                 String.Format("Cound not find member {0} on {1}.", StaticMethodOfGenerator,
                                               typeTarget));
 
+                        // typeof(Assembly), matching what is passed below and
+                        // FixtureGenerator's own signature. This said
+                        // typeof(Type) - copied from TestFixtureAttribute's
+                        // parameter-source lookup, where a Type IS the
+                        // argument - and so never found any real generator
+                        // and threw a NullReferenceException instead of the
+                        // MissingMemberException above. Nothing used the
+                        // attribute until BasicTests.Engine did.
                         return (IEnumerable<Fixture>)
-                               typeTarget.GetMethod(StaticMethodOfGenerator, new[] { typeof(Type) })
+                               typeTarget.GetMethod(StaticMethodOfGenerator, new[] { typeof(Assembly) })
                                          .Invoke(typeTarget, new object[] { a });
                     };
             }
