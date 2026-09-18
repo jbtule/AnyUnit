@@ -108,6 +108,25 @@
   </ItemGroup>
 
   <!--
+    F# Async<'T> under Native AOT. The engine starts an Async<'T> a test
+    returns via FSharp.Core's generic StartImmediateAsTask<'T> through
+    reflection, and ILC only compiles a generic instantiation it can see
+    statically - so without this every F# async test fails with "missing
+    native code" (see FSharpAsync.rd.xml beside this file for the whole
+    story, and which 'T it covers). A target rather than a static item:
+    whether FSharp.Core is referenced is only known once references are
+    resolved, and this must not fire for a C# project, where the
+    directive would name an assembly that is not there. Runs before ILC
+    writes its response file, which is where @(RdXmlFile) is read.
+  -->
+  <Target Name="_AnyUnitFSharpAsyncRdXml" AfterTargets="ResolveAssemblyReferences" BeforeTargets="WriteIlcRspFileForCompilation"
+          Condition="'$(EnableAnyUnitRunner)' == 'true' and '$(PublishAot)' == 'true'">
+    <ItemGroup>
+      <RdXmlFile Include="$(MSBuildThisFileDirectory)FSharpAsync.rd.xml" Condition="'@(ReferencePath->WithMetadataValue('Filename', 'FSharp.Core'))' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!--
     `dotnet run` for a browser-wasm test project. The wasm SDK's own
     RunCommand is WasmAppHost - a dev server plus a browser, which is not
     what running a test project means. Point it at the JS harness under

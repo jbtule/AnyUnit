@@ -166,16 +166,30 @@ build ignores the item.
 
 AnyUnit's own reflection is trim-clean on that basis (each site is
 suppressed with that justification - see `AnyUnit/Util/
-TrimmerAttributes.cs`), with one exception: the F# `Async<'T>` bridge
-(`AsyncTestResult.FSharpAsyncToTask`) still uses `MakeGenericMethod`,
-so ILC reports IL2026/IL2060/IL2075/IL3050 there. With
-`TreatWarningsAsErrors` on, `-p:IlcTreatWarningsAsErrors=false` keeps
-those as warnings without touching the C# compiler's. An F# `Async<'T>`
-test with a value-type `'T` may not have its instantiation available
-under AOT; C# `Task`/`Task<T>` tests are fine. CI runs
-`WhoTestsTheTesters/Tests/BasicTests.Mtp` this way on every build
-(`test-aot-mtp`), and the whole suite comes out right, async tests
-included.
+TrimmerAttributes.cs`), so a C# test project publishes with no ILC
+warnings from AnyUnit. CI runs `WhoTestsTheTesters/Tests/BasicTests.Mtp`
+this way on every build (`test-aot-mtp`), and the whole suite comes out
+right, async tests included.
+
+### F# `Async<'T>` test bodies
+
+A `[<Test>]` member whose body is `async { ... }` is started through
+FSharp.Core's `Async.StartImmediateAsTask<'T>`, which the engine finds
+by reflection (it cannot reference FSharp.Core). Under Native AOT a
+generic instantiation only exists if the compiler saw one, and nothing
+in a test assembly calls `StartImmediateAsTask<unit>` itself - so
+`EnableAnyUnitRunner` hands ILC `build/FSharpAsync.rd.xml` whenever
+FSharp.Core is referenced, asking for the `unit` and `bool`
+instantiations (an async body with no result, and the engine's
+"returned `false` means Fail"). A test returning some other `Async<T>`
+is reported as an Error naming that file, never silently passed; add
+your own `<RdXmlFile>` for that `T`, or return a `Task`
+(`async { ... } |> Async.StartImmediateAsTask`) instead.
+
+FSharp.Core itself still produces IL2104/IL3053 trim warnings under
+ILC, and so do `AnyUnit.Constraints` and `AnyUnit.Style.Xunit` for now;
+with `TreatWarningsAsErrors` on, `-p:IlcTreatWarningsAsErrors=false`
+keeps those as warnings without touching the C# compiler's own.
 
 ## Other MTP extensions (TRX, and anything else)
 

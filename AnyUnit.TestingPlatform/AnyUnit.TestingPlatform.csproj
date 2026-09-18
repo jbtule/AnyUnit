@@ -82,6 +82,7 @@
   <ItemGroup>
     <None Include="build\AnyUnit.TestingPlatform.props" Pack="true" PackagePath="build\" />
     <None Include="build\AnyUnit.TestingPlatform.targets" Pack="true" PackagePath="build\" />
+    <None Include="build\FSharpAsync.rd.xml" Pack="true" PackagePath="build\" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

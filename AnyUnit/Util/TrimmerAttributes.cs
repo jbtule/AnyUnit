@@ -28,9 +28,12 @@
 // every type and member, so the lookups the analyzer cannot prove are in
 // fact guaranteed. Annotating the parameters instead would only move the
 // warning to the GetTypes() call, whose result the analyzer can never
-// annotate. The one Type that does not come from a test assembly,
-// Task<T>, is kept by a DynamicDependency where it is read
-// (AsyncTestResult.TaskValue). See the README's Native AOT section.
+// annotate. The Types that do not come from a test assembly are handled
+// where they are read: Task<T>.Result and ValueTask.AsTask by a
+// DynamicDependency (AsyncTestResult), and FSharp.Core's generic
+// Async.StartImmediateAsTask by an rd.xml the TestingPlatform targets
+// supply to ILC (see AsyncTestResult.FSharpAsyncToTask). See the
+// README's Native AOT section.
 
 namespace System.Diagnostics.CodeAnalysis
 {
@@ -86,5 +89,10 @@ namespace AnyUnit.Util
         public const string Rooted =
             "The test assembly is rooted by AnyUnit.TestingPlatform.targets (TrimmerRootAssembly), " +
             "which keeps every type and member reflection here can reach - see Util/TrimmerAttributes.cs.";
+
+        // Run/AsyncTestResult.cs's F# Async<'T> bridge - see its own comment.
+        public const string FSharpAsync =
+            "AnyUnit.TestingPlatform.targets supplies ILC the StartImmediateAsTask instantiations via " +
+            "build/FSharpAsync.rd.xml when FSharp.Core is referenced; anything else is a loud Error, not a silent pass.";
     }
 }
