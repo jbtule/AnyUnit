@@ -674,14 +674,17 @@ jobs:
   # (clang here; MSVC on Windows), the image has it, and what ILC does to
   # the IL is the same on every host - same "same information three times
   # over" reasoning as the coverage job. IlcTreatWarningsAsErrors=false
-  # because AnyUnit is not annotated for trimming yet (IL2026/IL2070/
-  # IL2075/IL3050 at ~14 sites, all in AnyUnit itself) and Directory.
-  # Build.props makes warnings errors everywhere; that is the ILC-only
-  # knob, so the C# compiler's own warnings-as-errors still applies to
-  # this publish. Annotating those sites (and then dropping this flag,
-  # and eventually declaring IsAotCompatible) is the follow-up this leg
-  # makes safe to do incrementally. AnyUnitPublishAot rather than a
-  # global PublishAot - see BasicTests.Mtp.csproj for why.
+  # for the one site AnyUnit cannot make trim-clean yet:
+  # AsyncTestResult.FSharpAsyncToTask (Assembly.GetType by name plus
+  # MakeGenericMethod - IL2026/IL2060/IL2075/IL3050), the F# Async<'T>
+  # bridge; every other reflection site carries an
+  # UnconditionalSuppressMessage justified by the TrimmerRootAssembly
+  # (see AnyUnit/Util/TrimmerAttributes.cs). Directory.Build.props makes
+  # warnings errors everywhere, and this is the ILC-only knob, so the C#
+  # compiler's own warnings-as-errors still applies to this publish.
+  # Resolving that F# site and dropping the flag is the follow-up.
+  # AnyUnitPublishAot rather than a global PublishAot - see
+  # BasicTests.Mtp.csproj for why.
   test-aot-mtp:
     runs-on: ubuntu-latest
     steps:

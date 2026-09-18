@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -55,6 +56,12 @@ namespace AnyUnit.Util
             return type.GetMethods(BindingFlags.Instance | BindingFlags.Public);
         }
 
+        // The member-lookup helpers below all take a Type the analyzer
+        // cannot see annotations for (IL2070). Their callers pass either a
+        // type from the rooted test assembly (Fixture.GetFlattenedMethods)
+        // or a BCL type kept by a DynamicDependency in AsyncTestResult
+        // (Task<T>.Result, ValueTask.AsTask) - see Util/TrimmerAttributes.cs.
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static IEnumerable<MethodInfo> GetFlattenedMethods(this Type type, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.FlattenHierarchy
@@ -245,6 +252,7 @@ namespace AnyUnit.Util
             return type.GetTypeInfo().GetInterfaces();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static PropertyInfo InstanceProperty(this Type type, string name, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.Instance ;
@@ -255,6 +263,7 @@ namespace AnyUnit.Util
             return type.GetProperty(name,flags);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
          public static PropertyInfo Property(this Type type, string name, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.Instance 
@@ -266,6 +275,7 @@ namespace AnyUnit.Util
             return type.GetProperty(name,flags);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static MethodInfo Method(this Type type, string name, bool includeNonPublic=false){
             var flags = BindingFlags.Public
                          | BindingFlags.Instance 
@@ -277,10 +287,12 @@ namespace AnyUnit.Util
             return type.GetMethod(name,flags);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
           public static MethodInfo Method(this Type type, string name, Type[] paramArray){
             return type.GetMethod(name,paramArray);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static PropertyInfo StaticProperty(this Type type, string name){
             var flags = BindingFlags.Public
                          | BindingFlags.Static 

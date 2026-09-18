@@ -27,8 +27,10 @@ ordinary "what changed in this version" question the eras don't answer.
   `PublishAot=true`. The targets root the test assembly for the trimmer
   (reflection-discovered fixtures were otherwise trimmed to zero tests),
   and `Task<T>.Result` is kept for async tests (its getter was trimmed,
-  so every async test errored). CI publishes and runs BasicTests.Mtp
-  this way on every build.
+  so every async test errored), and every other reflection site is
+  suppressed on the strength of that rooting, leaving only the F#
+  `Async<'T>` bridge with trim warnings. CI publishes and runs
+  BasicTests.Mtp this way on every build.
 
 ### 1.2.2 - 2026-09-16
 

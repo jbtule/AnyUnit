@@ -75,6 +75,13 @@ namespace AnyUnit.Run
             return TaskValue(task);
         }
 
+        // ValueTask/ValueTask<T>.AsTask() are looked up by name below (see
+        // the comment there for why not a direct reference). Under Native
+        // AOT that lookup only succeeds if the method survived trimming;
+        // these keep it, resolved by name in the target app since this
+        // assembly cannot name the type.
+        [DynamicDependency("AsTask", "System.Threading.Tasks.ValueTask", "System.Runtime")]
+        [DynamicDependency("AsTask", "System.Threading.Tasks.ValueTask`1", "System.Runtime")]
         private static Task ToTask(object result)
         {
             if (result == null)

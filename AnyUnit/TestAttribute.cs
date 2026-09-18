@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -40,6 +41,11 @@ namespace AnyUnit
 
         public override TestParameterSetProducer ParameterSets
         {
+            // IL2075: GetMethod on ParameterMethodSource / the test's own
+            // DeclaringType. ParameterMethodSource is a type the test author
+            // names from inside the test assembly; a type from some other,
+            // unrooted assembly would need its own rooting.
+            [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
             get
             {
                 if (String.IsNullOrEmpty(ParameterMethod))

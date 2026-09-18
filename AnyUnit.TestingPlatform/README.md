@@ -164,13 +164,18 @@ fixtures by reflection, nothing references a test class statically, and
 an unrooted publish trims them all and discovers zero tests. A plain
 build ignores the item.
 
-AnyUnit is not annotated for trimming yet, so ILC reports IL2026/IL2070/
-IL2075/IL3050 warnings from inside AnyUnit itself; with
+AnyUnit's own reflection is trim-clean on that basis (each site is
+suppressed with that justification - see `AnyUnit/Util/
+TrimmerAttributes.cs`), with one exception: the F# `Async<'T>` bridge
+(`AsyncTestResult.FSharpAsyncToTask`) still uses `MakeGenericMethod`,
+so ILC reports IL2026/IL2060/IL2075/IL3050 there. With
 `TreatWarningsAsErrors` on, `-p:IlcTreatWarningsAsErrors=false` keeps
-those as warnings without touching the C# compiler's. CI runs
+those as warnings without touching the C# compiler's. An F# `Async<'T>`
+test with a value-type `'T` may not have its instantiation available
+under AOT; C# `Task`/`Task<T>` tests are fine. CI runs
 `WhoTestsTheTesters/Tests/BasicTests.Mtp` this way on every build
-(`test-aot-mtp`), and the whole suite comes out right, async
-`Task`/`Task<T>` tests included.
+(`test-aot-mtp`), and the whole suite comes out right, async tests
+included.
 
 ## Other MTP extensions (TRX, and anything else)
 

@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -34,6 +35,9 @@ namespace AnyUnit
 
         public override FixtureGenerator Generator
         {
+            // IL2075: GetMethod on TargetOfGenerator, a type the assembly
+            // names in its own [assembly: TestFixtureDiscovery].
+            [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = Trimming.Rooted)]
             get
             {
                 if (String.IsNullOrEmpty(StaticMethodOfGenerator))
