@@ -126,7 +126,10 @@ namespace AnyUnit.Report.Formats
                     collections));
             }
 
-            new XDocument(new XDeclaration("1.0", "UTF-8", null), assemblies).Save(output);
+            // XmlDocumentSave, not XDocument.Save: a test's own output can
+            // contain control characters XML cannot represent - see that
+            // class.
+            XmlDocumentSave.Save(new XDocument(new XDeclaration("1.0", "UTF-8", null), assemblies), output);
         }
 
         private static string ToXunitResult(ResultKind kind)

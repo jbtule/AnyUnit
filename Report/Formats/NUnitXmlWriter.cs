@@ -58,7 +58,10 @@ namespace AnyUnit.Report.Formats
                 new XAttribute("skipped", allEntries.Count(e => e.Result.Kind == ResultKind.Ignore)),
                 assemblySuites);
 
-            new XDocument(new XDeclaration("1.0", "UTF-8", null), testRun).Save(output);
+            // XmlDocumentSave, not XDocument.Save: a test's own output can
+            // contain control characters XML cannot represent - see that
+            // class.
+            XmlDocumentSave.Save(new XDocument(new XDeclaration("1.0", "UTF-8", null), testRun), output);
         }
 
         private static XElement BuildSuite(string type, string name, string fullName, System.Collections.Generic.List<TestCaseEntry> entries, object children)
