@@ -15,6 +15,15 @@
     <EnableAnyUnitRunner>true</EnableAnyUnitRunner>
   </PropertyGroup>
 
+  <!-- Native AOT opt-in for build.yml's test-aot-mtp job - see
+       BasicTests.Mtp.csproj's own copy of this for why not a global
+       PublishAot. FSharp.Core's own trim/AOT analysis summary codes are
+       NoWarn'd, as in FsUnitTests.Mtp. -->
+  <PropertyGroup Condition="'$(AnyUnitPublishAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+    <NoWarn>$(NoWarn);IL2104;IL3053</NoWarn>
+  </PropertyGroup>
+
   <Import Project="..\..\..\..\AnyUnit.TestingPlatform\build\AnyUnit.TestingPlatform.props" />
 
   <ItemGroup>

@@ -80,6 +80,28 @@ module Expect =
     let private ok () =
         Ambient.get().Okay()
 
+    /// `%A`, kept working under Native AOT.
+    ///
+    /// FSharp.Core's printf builds a converter per formatted type through
+    /// MakeGenericMethod, and ILC compiles a generic instantiation only
+    /// where it saw one statically - so `%A` (or `%d`) on a VALUE type
+    /// throws NotSupportedException ("is missing native code") there,
+    /// while reference types go through shared generics and work.
+    /// Confirmed directly: under PublishAot every FAILING Expecto test
+    /// comparing ints was reported Error, message and all, instead of
+    /// Fail - passing ones were unaffected, since nothing formats a
+    /// message for them.
+    ///
+    /// Boxing first makes the instantiation `obj` every time, which
+    /// works. It costs some structure under AOT - a union case prints as
+    /// `Blue` rather than `Blue 7`, a tuple as `()` - because `%A`'s
+    /// structured printing reads F# metadata ILC has trimmed; a real Fail
+    /// with a plainer message still beats an Error with none. Only AOT
+    /// pays: under a JIT runtime this is the unboxed `%A` it always was,
+    /// character for character (verified against both).
+    let private fmt (x: 'a) : string =
+        if AnyUnit.Util.Utility.IsFrameworkTrimmed then sprintf "%A" (box x) else sprintf "%A" x
+
     /// `Expect.equal actual expected message`
     ///
     /// F#'s `=`, not Object.Equals: the two differ on exactly the values a
@@ -92,11 +114,11 @@ module Expect =
     /// Expecto's own `equal` is `=`, so this is also the fidelity fix.
     let equal (actual: 'a) (expected: 'a) (message: string) =
         if actual = expected then ok ()
-        else fail (sprintf "%s. Expected %A but got %A." message expected actual)
+        else fail (sprintf "%s. Expected %s but got %s." message (fmt expected) (fmt actual))
 
     let notEqual (actual: 'a) (expected: 'a) (message: string) =
         if actual = expected then
-            fail (sprintf "%s. Expected a value other than %A." message expected)
+            fail (sprintf "%s. Expected a value other than %s." message (fmt expected))
         else ok ()
 
     let isTrue (actual: bool) (message: string) =
@@ -112,7 +134,7 @@ module Expect =
     let private isNullRef (value: obj) = Object.ReferenceEquals(value, null)
 
     let isNull (actual: obj) (message: string) =
-        if isNullRef actual then ok () else fail (sprintf "%s. Expected null but got %A." message actual)
+        if isNullRef actual then ok () else fail (sprintf "%s. Expected null but got %s." message (fmt actual))
 
     let isNotNull (actual: obj) (message: string) =
         if isNullRef actual then fail (sprintf "%s. Expected a value, got null." message) else ok ()
@@ -125,17 +147,17 @@ module Expect =
     let isNone (actual: 'a option) (message: string) =
         match actual with
         | None -> ok ()
-        | Some v -> fail (sprintf "%s. Expected None, got Some %A." message v)
+        | Some v -> fail (sprintf "%s. Expected None, got Some %s." message (fmt v))
 
     let isOk (actual: Result<'a, 'b>) (message: string) =
         match actual with
         | Ok _ -> ok ()
-        | Error e -> fail (sprintf "%s. Expected Ok, got Error %A." message e)
+        | Error e -> fail (sprintf "%s. Expected Ok, got Error %s." message (fmt e))
 
     let isError (actual: Result<'a, 'b>) (message: string) =
         match actual with
         | Error _ -> ok ()
-        | Ok v -> fail (sprintf "%s. Expected Error, got Ok %A." message v)
+        | Ok v -> fail (sprintf "%s. Expected Error, got Ok %s." message (fmt v))
 
     let isEmpty (actual: seq<'a>) (message: string) =
         if Seq.isEmpty actual then ok ()
@@ -143,28 +165,28 @@ module Expect =
 
     let isGreaterThan (actual: 'a) (expected: 'a) (message: string) =
         if compare actual expected > 0 then ok ()
-        else fail (sprintf "%s. Expected %A to be greater than %A." message actual expected)
+        else fail (sprintf "%s. Expected %s to be greater than %s." message (fmt actual) (fmt expected))
 
     let isLessThan (actual: 'a) (expected: 'a) (message: string) =
         if compare actual expected < 0 then ok ()
-        else fail (sprintf "%s. Expected %A to be less than %A." message actual expected)
+        else fail (sprintf "%s. Expected %s to be less than %s." message (fmt actual) (fmt expected))
 
     let stringContains (actual: string) (substring: string) (message: string) =
         if not (isNullRef actual) && actual.Contains(substring) then ok ()
-        else fail (sprintf "%s. Expected %A to contain %A." message actual substring)
+        else fail (sprintf "%s. Expected %s to contain %s." message (fmt actual) (fmt substring))
 
     let sequenceEqual (actual: seq<'a>) (expected: seq<'a>) (message: string) =
         let a = List.ofSeq actual
         let e = List.ofSeq expected
         if a = e then ok ()
-        else fail (sprintf "%s. Expected %A but got %A." message e a)
+        else fail (sprintf "%s. Expected %s but got %s." message (fmt e) (fmt a))
 
     /// `Expect.contains actual element message` - the sequence holds the element.
     /// Found missing by porting a real Expecto suite (cwtools), along with
     /// the three below it.
     let contains (actual: seq<'a>) (element: 'a) (message: string) =
         if actual |> Seq.exists (fun x -> x = element) then ok ()
-        else fail (sprintf "%s. Expected the sequence to contain %A." message element)
+        else fail (sprintf "%s. Expected the sequence to contain %s." message (fmt element))
 
     let isNonEmpty (actual: seq<'a>) (message: string) =
         if Seq.isEmpty actual then fail (sprintf "%s. Expected a non-empty sequence." message)
@@ -174,7 +196,7 @@ module Expect =
     let hasLength (actual: seq<'a>) (expected: int) (message: string) =
         let n = Seq.length actual
         if n = expected then ok ()
-        else fail (sprintf "%s. Expected length %d but got %d." message expected n)
+        else fail (sprintf "%s. Expected length %s but got %s." message (string expected) (string n))
 
     /// `Expect.hasCountOf actual expected selector message` - exactly
     /// `expected` elements satisfy `selector`. Expecto's own signature
@@ -183,13 +205,13 @@ module Expect =
     let hasCountOf (actual: seq<'a>) (expected: uint32) (selector: 'a -> bool) (message: string) =
         let n = actual |> Seq.filter selector |> Seq.length |> uint32
         if n = expected then ok ()
-        else fail (sprintf "%s. Expected %d matching elements but found %d." message expected n)
+        else fail (sprintf "%s. Expected %s matching elements but found %s." message (string expected) (string n))
 
     /// Every element satisfies the predicate.
     let all (actual: seq<'a>) (predicate: 'a -> bool) (message: string) =
         match actual |> Seq.tryFind (predicate >> not) with
         | None -> ok ()
-        | Some bad -> fail (sprintf "%s. %A did not satisfy the predicate." message bad)
+        | Some bad -> fail (sprintf "%s. %s did not satisfy the predicate." message (fmt bad))
 
     /// `Expect.throws f message` - f must raise something.
     let throws (f: unit -> unit) (message: string) =
@@ -256,12 +278,12 @@ module Expect =
     let wantOk (actual: Result<'a, 'b>) (message: string) : 'a =
         match actual with
         | Ok v -> ok (); v
-        | Error e -> failtest (sprintf "%s. Expected Ok, got Error %A." message e)
+        | Error e -> failtest (sprintf "%s. Expected Ok, got Error %s." message (fmt e))
 
     let wantError (actual: Result<'a, 'b>) (message: string) : 'b =
         match actual with
         | Error e -> ok (); e
-        | Ok v -> failtest (sprintf "%s. Expected Error, got Ok %A." message v)
+        | Ok v -> failtest (sprintf "%s. Expected Error, got Ok %s." message (fmt v))
 
     let wantSome (actual: 'a option) (message: string) : 'a =
         match actual with

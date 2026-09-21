@@ -108,6 +108,32 @@ AnyUnit has its own runners, which is the point of the exercise.
 design, so Expecto's default parallelism (and `Sequenced`/`ParallelWith`)
 has nothing to configure.
 
+## Native AOT
+
+`Expect`'s own failure messages work: they are built without handing a
+value type to FSharp.Core's `printf`, which under Native AOT throws
+`NotSupportedException` ("is missing native code") because it needs a
+generic instantiation per formatted type and the compiler produced none.
+Before that fix every *failing* Expecto test under `PublishAot` was
+reported `Error` rather than `Fail` - passing ones were unaffected, since
+nothing formats a message for them. CI publishes and runs this suite as
+a native executable on every build.
+
+A format string in your own test code is still yours to get right:
+
+```fsharp
+// throws under Native AOT - %A on an int
+Tests.failtestf "Expected Ok(%A), was Ok(%A)." expected actual
+
+// works everywhere - convert first, then %s
+Tests.failtest (sprintf "Expected Ok(%s), was Ok(%s)." (string expected) (string actual))
+```
+
+Reference types (lists, arrays, records, strings) go through shared
+generics and format normally either way; `%A` on them under AOT prints
+less structure than on a JIT runtime, because the F# metadata its
+structured printing reads has been trimmed.
+
 ## Custom helpers, `Expect.pass`, and an escape hatch
 
 Expecto's idiom for a custom assertion is "throw on failure, do nothing
@@ -120,6 +146,10 @@ let hasOkValue v x =
     | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
     | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
 ```
+
+(`failtestf` is Expecto's own idiom and is kept verbatim here; see
+[Native AOT](#native-aot) for the one platform where a format string
+in your own code needs care.)
 
 Expecto has no assert count, so that's fine there. Under AnyUnit, a
 success path that does nothing is indistinguishable from a test that

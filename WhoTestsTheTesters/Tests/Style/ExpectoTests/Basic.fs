@@ -199,19 +199,28 @@ let asyncTests =
 // A custom helper in Expecto's own idiom: throws on failure, does
 // nothing on success. Under AnyUnit that success path is indistinguishable
 // from asserting nothing - unless it registers itself with Expect.pass.
+//
+// `failtest (sprintf "%s")` over already-converted strings, not the more
+// natural `failtestf "%A"`: failtestf hands the format straight to
+// FSharp.Core's printf, and under Native AOT printf throws for a VALUE
+// type ("is missing native code" - it needs a generic instantiation ILC
+// compiled nowhere). AnyUnit's own Expect messages handle this
+// internally (see AnyUnit.Style.Expecto's Expect.fmt), but a format
+// string in a TEST's own code is the test's to get right - this is what
+// that looks like, and why test-aot-mtp can run this suite at all.
 let private hasOkValue v x =
     match x with
     | Ok x when x = v -> Expect.pass ()
-    | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
-    | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+    | Ok x -> Tests.failtest (sprintf "Expected Ok(%s), was Ok(%s)." (string v) (string x))
+    | Error x -> Tests.failtest (sprintf "Expected Ok, was Error(%s)." (string x))
 
 // The same helper WITHOUT Expect.pass - the shape a real ported suite has
 // before any cleanup.
 let private hasOkValueSilent v x =
     match x with
     | Ok x when x = v -> ()
-    | Ok x -> Tests.failtestf "Expected Ok(%A), was Ok(%A)." v x
-    | Error x -> Tests.failtestf "Expected Ok, was Error(%A)." x
+    | Ok x -> Tests.failtest (sprintf "Expected Ok(%s), was Ok(%s)." (string v) (string x))
+    | Error x -> Tests.failtest (sprintf "Expected Ok, was Error(%s)." (string x))
 
 [<Tests>]
 let helpers =

@@ -684,11 +684,21 @@ jobs:
   # UnconditionalSuppressMessage justified by the TrimmerRootAssembly or
   # the F# rd.xml (see AnyUnit/Util/TrimmerAttributes.cs) - so a new
   # trim-unsafe site fails this job rather than becoming a warning nobody
-  # reads. (FsUnitTests.Mtp NoWarns FSharp.Core's own two per-assembly
-  # summary codes; see its csproj.) AnyUnitPublishAot rather than a
-  # global PublishAot - see BasicTests.Mtp.csproj for why. ComboTests/
-  # ExpectoTests/FSharpTests are not here: their hosts are .fsproj, and
-  # F# under PublishAot is FSharp.Core's own story, not this repo's.
+  # reads. (The F# legs NoWarn FSharp.Core's own two per-assembly summary
+  # codes; see FsUnitTests.Mtp.csproj.) AnyUnitPublishAot rather than a
+  # global PublishAot - see BasicTests.Mtp.csproj for why.
+  #
+  # The .fsproj-hosted payloads are here too. What AnyUnit owns was two
+  # fixes: a style discovering tests by a static property's TYPE reached
+  # Type.GetProperties directly (AnyUnit.Style.FSharp/Expecto), which now
+  # goes through Utility.StaticProperties like every other reflection
+  # helper; and AnyUnit.Style.Expecto built every failure message with
+  # sprintf "%A", which throws under AOT for a value type - see
+  # Expect.fmt. What AnyUnit does not own is a format string in a TEST's
+  # own code: FSharp.Core's printf needs a generic instantiation per
+  # formatted value type and ILC compiles none, so `failtestf "%A" 1`
+  # throws wherever it appears. ExpectoTests' own helpers show the
+  # workaround (convert, then "%s").
   test-aot-mtp:
     strategy:
       fail-fast: false
@@ -710,6 +720,12 @@ jobs:
             exe: MsTestTests
           - project: WhoTestsTheTesters/Tests/Style/FsUnitTests.Mtp
             exe: FsUnitTests.Mtp
+          - project: WhoTestsTheTesters/Tests/Style/FSharpTests.Mtp
+            exe: FSharpTests.Mtp
+          - project: WhoTestsTheTesters/Tests/Style/ExpectoTests.Mtp
+            exe: ExpectoTests.Mtp
+          - project: WhoTestsTheTesters/Tests/Style/ComboTests.FSharp.Mtp
+            exe: ComboTests.FSharp.Mtp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

@@ -37,8 +37,13 @@ open AnyUnit.Style.FSharp.Test
 // TYPE (Test) instead, the same way "the value IS the test" already
 // works throughout Test.fs/Runner.fs.
 
+// StaticProperties (AnyUnit.Util) rather than t.GetProperties directly,
+// the same way testMethods below goes through GetFlattenedMethods: the
+// core's helper carries the trimming suppression this reflection needs
+// under Native AOT, and an .fsproj cannot compile the internal attribute
+// copies to declare one here. Same flags either way.
 let private testProperties (t: Type) =
-    t.GetProperties(BindingFlags.Public ||| BindingFlags.Static ||| BindingFlags.FlattenHierarchy)
+    t.StaticProperties()
     |> Seq.filter (fun p -> p.PropertyType = typeof<Test> && p.GetIndexParameters().Length = 0 && p.GetGetMethod() <> null)
 
 /// The other, equally idiomatic way to write a plain (non-data) test:
