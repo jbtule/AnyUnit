@@ -196,7 +196,10 @@ namespace AnyUnit.Report.Formats
                     new XAttribute("outcome", overallOutcome),
                     counters));
 
-            new XDocument(new XDeclaration("1.0", "UTF-8", null), testRun).Save(output);
+            // XmlDocumentSave, not XDocument.Save: a test's own output can
+            // contain control characters XML cannot represent - see that
+            // class.
+            XmlDocumentSave.Save(new XDocument(new XDeclaration("1.0", "UTF-8", null), testRun), output);
         }
 
         // Fixture-level properties first, then the test's own, so a test

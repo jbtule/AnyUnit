@@ -37,6 +37,10 @@
 
 namespace System.Diagnostics.CodeAnalysis
 {
+    // ExcludeFromCodeCoverage on both: these exist for the trimmer to read
+    // out of metadata at publish time and are never constructed at run
+    // time, so nothing can ever execute them.
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     internal sealed class DynamicDependencyAttribute : Attribute
     {
@@ -64,6 +68,7 @@ namespace System.Diagnostics.CodeAnalysis
         public string AssemblyName { get; }
     }
 
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
     internal sealed class UnconditionalSuppressMessageAttribute : Attribute
     {

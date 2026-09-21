@@ -82,7 +82,10 @@ namespace AnyUnit.Report.Formats
                 testsuites.Add(testsuite);
             }
 
-            new XDocument(new XDeclaration("1.0", "UTF-8", null), testsuites).Save(output);
+            // XmlDocumentSave, not XDocument.Save: a test's own output can
+            // contain control characters XML cannot represent - see that
+            // class.
+            XmlDocumentSave.Save(new XDocument(new XDeclaration("1.0", "UTF-8", null), testsuites), output);
         }
 
         // <failure message="…" type="…">body</failure> - message is the

@@ -47,6 +47,21 @@ ordinary "what changed in this version" question the eras don't answer.
   where an unused framework member is trimmed and reflection truthfully
   reports it missing; declared, the test is reported Ignored there.
 
+- `anyunit-report` no longer aborts when a test's log, message or stack
+  trace contains a control character. JSON carries them fine and XML 1.0
+  cannot represent them at all, so all four XML formats (junit, trx,
+  nunit, xunit) died mid-write with an unhandled exception and a
+  half-written file; those characters are now stripped on the way out.
+- `[assembly: TestFixtureDiscovery(TargetOfGenerator, StaticMethodOfGenerator)]`
+  works: it looked the generator method up with a `Type` parameter while
+  calling it with the `Assembly` the `FixtureGenerator` delegate takes,
+  so no real generator was ever found and discovery threw. Found by
+  BasicTests growing a suite of engine-path tests (custom discovery, a
+  throwing Dispose/one-time setup/SetUpFixture, a returned
+  `IReturnedResult`, a per-row `IgnoreReason`, `TestFilter`, and log
+  output exercising every JSON escape), which take the core's line
+  coverage from 78% to 88%.
+
 ### 1.2.2 - 2026-09-16
 
 - F# test projects work on browser-wasm through MTP under node/bun. The
