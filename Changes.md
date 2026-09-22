@@ -11,6 +11,14 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ### 1.2.3 - in development
 
+- `TestDelegate` and `ActualValueDelegate` move from
+  `AnyUnit.Constraints.Pieces` up to `AnyUnit.Constraints`. Both are
+  named in test code - `Assert.That(code, Throws...)`, `Assert.Throws<T>`
+  - so they belong in the namespace a test author already imports, as
+  real NUnit puts them in `NUnit.Framework`; `Pieces` is the constraint
+  implementations. Breaking for anyone who imported `Pieces` to name
+  them: drop that `using`, the recipe's `using AnyUnit.Constraints;`
+  now covers it.
 - `AnyUnit.Style.Nunit` gains NUnit's *classic* assertion model -
   `AreEqual`, `AreNotEqual`, `AreSame`, `AreNotSame`, `IsTrue`/`True`,
   `IsFalse`/`False`, `IsNull`/`Null`, `IsNotNull`/`NotNull`, `Greater`,

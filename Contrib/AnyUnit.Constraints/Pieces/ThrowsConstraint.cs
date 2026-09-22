@@ -8,7 +8,6 @@ using System;
 
 namespace AnyUnit.Constraints.Pieces
 {
-    public delegate void TestDelegate();
 
     #region ThrowsConstraint
     /// <summary>

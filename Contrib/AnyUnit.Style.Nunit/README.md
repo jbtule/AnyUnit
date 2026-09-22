@@ -10,7 +10,10 @@ for attribution).
 
 Moving an existing NUnit test project onto this is usually a
 `PackageReference` swap, not a source rewrite - `using NUnit.Framework;`
-becomes `using AnyUnit.Run; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`,
+becomes `using AnyUnit.Run; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`
+(that last one also covers `TestDelegate`; `AnyUnit.AssertionException`
+wants writing out in full, since importing the `AnyUnit` namespace makes
+`[Test]`/`[TestFixture]` ambiguous with the core's own attributes),
 and a fixture class needs to derive `AssertionHelper` for its `Assert`/
 `Log` to resolve. Once it does, `Assert.That(...)` and every other call
 inside an ordinary test method carries over completely unchanged - it's

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AnyUnit.Style.Nunit;
-using AnyUnit.Constraints.Pieces;
+using AnyUnit.Constraints;
 
 namespace NunitTests
 {
