@@ -156,8 +156,13 @@ type private ExpectoFixture(type_: Type, name: string, getter: MethodInfo, leave
 /// lands on the compiler-generated property, and is simply absent from the
 /// getter - confirmed directly, and documented at length in
 /// AnyUnit.Style.FSharp's Discovery.fs for the same reason.
+// StaticProperties (AnyUnit.Util), not t.GetProperties directly: the
+// core's helper carries the trimming suppression this needs under Native
+// AOT, and an .fsproj cannot compile the internal attribute copies to
+// declare one here. Same flags either way. See AnyUnit.Style.FSharp's
+// own testProperties.
 let private testProperties (t: Type) =
-    t.GetProperties(BindingFlags.Public ||| BindingFlags.Static ||| BindingFlags.FlattenHierarchy)
+    t.StaticProperties()
     |> Seq.filter (fun p ->
         p.PropertyType = typeof<Tree>
         && p.GetIndexParameters().Length = 0

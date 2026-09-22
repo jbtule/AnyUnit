@@ -22,7 +22,6 @@ ordinary "what changed in this version" question the eras don't answer.
   Absent on single-threaded browser-wasm, where such a wait hangs the
   run and nothing can interrupt it; declared, the test is reported
   Ignored there.
-
 - Native AOT: an `EnableAnyUnitRunner` project publishes and runs with
   `PublishAot=true`. The targets root the test assembly for the trimmer
   (reflection-discovered fixtures were otherwise trimmed to zero tests),
@@ -46,7 +45,16 @@ ordinary "what changed in this version" question the eras don't answer.
   name over a *framework* type it does not own. Absent under Native AOT,
   where an unused framework member is trimmed and reflection truthfully
   reports it missing; declared, the test is reported Ignored there.
-
+- F# test projects work under Native AOT: `AnyUnit.Style.FSharp` and
+  `AnyUnit.Style.Expecto` discover static-property tests through the
+  core's reflection helper rather than `Type.GetProperties` directly,
+  and `AnyUnit.Style.Expecto`'s failure messages no longer go through
+  `sprintf "%A"` on a value type, which throws there (FSharp.Core's
+  printf needs a generic instantiation per formatted type and Native AOT
+  compiles none). A format string in a test's own code is still the
+  test's to get right - convert, then `%s`. CI now publishes and runs
+  all nine C#- and F#-hosted `*.Mtp` self-test projects as native
+  executables.
 - `anyunit-report` no longer aborts when a test's log, message or stack
   trace contains a control character. JSON carries them fine and XML 1.0
   cannot represent them at all, so all four XML formats (junit, trx,

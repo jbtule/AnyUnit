@@ -314,6 +314,22 @@ namespace AnyUnit.Util
         }
 
         [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
+        // The plural of StaticProperty below, and the property twin of
+        // GetFlattenedMethods: a style that discovers tests by the TYPE of
+        // a static property rather than by an attribute (AnyUnit.Style.
+        // FSharp's `let myTest = test { ... }`) needs the whole list. Here
+        // rather than at that call site because the suppression and its
+        // reasoning belong with every other reflection helper - and an
+        // .fsproj cannot compile the internal attribute copies the
+        // suppression needs anyway (they are C#).
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
+        public static IEnumerable<PropertyInfo> StaticProperties(this Type type){
+            return type.GetProperties(BindingFlags.Public
+                                      | BindingFlags.Static
+                                      | BindingFlags.FlattenHierarchy);
+        }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = Trimming.Rooted)]
         public static PropertyInfo StaticProperty(this Type type, string name){
             var flags = BindingFlags.Public
                          | BindingFlags.Static 
