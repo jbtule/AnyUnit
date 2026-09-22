@@ -208,6 +208,28 @@ namespace AnyUnit.Style.Nunit
             }
         }
 
+        // --- exact-arity overloads -----------------------------------------------------------
+        //
+        // A method group converts to a delegate only through an overload whose signature matches
+        // exactly: an optional parameter or a `params` tail does not count. Real NUnit has these,
+        // so `new Action<bool>(Assert.IsFalse)` and `new Action(Assert.Fail)` compile there.
+
+        /// <summary>Verifies that a condition is true. Exact arity, for a method group.</summary>
+        public static void IsTrue(this IAssert assert, bool condition)
+            => Check(assert, condition, Is.True, null, null);
+
+        /// <summary>Verifies that a condition is false. Exact arity, for a method group.</summary>
+        public static void IsFalse(this IAssert assert, bool condition)
+            => Check(assert, condition, Is.False, null, null);
+
+        /// <summary>Verifies that two values are equal. Exact arity, for a method group.</summary>
+        public static void AreEqual(this IAssert assert, object expected, object actual)
+            => Check(assert, actual, Is.EqualTo(expected), null, null);
+
+        /// <summary>Fails the test. Exact arity, for a method group.</summary>
+        public static void Fail(this IAssert assert)
+            => assert.Fail(null, ExcludeFromStack);
+
         // --- outcomes ------------------------------------------------------------------------
 
         /// <summary>Marks the test as passed without a further check.</summary>

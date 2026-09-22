@@ -31,7 +31,10 @@ ordinary "what changed in this version" question the eras don't answer.
   Equality is NUnit's, through `Is.EqualTo` and `NUnitEqualityComparer`,
   so `AreEqual(1, 1L)` passes as it does in NUnit; `Throws<T>` returns
   the caught exception. The README listed these as covered before they
-  existed.
+  existed. Exact-arity overloads (`IsTrue(bool)`, `IsFalse(bool)`,
+  `AreEqual(object, object)`, `Fail()`) are there so a method group
+  converts - `new Action(Assert.Fail)` - which an optional parameter or
+  a `params` tail otherwise prevents.
 
 - `dotnet run` on a browser-wasm test project runs the tests under bun
   (or node) through its JS harness instead of launching the wasm SDK's
