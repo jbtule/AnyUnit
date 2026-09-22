@@ -10,7 +10,10 @@ for attribution).
 
 Moving an existing NUnit test project onto this is usually a
 `PackageReference` swap, not a source rewrite - `using NUnit.Framework;`
-becomes `using AnyUnit.Run; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`,
+becomes `using AnyUnit.Run; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`
+(that last one also covers `TestDelegate`; `AnyUnit.AssertionException`
+wants writing out in full, since importing the `AnyUnit` namespace makes
+`[Test]`/`[TestFixture]` ambiguous with the core's own attributes),
 and a fixture class needs to derive `AssertionHelper` for its `Assert`/
 `Log` to resolve. Once it does, `Assert.That(...)` and every other call
 inside an ordinary test method carries over completely unchanged - it's
@@ -32,8 +35,15 @@ but narrow case, not something ordinary test methods ever run into.
 - `[Values]` / `[ValueSource]` / `[Range]` / `[Random]`
 - `[Ignore]`, `[Category]`, `[Property]`, `[Author]`, `[Description]`, `[Platform]`, `[Timeout]`
 - `ITestAction` (method/fixture-level before/after hooks)
-- `Assert.That`/`Assert.AreEqual`/classic-model asserts, `Is`/`Has`/`Does`/
-  `Throws` constraints (via [`AnyUnit.Constraints`](../AnyUnit.Constraints))
+- `Assert.That` and the `Is`/`Has`/`Does`/`Throws` constraints (via
+  [`AnyUnit.Constraints`](../AnyUnit.Constraints)), and the classic
+  model over the same constraints: `AreEqual`, `AreNotEqual`, `AreSame`,
+  `AreNotSame`, `IsTrue`, `IsFalse`, `IsNull`, `IsNotNull`, `NotNull`,
+  `Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual`, `Zero`, `NotZero`,
+  `IsInstanceOf<T>`, `IsNotInstanceOf<T>`, `IsEmpty`, `IsNotEmpty`,
+  `Contains`, `Throws<T>`, `Catch<T>`, `DoesNotThrow`, `Pass`.
+  `AreEqual` is NUnit's equality, so `AreEqual(1, 1L)` passes; `Throws<T>`
+  returns the caught exception to assert on
 
 ## Not covered
 

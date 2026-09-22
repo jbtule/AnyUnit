@@ -10,7 +10,6 @@ namespace AnyUnit.Constraints.Pieces
     /// Delegate used to delay evaluation of the actual value
     /// to be used in evaluating a constraint
     /// </summary>
-    public delegate object ActualValueDelegate();
     
     /// <summary>
     /// The Constraint class is the base of all built-in constraints

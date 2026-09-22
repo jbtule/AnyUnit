@@ -11,6 +11,31 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ### 1.2.3 - in development
 
+- `TestDelegate` and `ActualValueDelegate` move from
+  `AnyUnit.Constraints.Pieces` up to `AnyUnit.Constraints`. Both are
+  named in test code - `Assert.That(code, Throws...)`, `Assert.Throws<T>`
+  - so they belong in the namespace a test author already imports, as
+  real NUnit puts them in `NUnit.Framework`; `Pieces` is the constraint
+  implementations. Breaking for anyone who imported `Pieces` to name
+  them: drop that `using`, the recipe's `using AnyUnit.Constraints;`
+  now covers it.
+- `AnyUnit.Style.Nunit` gains NUnit's *classic* assertion model -
+  `AreEqual`, `AreNotEqual`, `AreSame`, `AreNotSame`, `IsTrue`/`True`,
+  `IsFalse`/`False`, `IsNull`/`Null`, `IsNotNull`/`NotNull`, `Greater`,
+  `GreaterOrEqual`, `Less`, `LessOrEqual`, `Zero`, `NotZero`,
+  `IsInstanceOf<T>`, `IsNotInstanceOf<T>`, `IsEmpty`, `IsNotEmpty`,
+  `Contains`, `Throws<T>`, `Throws`, `Catch<T>`, `Catch`, `DoesNotThrow`,
+  `Pass` - as extension methods on `IAssert`, so an existing suite
+  written against it compiles unchanged inside an `AssertionHelper`
+  fixture (and reads `Assert.Current.AreEqual(...)` outside one).
+  Equality is NUnit's, through `Is.EqualTo` and `NUnitEqualityComparer`,
+  so `AreEqual(1, 1L)` passes as it does in NUnit; `Throws<T>` returns
+  the caught exception. The README listed these as covered before they
+  existed. Exact-arity overloads (`IsTrue(bool)`, `IsFalse(bool)`,
+  `AreEqual(object, object)`, `Fail()`) are there so a method group
+  converts - `new Action(Assert.Fail)` - which an optional parameter or
+  a `params` tail otherwise prevents.
+
 - `dotnet run` on a browser-wasm test project runs the tests under bun
   (or node) through its JS harness instead of launching the wasm SDK's
   dev server and a browser. `dotnet test` cannot follow (it needs a
