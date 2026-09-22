@@ -59,7 +59,7 @@ module Builders =
     /// Attribute-based styles write [RequiresCapability(...)] instead;
     /// this style has no method or class to attach one to, so the
     /// requirement composes into the tree like everything else here.
-    let requires (capability: AnyUnit.Run.TestCapabilities) (test: Test) =
+    let requires (capability: AnyUnit.TestCapabilities) (test: Test) =
         TestRequires(capability, test)
 
     /// Unconditional failure, as Expecto's own top-level `failtest`/`failtestf`.

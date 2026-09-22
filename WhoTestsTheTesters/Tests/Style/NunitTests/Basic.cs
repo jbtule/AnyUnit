@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AnyUnit.Run;
-using AnyUnit.Run.Attributes;
+using AnyUnit;
 using AnyUnit.Style.Nunit;
 
 namespace NunitTests
@@ -40,7 +39,7 @@ namespace NunitTests
             while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
-                Test.Sleep(100);
+                AnyUnit.Run.Test.Sleep(100);
             }
         }
 
@@ -52,7 +51,7 @@ namespace NunitTests
             while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
-                Test.Sleep(100);
+                AnyUnit.Run.Test.Sleep(100);
             }
         }
 
@@ -64,7 +63,7 @@ namespace NunitTests
             while ((DateTime.Now - start).Seconds < 30)
             {
                 Assert.Okay();
-                Test.Sleep(100);
+                AnyUnit.Run.Test.Sleep(100);
             }
         }
 

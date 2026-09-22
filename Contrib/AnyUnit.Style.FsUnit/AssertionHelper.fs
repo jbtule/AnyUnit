@@ -3,7 +3,7 @@
 open AnyUnit.Constraints.Pieces
 
 type AssertionHelper () = 
-    inherit AnyUnit.AssertionHelper ()
+    inherit AnyUnit.Run.AssertionHelper ()
     static do
         AnyUnit.Constraints.AssertEx.ExcludeFromStack.Add(sprintf "at %s." typeof<AssertionHelper>.FullName)
         AnyUnit.Constraints.AssertEx.ExcludeFromStack.Add("at AnyUnit.Style.FsUnit.TopLevelOperators.")

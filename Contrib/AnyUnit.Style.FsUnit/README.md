@@ -4,14 +4,38 @@
 [AnyUnit](https://github.com/jbtule/AnyUnit) - `x |> should equal y`-shaped
 assertions, on top of [`AnyUnit.Constraints`](../AnyUnit.Constraints)'
 constraint model. Assertions only - pair this with
-[`AnyUnit.Style.Nunit`](../AnyUnit.Style.Nunit) or a similar attribute
-style for `[Test]`/`[TestFixture]` discovery.
+[`AnyUnit.Style.Nunit`](../AnyUnit.Style.Nunit), or the core's own
+`AnyUnit.Style.Core`, for `[<Test>]`/`[<TestFixture>]` discovery.
+
+
+## F#: `open` order matters
+
+F# has no C# `CS0104`. When two opened namespaces export the same simple
+name the **last `open` wins, silently** - no error, no warning. Put the
+style's `open` where it will not be shadowed:
+
+```fsharp
+open AnyUnit                // exceptions, TestCapabilities, [<RequiresCapability>]
+open AnyUnit.Constraints
+open AnyUnit.Style.Nunit    // the attribute style - LAST
+```
+
+Opening two *attribute* styles at once (`AnyUnit.Style.Nunit` and
+`AnyUnit.Style.Core`, say, or `.Nunit` and `.MsTest`, which all export an
+`AssertionHelper`) is the case to avoid: whichever comes last provides
+`[<Test>]`/`[<TestFixture>]`, and since each style's own
+`TestAttribute.TestInvoke` is what dispatches that style's `[<SetUp>]`/
+`[<TearDown>]`/`[<Ignore>]`, picking up the wrong one stops a fixture's
+setup and teardown running with nothing to say so. Before 1.3.0 this
+could happen by accident, because the core's built-in style shared the
+`AnyUnit` namespace with the exception types; it now lives in
+`AnyUnit.Style.Core` (#66). `ComboTests.FSharp/OpenOrder.fs` pins it.
 
 ## Usage
 
 A test fixture derives `AssertionHelper` (this package's own, not
 `AnyUnit.Style.Nunit`'s - both ultimately derive the same core
-`AnyUnit.AssertionHelper`, so its `should`/`shouldFail` still resolve
+`AnyUnit.Run.AssertionHelper`, so its `should`/`shouldFail` still resolve
 correctly against whichever style's `Assert` the fixture ends up with)
 for the instance-scoped `this.should`/`this.shouldFail`:
 

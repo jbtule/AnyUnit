@@ -2,6 +2,7 @@
 module BowlingGame.``A game of bowling``
 
 open AnyUnit
+open AnyUnit.Style.Core
 open AnyUnit.Style.Xunit
 open AnyUnit.Style.FsUnit
 

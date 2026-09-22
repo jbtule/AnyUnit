@@ -10,12 +10,18 @@ for attribution).
 
 Moving an existing NUnit test project onto this is usually a
 `PackageReference` swap, not a source rewrite - `using NUnit.Framework;`
-becomes `using AnyUnit.Run; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`
-(that last one also covers `TestDelegate`; `AnyUnit.AssertionException`
-wants writing out in full, since importing the `AnyUnit` namespace makes
-`[Test]`/`[TestFixture]` ambiguous with the core's own attributes),
-and a fixture class needs to derive `AssertionHelper` for its `Assert`/
-`Log` to resolve. Once it does, `Assert.That(...)` and every other call
+becomes `using AnyUnit; using AnyUnit.Style.Nunit; using AnyUnit.Constraints;`
+(the last covers `TestDelegate`; the first covers `AssertionException`,
+`IgnoreException` and `[RequiresCapability]`), and a fixture class needs
+to derive `AssertionHelper` for its `Assert`/`Log` to resolve.
+
+Before 1.3.0 that first `using` was `using AnyUnit.Run;` and
+`AnyUnit.AssertionException` had to be written out in full, because the
+`AnyUnit` namespace also held the core's own `[Test]`/`[TestFixture]`/
+`AssertionHelper` and importing it made all three ambiguous. Those moved
+to `AnyUnit.Style.Core` in 1.3.0 (#66); on 1.2.x, `using AssertionException
+= AnyUnit.AssertionException;` gets the short name back without the
+upgrade. Once it does, `Assert.That(...)` and every other call
 inside an ordinary test method carries over completely unchanged - it's
 just resolving to that instance now, the same identifier either way.
 The one real, load-bearing difference (AnyUnit's `Assert` is an instance

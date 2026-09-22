@@ -48,14 +48,14 @@ type Test =
     | TestList of name: string * tests: Test list * pending: bool
     /// AnyUnit's own addition, with no Expecto counterpart: everything
     /// beneath this needs a runtime facility the platform may not have
-    /// (see AnyUnit.Run.TestCapabilities), and is reported Ignored where
+    /// (see AnyUnit.TestCapabilities), and is reported Ignored where
     /// it is missing rather than failing for an unrelated reason.
     ///
     /// It exists as a TREE NODE because this style has nowhere to put
     /// [RequiresCapability]: an attribute needs a method or a class to
     /// sit on, and a test here is a value in a list. The combinator is
     /// the value-based equivalent - see Builders.requires.
-    | TestRequires of capability: AnyUnit.Run.TestCapabilities * test: Test
+    | TestRequires of capability: AnyUnit.TestCapabilities * test: Test
 
 /// Marks a `let` binding as a suite root, the same as Expecto's own
 /// `[<Tests>]`.

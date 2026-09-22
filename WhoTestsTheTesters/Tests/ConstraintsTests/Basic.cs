@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using AnyUnit;
 using AnyUnit.Constraints;
+using AnyUnit.Run;
+using AnyUnit.Style.Core;
 
 namespace ConstraintsTests
 {

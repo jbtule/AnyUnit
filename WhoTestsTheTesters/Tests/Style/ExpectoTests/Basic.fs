@@ -189,7 +189,7 @@ let asyncTests =
         // style has no method to attach that to, so it composes into the
         // tree instead. Reported Ignored on browser-wasm, and runs
         // normally everywhere else.
-        requires AnyUnit.Run.TestCapabilities.AsyncYield (
+        requires AnyUnit.TestCapabilities.AsyncYield (
             testCaseAsync "genuinelySuspends_Success" <| async {
                 do! Async.Sleep 1
                 Expect.isTrue true "resumes on a platform that can yield"

@@ -21,6 +21,7 @@ using System.Text;
 using AnyUnit.Run;
 using System.Reflection;
 using AnyUnit.Util;
+using AnyUnit.Run.Attributes;
 
 namespace AnyUnit.Style.Xunit
 {

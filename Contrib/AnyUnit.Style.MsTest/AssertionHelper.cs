@@ -57,7 +57,7 @@ namespace AnyUnit.Style.MsTest
     /// instance is constructed (AnyUnit/Run/Test.cs), so anything captured
     /// in a constructor or a readonly field would capture null.
     /// </summary>
-    public class AssertionHelper : AnyUnit.AssertionHelper
+    public class AssertionHelper : AnyUnit.Run.AssertionHelper
     {
         /// <summary>
         /// Stand-in for MSTest's static StringAssert class.

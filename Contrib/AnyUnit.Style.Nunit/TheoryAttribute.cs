@@ -16,6 +16,7 @@
 using System;
 using System.Linq;
 using AnyUnit.Run;
+using AnyUnit.Run.Attributes;
 
 namespace AnyUnit.Style.Nunit
 {

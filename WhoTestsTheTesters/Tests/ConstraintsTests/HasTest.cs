@@ -6,6 +6,7 @@ using AnyUnit;
 using AnyUnit.Constraints;
 using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Style.Core;
 
 namespace ConstraintsTests
 {

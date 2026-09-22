@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using AnyUnit;
+using AnyUnit.Run;
+using AnyUnit.Style.Core;
 
 namespace BasicTests
 {

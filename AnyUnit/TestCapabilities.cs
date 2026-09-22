@@ -16,7 +16,7 @@
 using System;
 using AnyUnit.Util;
 
-namespace AnyUnit.Run
+namespace AnyUnit
 {
     /// <summary>
     /// Runtime facilities a test may need in order to be meaningful, and
@@ -111,36 +111,5 @@ namespace AnyUnit.Run
         /// question of one arbitrary type.
         /// </remarks>
         FrameworkReflection = 8,
-    }
-
-    /// <summary>
-    /// What the platform this process is running on actually provides.
-    /// </summary>
-    public static class PlatformCapabilities
-    {
-        /// <summary>
-        /// Capabilities available here. Computed once, from the same
-        /// single-threaded-runtime probe Test.Run and AsyncTestResult
-        /// already branch on, so the three cannot disagree about what this
-        /// platform can do; and from the trimmed-framework probe for
-        /// <see cref="TestCapabilities.FrameworkReflection"/>.
-        /// </summary>
-        public static readonly TestCapabilities Available =
-            (Utility.IsSingleThreadedRuntime
-                ? TestCapabilities.None
-                : TestCapabilities.AsyncYield | TestCapabilities.Timeouts | TestCapabilities.Threads)
-            | (Utility.IsFrameworkTrimmed
-                ? TestCapabilities.None
-                : TestCapabilities.FrameworkReflection);
-
-        /// <summary>
-        /// The subset of <paramref name="required"/> this platform does not
-        /// provide - <see cref="TestCapabilities.None"/> when it provides
-        /// all of them.
-        /// </summary>
-        public static TestCapabilities Missing(TestCapabilities required)
-        {
-            return required & ~Available;
-        }
     }
 }

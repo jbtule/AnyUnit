@@ -24,10 +24,8 @@ using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 using AnyUnit.Compat.NetStandardV1;
 
-namespace AnyUnit
+namespace AnyUnit.Style.Core
 {
-    public delegate IEnumerable<Fixture> FixtureGenerator(Assembly assembly);
-
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public class TestFixtureDiscoveryAttribute:TestFixtureDiscoveryAttributeBase
     {

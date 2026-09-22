@@ -22,13 +22,8 @@ using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 using AnyUnit.Compat.NetStandardV1;
 
-namespace AnyUnit
+namespace AnyUnit.Style.Core
 {
-    public delegate IEnumerable<ParameterSet> FixtureParameterSetProducer(Type type);
-
-    public delegate object FixtureInitializer(Type type, object[] args);
-
-
     public class TestFixtureAttribute : TestFixtureAttributeBase
     {
         public TestFixtureAttribute()
