@@ -32,8 +32,15 @@ but narrow case, not something ordinary test methods ever run into.
 - `[Values]` / `[ValueSource]` / `[Range]` / `[Random]`
 - `[Ignore]`, `[Category]`, `[Property]`, `[Author]`, `[Description]`, `[Platform]`, `[Timeout]`
 - `ITestAction` (method/fixture-level before/after hooks)
-- `Assert.That`/`Assert.AreEqual`/classic-model asserts, `Is`/`Has`/`Does`/
-  `Throws` constraints (via [`AnyUnit.Constraints`](../AnyUnit.Constraints))
+- `Assert.That` and the `Is`/`Has`/`Does`/`Throws` constraints (via
+  [`AnyUnit.Constraints`](../AnyUnit.Constraints)), and the classic
+  model over the same constraints: `AreEqual`, `AreNotEqual`, `AreSame`,
+  `AreNotSame`, `IsTrue`, `IsFalse`, `IsNull`, `IsNotNull`, `NotNull`,
+  `Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual`, `Zero`, `NotZero`,
+  `IsInstanceOf<T>`, `IsNotInstanceOf<T>`, `IsEmpty`, `IsNotEmpty`,
+  `Contains`, `Throws<T>`, `Catch<T>`, `DoesNotThrow`, `Pass`.
+  `AreEqual` is NUnit's equality, so `AreEqual(1, 1L)` passes; `Throws<T>`
+  returns the caught exception to assert on
 
 ## Not covered
 

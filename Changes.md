@@ -11,6 +11,20 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ### 1.2.3 - in development
 
+- `AnyUnit.Style.Nunit` gains NUnit's *classic* assertion model -
+  `AreEqual`, `AreNotEqual`, `AreSame`, `AreNotSame`, `IsTrue`/`True`,
+  `IsFalse`/`False`, `IsNull`/`Null`, `IsNotNull`/`NotNull`, `Greater`,
+  `GreaterOrEqual`, `Less`, `LessOrEqual`, `Zero`, `NotZero`,
+  `IsInstanceOf<T>`, `IsNotInstanceOf<T>`, `IsEmpty`, `IsNotEmpty`,
+  `Contains`, `Throws<T>`, `Throws`, `Catch<T>`, `Catch`, `DoesNotThrow`,
+  `Pass` - as extension methods on `IAssert`, so an existing suite
+  written against it compiles unchanged inside an `AssertionHelper`
+  fixture (and reads `Assert.Current.AreEqual(...)` outside one).
+  Equality is NUnit's, through `Is.EqualTo` and `NUnitEqualityComparer`,
+  so `AreEqual(1, 1L)` passes as it does in NUnit; `Throws<T>` returns
+  the caught exception. The README listed these as covered before they
+  existed.
+
 - `dotnet run` on a browser-wasm test project runs the tests under bun
   (or node) through its JS harness instead of launching the wasm SDK's
   dev server and a browser. `dotnet test` cannot follow (it needs a
