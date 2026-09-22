@@ -9,7 +9,13 @@ ordinary "what changed in this version" question the eras don't answer.
 
 ## Releases
 
-### 1.2.3 - in development
+### 1.3.0 - in development
+
+Native AOT is the theme: an `EnableAnyUnitRunner` project can publish as
+a native executable, and every style package is trim-clean, which is
+also how several long-standing bugs in them were found. Two new
+`TestCapabilities` members and a changed `dotnet test` default for
+browser-wasm projects make this a minor rather than a patch.
 
 - `TestDelegate` and `ActualValueDelegate` move from
   `AnyUnit.Constraints.Pieces` up to `AnyUnit.Constraints`. Both are
