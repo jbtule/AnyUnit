@@ -2,6 +2,7 @@
 namespace FsUnitTests
 
 open AnyUnit
+open AnyUnit.Style.Core
 open AnyUnit.Style.FsUnit
 
 [<TestFixture>]

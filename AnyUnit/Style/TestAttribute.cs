@@ -22,12 +22,23 @@ using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 using AnyUnit.Compat.NetStandardV1;
 
-namespace AnyUnit
+namespace AnyUnit.Style.Core
 {
-    public delegate IEnumerable<ParameterSet> TestParameterSetProducer(MethodInfo method);
-
-    public delegate object TestInvoker(IAssertionHelper assetHelper, MethodInfo method, object target, object[] args);
-
+    /// <summary>
+    /// The core's own built-in attribute style - a style like
+    /// AnyUnit.Style.Nunit or AnyUnit.Style.Xunit, not a layer beneath
+    /// them. It is what AnyUnit.Style.FsUnit (assertions only, no
+    /// attributes of its own) pairs with when NUnit's are not wanted.
+    /// </summary>
+    /// <remarks>
+    /// In its own namespace since #66. It used to sit in the AnyUnit root
+    /// alongside AssertionException and the other types a test file
+    /// names, under exactly the simple names three other styles export -
+    /// so `using AnyUnit;` in a test file was CS0104, and in F#, which
+    /// has no CS0104, `open AnyUnit` after a style's own `open` silently
+    /// resolved [Test]/[TestFixture] here instead, which silently stopped
+    /// that style's [SetUp]/[TearDown] running.
+    /// </remarks>
     public class TestAttribute : TestAttributeBase
     {
         public TestAttribute()

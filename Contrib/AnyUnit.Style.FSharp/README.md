@@ -29,6 +29,30 @@ Reach for `test { }` when the test being a value is the point:
 - **The log as a value** - `let! log = log` alongside `let! Assert =
   assertion`, both from the same running test.
 
+
+## F#: `open` order matters
+
+F# has no C# `CS0104`. When two opened namespaces export the same simple
+name the **last `open` wins, silently** - no error, no warning. Put the
+style's `open` where it will not be shadowed:
+
+```fsharp
+open AnyUnit                // exceptions, TestCapabilities, [<RequiresCapability>]
+open AnyUnit.Constraints
+open AnyUnit.Style.Nunit    // the attribute style - LAST
+```
+
+Opening two *attribute* styles at once (`AnyUnit.Style.Nunit` and
+`AnyUnit.Style.Core`, say, or `.Nunit` and `.MsTest`, which all export an
+`AssertionHelper`) is the case to avoid: whichever comes last provides
+`[<Test>]`/`[<TestFixture>]`, and since each style's own
+`TestAttribute.TestInvoke` is what dispatches that style's `[<SetUp>]`/
+`[<TearDown>]`/`[<Ignore>]`, picking up the wrong one stops a fixture's
+setup and teardown running with nothing to say so. Before 1.3.0 this
+could happen by accident, because the core's built-in style shared the
+`AnyUnit` namespace with the exception types; it now lives in
+`AnyUnit.Style.Core` (#66). `ComboTests.FSharp/OpenOrder.fs` pins it.
+
 ## Usage
 
 ```fsharp

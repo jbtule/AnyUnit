@@ -21,14 +21,30 @@ browser-wasm.
   `FixtureInit`, ...) that let a style plug its own row-data/generator
   attributes and invocation behavior into one shared discovery/execution
   pipeline.
-- `AssertionHelper` / `IAssert` / `AssertionException` - the base a style's
-  own assertion class derives from, and the exception types
-  (`AssertionException`, `IgnoreException`) that drive a test's
+- `AnyUnit.Run.AssertionHelper` / `IAssert` / `AssertionException` - the
+  base a style's own assertion class derives from, and the exception
+  types (`AssertionException`, `IgnoreException`) that drive a test's
   pass/fail/ignore outcome.
 - `Runner` / `Fixture` / `Test` / `ParameterSet` / `Result` - the engine:
   `Runner.Create(platform, assemblies)` discovers fixtures and builds a
   `Test` per parameter-set combination; `RunAll` executes them and reports
   a `Result` (`Success`/`Fail`/`Error`/`Ignore`/`NoError`) for each.
+
+## Which namespace
+
+Since 1.3.0 (#66) the split is by audience, not by layer:
+
+| namespace | for |
+| --- | --- |
+| `AnyUnit` | what a test file names: `AssertionException`, `IgnoreException`, `ResultException`, `IAssert`, `ILog`, `ParameterSet`, `TestCapabilities`, `[RequiresCapability]`. Safe to import alongside any style. |
+| `AnyUnit.Style.Core` | this package's own built-in attribute style: `[Test]`, `[TestFixture]`, `[assembly: TestFixtureDiscovery]`. A style like `AnyUnit.Style.Nunit` is, not a layer beneath it - import one or the other, not both. |
+| `AnyUnit.Run` | the engine, and the extension points a *style package* derives: `AssertionHelper`, `IAssertionHelper`, `Runner`, `Fixture`, `Test`, `Result`. An ordinary test file does not need this. |
+| `AnyUnit.Run.Attributes` | what a style's attributes derive and the hook delegates they return. |
+
+The root used to hold the built-in style too, which is why `using
+AnyUnit;` was unusable from a test file and why an F# file could
+silently pick up the wrong `[<Test>]` - see `Changes.md` for the whole
+story.
 
 ## Asynchronous tests
 

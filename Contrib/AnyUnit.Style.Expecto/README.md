@@ -191,7 +191,7 @@ style has no method or class to attach an attribute to, so the
 requirement composes into the tree instead:
 
 ```fsharp
-requires AnyUnit.Run.TestCapabilities.AsyncYield (
+requires AnyUnit.TestCapabilities.AsyncYield (
     testCaseAsync "genuinely suspends" <| async {
         do! Async.Sleep 1
         Expect.isTrue true "resumes where the platform can yield"

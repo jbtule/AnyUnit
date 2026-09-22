@@ -146,8 +146,9 @@ rather download one directly than install it.
 
 - **`AnyUnit`** - the core library every style and runner depends on:
   attribute base classes (`TestAttributeBase`, `TestFixtureAttributeBase`,
-  ...), `AssertionHelper`/`IAssert`, and the actual discovery/execution
-  engine (`Runner`, `Fixture`, `Test`, `ParameterSet`).
+  ...), `AnyUnit.Run.AssertionHelper`/`IAssert`, the actual discovery/
+  execution engine (`Runner`, `Fixture`, `Test`, `ParameterSet`), and its
+  own built-in attribute style in `AnyUnit.Style.Core`.
 - **`Contrib`** - the style packages (`AnyUnit.Constraints`,
   `AnyUnit.Style.Nunit`, `AnyUnit.Style.Xunit`, `AnyUnit.Style.MsTest`,
   `AnyUnit.Style.FSharp`, `AnyUnit.Style.FsUnit`) - each one gets close enough to a specific,

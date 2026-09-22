@@ -18,7 +18,7 @@ namespace AnyUnit.Style.Nunit
     /// <see cref="IAssert"/>, so that an existing suite's call sites compile unchanged.
     /// </summary>
     /// <remarks>
-    /// Inside a fixture deriving from <see cref="AnyUnit.AssertionHelper"/>, <c>Assert</c> is the
+    /// Inside a fixture deriving from <see cref="AnyUnit.Run.AssertionHelper"/>, <c>Assert</c> is the
     /// injected instance property and <c>Assert.AreEqual(a, b)</c> reads exactly as it did against
     /// NUnit's static class. Elsewhere — a fixture with no base class, an F# module-level test —
     /// spell it <c>Assert.Current.AreEqual(a, b)</c>.

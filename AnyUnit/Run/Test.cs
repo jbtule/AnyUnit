@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using AnyUnit.Run.Attributes;
 using AnyUnit.Util;
 using AnyUnit.Compat.NetStandardV1;
 

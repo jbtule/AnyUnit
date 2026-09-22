@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AnyUnit;
 using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Style.Core;
 
 namespace BasicTests
 {

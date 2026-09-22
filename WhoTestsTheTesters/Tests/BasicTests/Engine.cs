@@ -5,6 +5,7 @@ using System.Reflection;
 using AnyUnit;
 using AnyUnit.Run;
 using AnyUnit.Run.Attributes;
+using AnyUnit.Style.Core;
 
 // Engine paths no other self-test reached, each used here the way a
 // consumer would use it (this is still a real test assembly run through

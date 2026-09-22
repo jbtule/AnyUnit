@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text;
 using AnyUnit;
 using AnyUnit.Constraints;
+using AnyUnit.Run;
+using AnyUnit.Style.Core;
 namespace ConstraintsTests
 {
     [TestFixture]

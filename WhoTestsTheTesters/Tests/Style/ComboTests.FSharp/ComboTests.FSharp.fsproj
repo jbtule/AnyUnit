@@ -24,6 +24,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="RicherGenerators.fs" />
+    <Compile Include="OpenOrder.fs" />
   </ItemGroup>
 
   <ItemGroup>

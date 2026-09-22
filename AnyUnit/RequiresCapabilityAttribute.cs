@@ -15,7 +15,7 @@
 
 using System;
 
-namespace AnyUnit.Run.Attributes
+namespace AnyUnit
 {
     /// <summary>
     /// Declares that a test (or every test in a fixture) needs a runtime

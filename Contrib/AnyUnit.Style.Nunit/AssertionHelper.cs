@@ -13,7 +13,7 @@ using AnyUnit.Constraints;
 
 namespace AnyUnit.Style.Nunit
 {
-    public class AssertionHelper:AnyUnit.AssertionHelper
+    public class AssertionHelper:AnyUnit.Run.AssertionHelper
     {       
         
 

@@ -16,37 +16,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace AnyUnit
+namespace AnyUnit.Run
 {
-
-
-    public interface IAssert
-    {
-        int AssertCount { get; }
-        void Fail(string message = null, IEnumerable<string> excludedFromStackTrace = null);
-        void Fail(AssertionException assertion);
-        void Okay();
-        void Ignore(string message = null);
-        void True(bool actual, string message = null);
-        void False(bool actual, string message = null);
-
-        [Obsolete("Built in Equals Do Not Call", error:true)]
-        bool Equals(object obj);
-
-      
-    }
-
-
-
-    public interface ILog
-    {
-        void Indent();
-        void UnIndent();
-        void Write(string format, params object[] args);
-        void WriteLine(string format, params object[] args);
-        string ToString();
-    }
-
+    /// <summary>
+    /// The seam the engine injects a running test's <see cref="IAssert"/>
+    /// and <see cref="ILog"/> through - see Run/Test.cs, which tests a
+    /// fixture for this interface and sets both before invoking it.
+    /// </summary>
     public interface IAssertionHelper
     {
         ILog Log { get; set; }
@@ -54,6 +30,18 @@ namespace AnyUnit
     }
 
 
+    /// <summary>
+    /// The base a style's own assertion class derives from
+    /// (AnyUnit.Style.Nunit.AssertionHelper, AnyUnit.Style.MsTest's,
+    /// AnyUnit.Style.FsUnit's, AnyUnit.Style.Xunit.TestClass).
+    /// </summary>
+    /// <remarks>
+    /// Here rather than in the AnyUnit root because three style packages
+    /// export a class of this very name: with both namespaces imported,
+    /// C# reported CS0104 and F# silently resolved to whichever was opened
+    /// last (#66). AnyUnit.Run is already what a style package imports and
+    /// what no ordinary test file needs to.
+    /// </remarks>
     public class AssertionHelper:IAssertionHelper
     {
         public ILog Log { get; set; }

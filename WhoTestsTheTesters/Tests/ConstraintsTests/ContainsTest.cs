@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using AnyUnit;
 using AnyUnit.Constraints;
+using AnyUnit.Run;
+using AnyUnit.Style.Core;
 
 namespace ConstraintsTests
 {

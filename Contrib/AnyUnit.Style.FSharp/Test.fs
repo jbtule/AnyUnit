@@ -17,6 +17,7 @@ module AnyUnit.Style.FSharp.Test
 
 open System
 open AnyUnit
+open AnyUnit.Run
 
 /// The computation a test body runs as: a function from the shared
 /// per-test assertion/log context (the same IAssertionHelper AnyUnit's

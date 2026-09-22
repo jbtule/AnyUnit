@@ -26,7 +26,13 @@ using AnyUnit.Compat.NetStandardV1;
 namespace AnyUnit.Run
 {
 
-    internal class DefaultDiscovery : TestFixtureDiscoveryAttribute
+    // The engine's own fallback discovery: derives the BASE attribute
+    // directly, not the built-in style's TestFixtureDiscoveryAttribute it
+    // used to. The engine has no business depending on a style, and since
+    // #66 that style is a separate namespace (AnyUnit.Style.Core) - this
+    // overrides Generator outright, so the style's parameter-source
+    // machinery was never reached anyway.
+    internal class DefaultDiscovery : TestFixtureDiscoveryAttributeBase
     {
         public override FixtureGenerator Generator
         {

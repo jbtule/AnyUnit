@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AnyUnit.Run;
-using AnyUnit.Run.Attributes;
+using AnyUnit;
 using AnyUnit.Style.Xunit;
 
 namespace XunitTests

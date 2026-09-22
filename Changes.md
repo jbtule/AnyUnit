@@ -17,6 +17,75 @@ also how several long-standing bugs in them were found. Two new
 `TestCapabilities` members and a changed `dotnet test` default for
 browser-wasm projects make this a minor rather than a patch.
 
+- **Namespace reshuffle (#66).** The `AnyUnit` root held two unrelated
+  things at once: the types a test author names, and the core's own
+  built-in attribute style - `TestAttribute`, `TestFixtureAttribute`,
+  `AssertionHelper` - under exactly the simple names `AnyUnit.Style.
+  Nunit`, `.MsTest` and `.FsUnit` export. So `using AnyUnit;` in a test
+  file was unusable (CS0104 on `[Test]`, `[TestFixture]`,
+  `AssertionHelper`), and `AnyUnit.AssertionException` - a type a test
+  helper legitimately catches - had to be written out in full forever.
+
+  In F# it was worse than unusable, because F# has no CS0104: the last
+  `open` wins, silently. `open AnyUnit` after a style's `open` resolved
+  `[<Test>]` and `[<TestFixture>]` to the CORE's attributes with no error
+  and no warning - and since `[<SetUp>]`, `[<TearDown>]`, `[<Ignore>]`,
+  `[<Platform>]` and `ITestAction` are dispatched by
+  `AnyUnit.Style.Nunit.TestAttribute.TestInvoke` (and constructor args /
+  `[<OneTimeSetUp>]` / `[<OneTimeTearDown>]` by that style's
+  `TestFixtureAttribute`), which the core's attributes do not override,
+  the shadowing silently stopped a fixture's setup and teardown from
+  running. Verified by execution, and pinned by
+  `ComboTests.FSharp/OpenOrder.fs`, which is written in that hazard order
+  on purpose. That bug, not tidiness, is what this change is for.
+
+  What moved:
+
+  | type | from | to |
+  | --- | --- | --- |
+  | `TestAttribute`, `TestFixtureAttribute`, `TestFixtureDiscoveryAttribute` | `AnyUnit` | `AnyUnit.Style.Core` |
+  | `AssertionHelper`, `IAssertionHelper` | `AnyUnit` | `AnyUnit.Run` |
+  | `TestInvoker`, `TestParameterSetProducer`, `FixtureParameterSetProducer`, `FixtureInitializer`, `FixtureGenerator` | `AnyUnit` | `AnyUnit.Run.Attributes` |
+  | `TestCapabilities` | `AnyUnit.Run` | `AnyUnit` |
+  | `RequiresCapabilityAttribute` | `AnyUnit.Run.Attributes` | `AnyUnit` |
+
+  The built-in style is now a style like any other, in
+  `AnyUnit.Style.Core`. `AnyUnit` is left with only what test code names:
+  `AssertionException`, `IgnoreException`, `ResultException`, `IAssert`,
+  `ILog`, `ParameterSet`, `TestCapabilities`,
+  `RequiresCapabilityAttribute`. The last two moving *in* is not
+  cosmetic - they were the only author-facing names in `AnyUnit.Run`, and
+  without them a fixture still had to import `AnyUnit.Run`, which is
+  where `AssertionHelper` now lives, which would have recreated the exact
+  collision in a new namespace.
+
+  The recipe is now three usings and no qualified name:
+  `using AnyUnit; using AnyUnit.Constraints; using AnyUnit.Style.Nunit;`
+  and `catch (AssertionException)` resolves.
+
+  **Breaking, at both source and binary level.** A namespace move inside
+  a single assembly cannot be softened with `[TypeForwardedTo]` (that
+  forwards across assemblies, not across namespaces), so there is no
+  compatibility shim: a test assembly compiled against 1.2.x will not
+  load against 1.3.0 and has to be recompiled. What a consumer does:
+
+  - **On a style package** (`AnyUnit.Style.Nunit`, `.Xunit`, `.MsTest`,
+    `.FsUnit`, `.FSharp`, `.Expecto`): nothing. Their `using AnyUnit;`
+    *starts* working. If they imported `AnyUnit.Run` for
+    `[RequiresCapability]`/`TestCapabilities`, that becomes
+    `using AnyUnit;`.
+  - **On the built-in style** (`[Test]`/`[TestFixture]` out of
+    `using AnyUnit;`): one mechanical swap, add
+    `using AnyUnit.Style.Core;` / `open AnyUnit.Style.Core`.
+  - **Writing a style package** (deriving `AssertionHelper`, or naming
+    one of the five hook delegates): add `using AnyUnit.Run;` /
+    `using AnyUnit.Run.Attributes;`.
+
+  Staying on 1.2.x and just want the unqualified exception? A type alias
+  does it today with no upgrade: `using AssertionException =
+  AnyUnit.AssertionException;`. An alias beats a using-directive, so the
+  same trick disambiguates `Test`/`TestFixture`/`AssertionHelper` too.
+
 - `TestDelegate` and `ActualValueDelegate` move from
   `AnyUnit.Constraints.Pieces` up to `AnyUnit.Constraints`. Both are
   named in test code - `Assert.That(code, Throws...)`, `Assert.Throws<T>`

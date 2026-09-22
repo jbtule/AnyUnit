@@ -16,7 +16,9 @@ AnyUnit's own Apache-2.0 header and there is no `License.txt` here.
 Usually a `PackageReference` swap plus two edits per file:
 
 1. `using Microsoft.VisualStudio.TestTools.UnitTesting;` becomes
-   `using AnyUnit.Style.MsTest;`
+   `using AnyUnit.Style.MsTest;` (plus `using AnyUnit;` for
+   `AssertionException`/`IgnoreException`/`[RequiresCapability]` - safe
+   to import alongside a style since 1.3.0, see #66)
 2. Each `[TestClass]` must derive from `AssertionHelper`:
 
 ```csharp

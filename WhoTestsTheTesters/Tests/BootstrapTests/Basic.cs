@@ -1,6 +1,7 @@
 using System;
 using AnyUnit;
 using AnyUnit.Run;
+using AnyUnit.Style.Core;
 
 namespace BootstrapTests
 {
