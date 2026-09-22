@@ -77,11 +77,16 @@
     (Which is exactly what had gone stale: v1.1.0 was cut while this
     still said 1.1, so untagged master read as 1.1.1-alpha.<height> -
     the same "claiming a patch release" failure mode described above,
-    one release later. Now 1.2, for the 1.2 targets.)
+    one release later. Then 1.2, for the 1.2 targets; now 1.3, since
+    the work since v1.2.2 adds public API - two TestCapabilities
+    members, the NUnit classic asserts - and changes a default that
+    consumers see, browser-wasm test projects being IsTestProject=false.
+    Changes.md's in-development section is the matching declaration and
+    moves with this.)
   -->
   <PropertyGroup>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>1.3</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
   <!--
